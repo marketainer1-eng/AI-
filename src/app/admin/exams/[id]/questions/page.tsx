@@ -1,0 +1,36 @@
+import { notFound } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import AdminQuestionsClient from '@/components/admin/AdminQuestionsClient'
+import type { ExamRow, QuestionRow } from '@/types'
+
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function AdminExamQuestionsPage({ params }: PageProps) {
+  const { id: examId } = await params
+  const supabase = await createClient()
+
+  // 시험 정보 조회
+  const { data: exam } = await (supabase as any)
+    .from('exams')
+    .select('*')
+    .eq('id', examId)
+    .single()
+
+  if (!exam) notFound()
+
+  // 문제 목록 조회
+  const { data: questions } = await (supabase as any)
+    .from('questions')
+    .select('*')
+    .eq('exam_id', examId)
+    .order('order_num', { ascending: true })
+
+  return (
+    <AdminQuestionsClient
+      exam={exam as ExamRow}
+      questions={(questions ?? []) as QuestionRow[]}
+    />
+  )
+}
