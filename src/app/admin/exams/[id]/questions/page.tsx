@@ -7,15 +7,15 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
-export default async function AdminExamQuestionsPage({ params }: PageProps) {
-  const { id: examId } = await params
+export default async function AdminQuestionsPage({ params }: PageProps) {
+  const { id } = await params
   const supabase = await createClient()
 
   // 시험 정보 조회
-  const { data: exam } = await (supabase as any)
+  const { data: exam } = await supabase
     .from('exams')
     .select('*')
-    .eq('id', examId)
+    .eq('id', id)
     .single()
 
   if (!exam) notFound()
@@ -24,7 +24,7 @@ export default async function AdminExamQuestionsPage({ params }: PageProps) {
   const { data: questions } = await (supabase as any)
     .from('questions')
     .select('*')
-    .eq('exam_id', examId)
+    .eq('exam_id', id)
     .order('order_num', { ascending: true })
 
   return (

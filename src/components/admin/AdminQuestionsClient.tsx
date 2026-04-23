@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import QuestionFormModal from './QuestionFormModal'
 import { deleteQuestionAction } from '@/app/actions/admin'
 import type { QuestionRow, ExamRow } from '@/types'
@@ -11,16 +12,16 @@ interface AdminQuestionsClientProps {
   questions: QuestionRow[]
 }
 
-const Q_TYPE_LABEL: Record<QuestionRow['question_type'], string> = {
+const TYPE_LABEL: Record<string, string> = {
   multiple_choice: '객관식',
-  true_false: 'O/X',
-  short_answer: '단답형',
+  true_false:      'O/X',
+  short_answer:    '단답형',
 }
 
-const Q_TYPE_COLOR: Record<QuestionRow['question_type'], string> = {
-  multiple_choice: 'bg-indigo-50 text-indigo-700',
-  true_false: 'bg-blue-50 text-blue-700',
-  short_answer: 'bg-amber-50 text-amber-700',
+const TYPE_COLOR: Record<string, string> = {
+  multiple_choice: 'bg-blue-100 text-blue-700',
+  true_false:      'bg-orange-100 text-orange-700',
+  short_answer:    'bg-teal-100 text-teal-700',
 }
 
 export default function AdminQuestionsClient({
@@ -33,9 +34,16 @@ export default function AdminQuestionsClient({
   const [editQuestion, setEditQuestion] = useState<QuestionRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const totalScore = questions.reduce((s, q) => s + (q.score_weight ?? 1), 0)
+  // 총 배점 계산
+  const totalScore = questions
+    .filter((q) => q.is_active)
+    .reduce((sum, q) => sum + q.score_weight, 0)
+
+  const handleDelete = (q: QuestionRow) => {
+    setDeleteError(null)
+    setDeleteTarget(q)
+  }
 
   const confirmDelete = () => {
     if (!deleteTarget) return
@@ -52,23 +60,26 @@ export default function AdminQuestionsClient({
 
   return (
     <div className="space-y-6">
+      {/* 상단 네비게이션 */}
+      <div className="flex items-center gap-2 text-sm text-gray-500">
+        <Link href="/admin/exams" className="hover:text-indigo-600 transition-colors">
+          시험 관리
+        </Link>
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+        <span className="text-gray-900 font-medium truncate">{exam.title}</span>
+      </div>
+
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <a
-              href="/admin/exams"
-              className="text-sm text-gray-400 hover:text-indigo-600 transition-colors"
-            >
-              ← 시험 목록
-            </a>
-          </div>
           <h1 className="text-2xl font-bold text-gray-900">문제 관리</h1>
-          <p className="text-gray-500 text-sm mt-0.5 truncate max-w-md">{exam.title}</p>
+          <p className="text-gray-500 text-sm mt-1">{exam.title}</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+          className="shrink-0 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -77,32 +88,29 @@ export default function AdminQuestionsClient({
         </button>
       </div>
 
-      {/* 요약 카드 */}
-      <div className="grid grid-cols-3 gap-4">
-        <SummaryCard
-          label="총 문제 수"
-          value={`${questions.length}문제`}
-          icon="📝"
-          color="bg-indigo-50"
+      {/* 시험 요약 */}
+      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+        <SummaryCell label="전체 문제" value={`${questions.length}문항`} />
+        <SummaryCell
+          label="활성 문제"
+          value={`${questions.filter((q) => q.is_active).length}문항`}
         />
-        <SummaryCard
+        <SummaryCell
           label="총 배점"
           value={`${totalScore}점`}
-          icon="🎯"
-          color="bg-green-50"
+          valueClass="text-indigo-700 font-bold"
         />
-        <SummaryCard
+        <SummaryCell
           label="합격 기준"
-          value={`${exam.passing_score}점 이상`}
-          icon="✅"
-          color="bg-amber-50"
+          value={`${exam.passing_score}점`}
+          valueClass="text-green-700 font-bold"
         />
       </div>
 
       {/* 문제 목록 */}
       {questions.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
-          <div className="text-4xl mb-3">❓</div>
+          <div className="text-4xl mb-3">📝</div>
           <p className="text-gray-400 text-sm">등록된 문제가 없습니다.</p>
           <button
             onClick={() => setShowCreateModal(true)}
@@ -113,114 +121,101 @@ export default function AdminQuestionsClient({
         </div>
       ) : (
         <div className="space-y-3">
-          {questions.map((q, idx) => {
-            const isExpanded = expandedId === q.id
-            return (
-              <div
-                key={q.id}
-                className={`bg-white rounded-xl border transition-all ${
-                  isExpanded ? 'border-indigo-300 shadow-sm' : 'border-gray-200'
-                } ${!q.is_active ? 'opacity-60' : ''}`}
-              >
-                {/* 문제 헤더 (클릭 시 토글) */}
-                <div
-                  className="flex items-start gap-4 px-5 py-4 cursor-pointer"
-                  onClick={() => setExpandedId(isExpanded ? null : q.id)}
-                >
-                  {/* 번호 */}
-                  <div className="shrink-0 w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">
+          {questions.map((q, idx) => (
+            <div
+              key={q.id}
+              className={`bg-white rounded-xl border transition-colors p-5 ${
+                q.is_active
+                  ? 'border-gray-200 hover:border-indigo-200'
+                  : 'border-dashed border-gray-200 opacity-50'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-4">
+                {/* 번호 + 유형 */}
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="shrink-0 w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
                     {idx + 1}
                   </div>
-
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${Q_TYPE_COLOR[q.question_type]}`}>
-                        {Q_TYPE_LABEL[q.question_type]}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          TYPE_COLOR[q.question_type] ?? 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {TYPE_LABEL[q.question_type] ?? q.question_type}
                       </span>
-                      <span className="text-[10px] text-gray-400">{q.score_weight}점</span>
+                      <span className="text-xs text-gray-400">{q.score_weight}점</span>
                       {!q.is_active && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-gray-100 text-gray-400">
+                        <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
                           비활성
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-800 font-medium leading-snug">
+                    <p className="text-sm font-medium text-gray-800 whitespace-pre-wrap">
                       {q.question_text}
                     </p>
-                  </div>
 
-                  <div className="flex items-center gap-1 shrink-0 ml-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setEditQuestion(q) }}
-                      className="px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      수정
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(q); setDeleteError(null) }}
-                      className="px-2.5 py-1 text-xs text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      삭제
-                    </button>
-                    <svg
-                      className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                      fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* 펼침 영역 */}
-                {isExpanded && (
-                  <div className="px-5 pb-5 space-y-3 border-t border-gray-50 pt-4">
                     {/* 보기 */}
                     {q.options && q.options.length > 0 && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-2">보기</p>
-                        <ol className="space-y-1">
-                          {q.options.map((opt, i) => (
-                            <li
-                              key={i}
-                              className={`flex items-start gap-2 text-sm px-3 py-1.5 rounded-lg ${
-                                opt === q.correct_answer
-                                  ? 'bg-green-50 text-green-800 font-medium'
-                                  : 'text-gray-600'
-                              }`}
-                            >
-                              <span className="shrink-0 text-xs text-gray-400 mt-0.5">{i + 1}.</span>
-                              <span>{opt}</span>
-                              {opt === q.correct_answer && (
-                                <span className="ml-auto text-xs text-green-600">✓ 정답</span>
-                              )}
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
+                      <ul className="mt-2 space-y-1">
+                        {q.options.map((opt, oi) => (
+                          <li
+                            key={oi}
+                            className={`text-xs flex items-center gap-1.5 ${
+                              opt === q.correct_answer
+                                ? 'text-green-700 font-medium'
+                                : 'text-gray-500'
+                            }`}
+                          >
+                            {opt === q.correct_answer && (
+                              <svg className="w-3.5 h-3.5 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.172l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            {opt !== q.correct_answer && (
+                              <span className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
                     )}
 
-                    {/* 정답 (객관식이 아닐 때) */}
-                    {!q.options?.length && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">정답:</span>
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-sm font-semibold rounded">
-                          {q.correct_answer}
-                        </span>
-                      </div>
+                    {/* O/X or 단답형 정답 */}
+                    {q.question_type !== 'multiple_choice' && (
+                      <p className="mt-2 text-xs text-green-700 font-medium">
+                        ✓ 정답: {q.correct_answer}
+                      </p>
                     )}
 
                     {/* 해설 */}
                     {q.explanation && (
-                      <div className="p-3 bg-amber-50 rounded-lg">
-                        <p className="text-xs font-medium text-amber-700 mb-1">해설</p>
-                        <p className="text-sm text-amber-800">{q.explanation}</p>
-                      </div>
+                      <p className="mt-2 text-xs text-gray-400 bg-gray-50 rounded-lg px-2.5 py-1.5">
+                        💡 {q.explanation}
+                      </p>
                     )}
                   </div>
-                )}
+                </div>
+
+                {/* 액션 */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setEditQuestion(q)}
+                    className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={() => handleDelete(q)}
+                    className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
-            )
-          })}
+            </div>
+          ))}
         </div>
       )}
 
@@ -254,8 +249,9 @@ export default function AdminQuestionsClient({
                 </svg>
               </div>
               <h3 className="text-base font-semibold text-gray-900">문제 삭제</h3>
-              <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                {deleteTarget.question_text}
+              <p className="text-sm text-gray-500 mt-2">
+                이 문제를 삭제하시겠습니까?<br />
+                <span className="text-xs text-red-400">삭제된 문제는 복구할 수 없습니다.</span>
               </p>
             </div>
 
@@ -293,22 +289,19 @@ export default function AdminQuestionsClient({
   )
 }
 
-function SummaryCard({
+function SummaryCell({
   label,
   value,
-  icon,
-  color,
+  valueClass,
 }: {
   label: string
   value: string
-  icon: string
-  color: string
+  valueClass?: string
 }) {
   return (
-    <div className={`rounded-xl p-4 ${color} border border-white`}>
-      <div className="text-2xl mb-1">{icon}</div>
-      <p className="text-lg font-bold text-gray-900">{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+    <div>
+      <p className="text-xs text-indigo-500 mb-0.5">{label}</p>
+      <p className={`text-lg font-semibold text-gray-800 ${valueClass ?? ''}`}>{value}</p>
     </div>
   )
 }
