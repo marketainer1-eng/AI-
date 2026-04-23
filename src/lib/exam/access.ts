@@ -1,9 +1,14 @@
 /**
  * 시험 응시 페이지 접근 제한 로직
+ * 시험 결과 공개 판정 로직
  *
- * 접근 가능 조건 (AND)
+ * 응시 접근 조건 (AND)
  *   1. 신청 상태가 'approved' 일 것
  *   2. 현재 시각이 exam_start_at ~ exam_end_at 사이일 것
+ *
+ * 결과 공개 조건
+ *   1. 신청 상태가 exam_completed / passed / failed / certificate_ready 일 것
+ *   2. exams.result_released_at 이 null 이 아니고 현재 시각 이후일 것
  */
 
 import type { ApplicationWithExam } from '@/types'
@@ -158,7 +163,7 @@ export function checkExamAccess(
 }
 
 // ─────────────────────────────────────────────────────────────
-// 헬퍼 타입 가드
+// 헬퍼 타입 가드 (응시 접근)
 // ─────────────────────────────────────────────────────────────
 
 export function isAccessGranted(result: AccessResult): result is AccessGranted {
@@ -195,4 +200,76 @@ export function calcRemainingSeconds(
 
   // 시험 종료 시각 기준 남은 시간과 duration 중 작은 값
   return Math.min(durationSec, remainByEndAt)
+}
+
+// ═════════════════════════════════════════════════════════════
+// 결과 공개 판정
+// ═════════════════════════════════════════════════════════════
+
+/** 결과 공개 상태 */
+export type ResultVisibility =
+  | 'pending_submission'  // 아직 시험을 제출하지 않은 상태
+  | 'pending_release'     // 제출 완료, 발표일 이전 (대기 중)
+  | 'released'            // 발표일 이후 → 점수/합격 여부 공개
+
+export interface ResultVisibilityInfo {
+  visibility: ResultVisibility
+  /**
+   * pending_release 일 때: 발표 예정일 (null 이면 미정)
+   * released 일 때: 실제 발표일
+   */
+  releasedAt: Date | null
+  /** pending_release 일 때: 발표까지 남은 밀리초 */
+  msUntilRelease: number | null
+}
+
+/**
+ * 신청 건의 결과 공개 여부를 판정합니다.
+ *
+ * 판정 기준:
+ *   1. 상태가 제출 완료(exam_completed / passed / failed / certificate_ready) 인가?
+ *   2. exams.result_released_at 이 설정되어 있고 now 이후인가?
+ *
+ * @param application  exam:exams 를 포함한 신청 건
+ * @param now          현재 시각 (테스트 주입용, 기본값 new Date())
+ */
+export function checkResultVisibility(
+  application: ApplicationWithExam,
+  now: Date = new Date()
+): ResultVisibilityInfo {
+  const SUBMITTED_STATUSES: ApplicationWithExam['status'][] = [
+    'exam_completed',
+    'passed',
+    'failed',
+    'certificate_ready',
+  ]
+
+  // 1. 아직 시험을 제출하지 않은 상태
+  if (!SUBMITTED_STATUSES.includes(application.status)) {
+    return {
+      visibility: 'pending_submission',
+      releasedAt: null,
+      msUntilRelease: null,
+    }
+  }
+
+  // 2. 발표일 파싱
+  const releasedAtRaw = application.exam?.result_released_at
+  const releasedAt = releasedAtRaw ? new Date(releasedAtRaw) : null
+
+  // 발표일이 설정되지 않았거나 아직 발표 전
+  if (!releasedAt || now.getTime() < releasedAt.getTime()) {
+    return {
+      visibility: 'pending_release',
+      releasedAt,
+      msUntilRelease: releasedAt ? releasedAt.getTime() - now.getTime() : null,
+    }
+  }
+
+  // 3. 발표일 이후 → 공개
+  return {
+    visibility: 'released',
+    releasedAt,
+    msUntilRelease: null,
+  }
 }
