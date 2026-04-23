@@ -91,8 +91,8 @@ def document_list(
     db = get_session()
     try:
         svc = DocumentService(db)
-        docs = svc.list_documents(case_id)
-        table = Table(title=f"Documents — Case {case_id}")
+        docs, total = svc.list_documents(case_id)
+        table = Table(title=f"Documents — Case {case_id} (total={total})")
         table.add_column("ID", style="cyan")
         table.add_column("Title")
         table.add_column("Type")

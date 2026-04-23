@@ -40,16 +40,27 @@ class RenderService:
         """
         Build {evidence_id -> rendered_number_string} based on sort_order.
         override_orders: {evidence_id: new_sort_order} from a ChangeSet reorder operation.
+
+        IMPORTANT: override values are applied as a pure in-memory computation —
+        the ORM entity's sort_order field is NEVER mutated, preventing accidental
+        flush of changes to the DB (which would violate the unique constraint).
         """
         evidences = self.evidence_repo.get_by_case(case_id, party=party)
-        if override_orders:
-            for e in evidences:
-                if e.id in override_orders:
-                    e.sort_order = override_orders[e.id]
-        sorted_evidences = sorted(evidences, key=lambda e: e.sort_order)
+        # Build effective sort order WITHOUT touching the ORM objects
+        effective_orders: list[tuple[int, int]] = []
+        for e in evidences:
+            effective_sort = (
+                override_orders[e.id]
+                if override_orders and e.id in override_orders
+                else e.sort_order
+            )
+            effective_orders.append((e.id, effective_sort))
+
+        # Sort by effective sort order
+        effective_orders.sort(key=lambda x: x[1])
 
         party_label = "갑" if party == "plaintiff" else "을"
-        return {e.id: f"{party_label} 제{rank+1}호증" for rank, e in enumerate(sorted_evidences)}
+        return {eid: f"{party_label} 제{rank+1}호증" for rank, (eid, _) in enumerate(effective_orders)}
 
     def render_preview(
         self, case_id: int, change_set_id: int | None = None

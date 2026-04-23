@@ -36,16 +36,18 @@ class TestCaseService:
 
     def test_list_cases_empty(self, db: Session):
         svc = CaseService(db)
-        cases = svc.list_cases()
+        cases, total = svc.list_cases()
         assert cases == []
+        assert total == 0
 
     def test_list_cases_multiple(self, db: Session):
         svc = CaseService(db)
         svc.create_case(CaseCreate(name="사건 A"))
         svc.create_case(CaseCreate(name="사건 B"))
         svc.create_case(CaseCreate(name="사건 C"))
-        cases = svc.list_cases()
+        cases, total = svc.list_cases()
         assert len(cases) == 3
+        assert total == 3
 
     def test_get_case_found(self, db: Session):
         svc = CaseService(db)

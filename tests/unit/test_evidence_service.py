@@ -54,16 +54,17 @@ class TestEvidenceService:
     def test_list_evidences_empty(self, db: Session):
         case_id = _make_case(db)
         svc = EvidenceService(db)
-        items = svc.list_evidences(case_id=case_id)
+        items, total = svc.list_evidences(case_id=case_id)
         assert items == []
+        assert total == 0
 
     def test_list_evidences_by_party(self, db: Session):
         case_id = _make_case(db)
         svc = EvidenceService(db)
         svc.create_evidence(case_id=case_id, data=EvidenceCreate(party="plaintiff", label="갑 증거", sort_order=0))
         svc.create_evidence(case_id=case_id, data=EvidenceCreate(party="defendant", label="을 증거", sort_order=0))
-        plaintiffs = svc.list_evidences(case_id=case_id, party="plaintiff")
-        defendants = svc.list_evidences(case_id=case_id, party="defendant")
+        plaintiffs, _ = svc.list_evidences(case_id=case_id, party="plaintiff")
+        defendants, _ = svc.list_evidences(case_id=case_id, party="defendant")
         assert len(plaintiffs) == 1
         assert len(defendants) == 1
 

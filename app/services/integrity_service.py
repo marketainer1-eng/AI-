@@ -40,6 +40,7 @@ class IntegrityService:
         for anchor in unlinked_anchors:
             violations.append({
                 "violation_type": "UNLINKED_ANCHOR",
+                "anchor_id": anchor.id,          # used by commit_changeset to filter
                 "entity_type": "DocumentAnchor",
                 "entity_id": anchor.id,
                 "message": f"Anchor '{anchor.placeholder_text}' (id={anchor.id}) is not linked to any Evidence",

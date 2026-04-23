@@ -1,4 +1,14 @@
+"""
+app/repositories/evidence_repository.py
+=========================================
+Repositories for Evidence and EvidenceFileLink.
+"""
+
+from __future__ import annotations
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.models.evidence import Evidence, EvidenceFileLink
 from app.repositories.base import BaseRepository
 
@@ -8,21 +18,54 @@ class EvidenceRepository(BaseRepository[Evidence]):
         super().__init__(db, Evidence)
 
     def get_by_id(self, evidence_id: int) -> Evidence | None:
-        return self.db.query(Evidence).filter(Evidence.id == evidence_id).first()
+        return (
+            self.db.query(Evidence)
+            .filter(Evidence.id == evidence_id)
+            .first()
+        )
 
-    def get_by_case(self, case_id: int, party: str | None = None) -> list[Evidence]:
-        q = self.db.query(Evidence).filter(
+    def get_by_case(
+        self,
+        case_id: int,
+        party: str | None = None,
+        include_inactive: bool = False,
+        skip: int = 0,
+        limit: int = 200,
+    ) -> list[Evidence]:
+        q = self.db.query(Evidence).filter(Evidence.case_id == case_id)
+        if not include_inactive:
+            q = q.filter(Evidence.is_active.is_(True))
+        if party:
+            q = q.filter(Evidence.party == party)
+        return (
+            q.order_by(Evidence.party.asc(), Evidence.sort_order.asc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
+    def count_by_case(self, case_id: int, party: str | None = None) -> int:
+        q = self.db.query(func.count(Evidence.id)).filter(
             Evidence.case_id == case_id, Evidence.is_active.is_(True)
         )
         if party:
             q = q.filter(Evidence.party == party)
-        return q.order_by(Evidence.party.asc(), Evidence.sort_order.asc()).all()
+        return q.scalar() or 0
 
     def get_by_case_and_id(self, case_id: int, evidence_id: int) -> Evidence | None:
         return (
             self.db.query(Evidence)
             .filter(Evidence.case_id == case_id, Evidence.id == evidence_id)
             .first()
+        )
+
+    def get_by_ids(self, evidence_ids: list[int]) -> list[Evidence]:
+        if not evidence_ids:
+            return []
+        return (
+            self.db.query(Evidence)
+            .filter(Evidence.id.in_(evidence_ids))
+            .all()
         )
 
     def create(
@@ -51,6 +94,13 @@ class EvidenceRepository(BaseRepository[Evidence]):
         )
         return result[0] if result else 0
 
+    def soft_delete(self, evidence: Evidence) -> Evidence:
+        """Mark evidence as inactive (soft delete)."""
+        evidence.is_active = False
+        self.db.flush()
+        self.db.refresh(evidence)
+        return evidence
+
 
 class EvidenceFileLinkRepository(BaseRepository[EvidenceFileLink]):
     def __init__(self, db: Session):
@@ -64,6 +114,13 @@ class EvidenceFileLinkRepository(BaseRepository[EvidenceFileLink]):
             .all()
         )
 
+    def get_by_source_file(self, source_file_id: int) -> list[EvidenceFileLink]:
+        return (
+            self.db.query(EvidenceFileLink)
+            .filter(EvidenceFileLink.source_file_id == source_file_id)
+            .all()
+        )
+
     def create(
         self, evidence_id: int, source_file_id: int, file_order: int
     ) -> EvidenceFileLink:
@@ -73,3 +130,7 @@ class EvidenceFileLinkRepository(BaseRepository[EvidenceFileLink]):
             file_order=file_order,
         )
         return self.add(link)
+
+    def delete_link(self, link: EvidenceFileLink) -> None:
+        self.db.delete(link)
+        self.db.flush()

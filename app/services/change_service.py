@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from app.models.changeset import ChangeSet
 from app.api.schemas.changeset import (
     ReorderRequest,
+    LinkReferencesRequest,
+    UnlinkReferencesRequest,
     ChangeSetResponse,
     CommitResponse,
     RollbackResponse,
@@ -45,6 +47,25 @@ class ChangeService:
         self.audit = AuditLogRepository(db)
         self.storage = LocalStorage()
 
+    # ── ChangeSet factory methods ─────────────────────────────────────────────
+
+    def list_changesets(
+        self, case_id: int, skip: int = 0, limit: int = 50
+    ) -> tuple[list[ChangeSet], int]:
+        if self.case_repo.get_by_id(case_id) is None:
+            raise CaseNotFoundError(case_id)
+        items = self.cs_repo.get_by_case(case_id, skip=skip, limit=limit)
+        total = self.cs_repo.count_by_case(case_id)
+        return items, total
+
+    def get_changeset(self, case_id: int, change_set_id: int) -> ChangeSet:
+        if self.case_repo.get_by_id(case_id) is None:
+            raise CaseNotFoundError(case_id)
+        cs = self.cs_repo.get_by_id(change_set_id)
+        if cs is None or cs.case_id != case_id:
+            raise ChangeSetNotFoundError(change_set_id)
+        return cs
+
     def create_reorder_changeset(self, case_id: int, request: ReorderRequest) -> ChangeSet:
         if self.case_repo.get_by_id(case_id) is None:
             raise CaseNotFoundError(case_id)
@@ -69,6 +90,62 @@ class ChangeService:
                 ]
             },
         )
+        self.db.commit()
+        self.db.refresh(cs)
+        return cs
+
+    def create_link_references_changeset(
+        self, case_id: int, request: LinkReferencesRequest
+    ) -> ChangeSet:
+        """Create a ChangeSet containing link_reference operations."""
+        if self.case_repo.get_by_id(case_id) is None:
+            raise CaseNotFoundError(case_id)
+
+        from app.repositories.document_repository import AnchorRepository
+        anchor_repo = AnchorRepository(self.db)
+
+        cs = self.cs_repo.create(case_id=case_id, description=request.description)
+        for seq, item in enumerate(request.links):
+            anchor = anchor_repo.get(item.anchor_id)
+            if anchor is None:
+                raise ValueError(f"DocumentAnchor {item.anchor_id} not found")
+            evidence = self.evidence_repo.get_by_case_and_id(case_id, item.evidence_id)
+            if evidence is None:
+                raise ValueError(
+                    f"Evidence {item.evidence_id} does not belong to case {case_id}"
+                )
+            self.op_repo.create(
+                change_set_id=cs.id,
+                op_type="link_reference",
+                sequence=seq,
+                payload={
+                    "anchor_id": item.anchor_id,
+                    "evidence_id": item.evidence_id,
+                    "note": item.note,
+                },
+            )
+        self.db.commit()
+        self.db.refresh(cs)
+        return cs
+
+    def create_unlink_references_changeset(
+        self, case_id: int, request: UnlinkReferencesRequest
+    ) -> ChangeSet:
+        """Create a ChangeSet containing unlink_reference operations."""
+        if self.case_repo.get_by_id(case_id) is None:
+            raise CaseNotFoundError(case_id)
+
+        cs = self.cs_repo.create(case_id=case_id, description=request.description)
+        for seq, ref_id in enumerate(request.reference_ids):
+            ref = self.ref_repo.get_by_id(ref_id)
+            if ref is None:
+                raise ValueError(f"Reference {ref_id} not found")
+            self.op_repo.create(
+                change_set_id=cs.id,
+                op_type="unlink_reference",
+                sequence=seq,
+                payload={"reference_id": ref_id},
+            )
         self.db.commit()
         self.db.refresh(cs)
         return cs
@@ -101,14 +178,34 @@ class ChangeService:
         if cs.status == "committed":
             raise CommitError(f"ChangeSet {change_set_id} is already committed")
 
-        # Run integrity check before commit
+        # Run integrity check before commit.
+        # For link_reference operations: the changeset IS resolving unlinked anchors,
+        # so we exclude the anchors that are *about to be linked* from the
+        # UNLINKED_ANCHOR check.  All other violations still block the commit.
         integrity_svc = IntegrityService(self.db)
         report = integrity_svc.run_integrity_check(cs.case_id)
         if not report.is_passed:
-            raise IntegrityViolationError(
-                "Integrity check failed — cannot commit",
-                errors=[v["message"] for v in report.violations],
-            )
+            # Collect anchor IDs that this changeset will link
+            link_op_anchor_ids: set[int] = set()
+            for op in cs.operations:
+                if op.op_type == "link_reference":
+                    aid = op.payload.get("anchor_id")
+                    if aid is not None:
+                        link_op_anchor_ids.add(aid)
+
+            # Filter out UNLINKED_ANCHOR violations for anchors being linked in this CS
+            filtered_violations = [
+                v for v in report.violations
+                if not (
+                    v.get("violation_type") == "UNLINKED_ANCHOR"
+                    and v.get("anchor_id") in link_op_anchor_ids
+                )
+            ]
+            if filtered_violations:
+                raise IntegrityViolationError(
+                    "Integrity check failed — cannot commit",
+                    errors=[v["message"] for v in filtered_violations],
+                )
 
         # Take snapshot BEFORE applying changes
         snapshot_data = self._take_snapshot(cs.case_id)
@@ -117,10 +214,75 @@ class ChangeService:
         files_renamed = 0
         for op in cs.operations:
             if op.op_type == "reorder_evidence":
-                for item in op.payload.get("items", []):
+                items = op.payload.get("items", [])
+                # ── Two-phase sort_order update ──────────────────────────────
+                # The unique constraint (case_id, party, sort_order) prevents a
+                # single-pass bulk UPDATE when values are swapped (transient
+                # collision).  Workaround: first shift every affected row to a
+                # large negative temporary value, then apply the final values.
+                #
+                # We use -(evidence_id * 10000) as a temporary sentinel so that
+                # no two affected rows collide with each other during phase 1.
+                # Negative values never conflict with real sort_orders (≥ 0).
+                for item in items:
                     e = self.evidence_repo.get_by_id(item["evidence_id"])
                     if e:
-                        e.sort_order = item["new_sort_order"]
+                        e.sort_order = -(e.id * 10000)   # phase 1: temp value
+                self.db.flush()                           # flush phase 1
+
+                for item in items:
+                    e = self.evidence_repo.get_by_id(item["evidence_id"])
+                    if e:
+                        e.sort_order = item["new_sort_order"]  # phase 2: real value
+                self.db.flush()                           # flush phase 2
+
+            elif op.op_type == "link_reference":
+                from app.repositories.document_repository import AnchorRepository
+                anchor_repo = AnchorRepository(self.db)
+                from app.models.reference import Reference
+                anchor_id = op.payload.get("anchor_id")
+                evidence_id = op.payload.get("evidence_id")
+                note = op.payload.get("note")
+                # Supersede existing active reference
+                existing = self.ref_repo.get_active_by_anchor(anchor_id)
+                if existing:
+                    existing.status = "superseded"
+                    self.db.flush()
+                new_ref = self.ref_repo.create(
+                    anchor_id=anchor_id, evidence_id=evidence_id, note=note
+                )
+                # Mark anchor as linked
+                anchor = anchor_repo.get(anchor_id)
+                if anchor:
+                    anchor.status = "linked"
+                self.db.flush()
+
+            elif op.op_type == "unlink_reference":
+                from app.repositories.document_repository import AnchorRepository
+                anchor_repo = AnchorRepository(self.db)
+                from app.models.reference import Reference
+                ref_id = op.payload.get("reference_id")
+                ref = self.ref_repo.get_by_id(ref_id)
+                if ref:
+                    ref.status = "superseded"
+                    anchor = anchor_repo.get(ref.anchor_id)
+                    if anchor:
+                        anchor.status = "unlinked"
+                self.db.flush()
+
+            elif op.op_type == "relabel_evidence":
+                e = self.evidence_repo.get_by_id(op.payload.get("evidence_id"))
+                if e:
+                    if "label" in op.payload:
+                        e.label = op.payload["label"]
+                    if "description" in op.payload:
+                        e.description = op.payload.get("description")
+                self.db.flush()
+
+            elif op.op_type in ("activate_evidence", "deactivate_evidence"):
+                e = self.evidence_repo.get_by_id(op.payload.get("evidence_id"))
+                if e:
+                    e.is_active = (op.op_type == "activate_evidence")
                 self.db.flush()
 
             op.status = "applied"
@@ -153,13 +315,15 @@ class ChangeService:
                     raise CommitError(f"File rename failed: {e}") from e
             self.db.flush()
 
-        # Count committed changeSets for version label
-        committed_count = len(self.cs_repo.get_committed_by_case(cs.case_id))
-        version_label = f"v{committed_count + 1}"
+        # Determine version number (monotonically increasing per case)
+        version_number = self.snap_repo.get_next_version_number(cs.case_id)
+        version_label = f"v{version_number}"
 
         self.snap_repo.create(
             change_set_id=change_set_id,
+            case_id=cs.case_id,
             version_label=version_label,
+            version_number=version_number,
             **snapshot_data,
         )
         self.cs_repo.update_status(cs, "committed")
@@ -178,7 +342,9 @@ class ChangeService:
             status="committed",
             committed_at=cs.committed_at or datetime.utcnow(),
             version_label=version_label,
+            version_number=version_number,
             files_renamed=files_renamed,
+            operations_applied=len(cs.operations),
         )
 
     def rollback(self, case_id: int, target_change_set_id: int) -> RollbackResponse:
@@ -195,9 +361,18 @@ class ChangeService:
                 f"No VersionSnapshot for ChangeSet {target_change_set_id}. Cannot rollback."
             )
 
-        # Apply snapshot: restore sort_orders
-        for entry in snapshot.evidence_snapshot:
-            e = self.evidence_repo.get_by_id(entry["id"])
+        # Apply snapshot: restore sort_orders (two-phase to avoid unique constraint)
+        entries_with_evidence = [
+            (entry, self.evidence_repo.get_by_id(entry["id"]))
+            for entry in snapshot.evidence_snapshot
+        ]
+        # Phase 1: shift to temp negative values
+        for entry, e in entries_with_evidence:
+            if e:
+                e.sort_order = -(e.id * 10000)
+        self.db.flush()
+        # Phase 2: apply snapshot values
+        for entry, e in entries_with_evidence:
             if e:
                 e.sort_order = entry["sort_order"]
                 e.is_active = entry.get("is_active", True)
@@ -234,6 +409,7 @@ class ChangeService:
         return RollbackResponse(
             new_change_set_id=rollback_cs.id,
             rolled_back_from_id=target_change_set_id,
+            version_label=snapshot.version_label,
             status="committed",
             message=f"Successfully rolled back to {snapshot.version_label}",
         )

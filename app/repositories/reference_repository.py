@@ -1,4 +1,17 @@
+"""
+app/repositories/reference_repository.py
+=========================================
+Repository for Reference.
+
+Reference links one DocumentAnchor to one Evidence.
+Status: active | superseded
+"""
+
+from __future__ import annotations
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.models.reference import Reference
 from app.repositories.base import BaseRepository
 
@@ -8,7 +21,19 @@ class ReferenceRepository(BaseRepository[Reference]):
         super().__init__(db, Reference)
 
     def get_by_id(self, reference_id: int) -> Reference | None:
-        return self.db.query(Reference).filter(Reference.id == reference_id).first()
+        return (
+            self.db.query(Reference)
+            .filter(Reference.id == reference_id)
+            .first()
+        )
+
+    def get_by_anchor(self, anchor_id: int) -> list[Reference]:
+        """Return all references (any status) for an anchor."""
+        return (
+            self.db.query(Reference)
+            .filter(Reference.anchor_id == anchor_id)
+            .all()
+        )
 
     def get_active_by_anchor(self, anchor_id: int) -> Reference | None:
         return (
@@ -25,7 +50,7 @@ class ReferenceRepository(BaseRepository[Reference]):
         )
 
     def get_all_active_by_case(self, case_id: int) -> list[Reference]:
-        """Join through anchor -> document to filter by case_id."""
+        """Join through anchor → document to filter by case_id."""
         from app.models.document import DocumentAnchor, Document
 
         return (
@@ -33,6 +58,41 @@ class ReferenceRepository(BaseRepository[Reference]):
             .join(DocumentAnchor, Reference.anchor_id == DocumentAnchor.id)
             .join(Document, DocumentAnchor.document_id == Document.id)
             .filter(Document.case_id == case_id, Reference.status == "active")
+            .all()
+        )
+
+    def get_all_by_case(
+        self, case_id: int, skip: int = 0, limit: int = 200
+    ) -> list[Reference]:
+        """Return all references (any status) for a case."""
+        from app.models.document import DocumentAnchor, Document
+
+        return (
+            self.db.query(Reference)
+            .join(DocumentAnchor, Reference.anchor_id == DocumentAnchor.id)
+            .join(Document, DocumentAnchor.document_id == Document.id)
+            .filter(Document.case_id == case_id)
+            .order_by(Reference.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+
+    def get_by_evidence_case(
+        self, case_id: int, evidence_id: int
+    ) -> list[Reference]:
+        """Active references for a specific evidence within a case."""
+        from app.models.document import DocumentAnchor, Document
+
+        return (
+            self.db.query(Reference)
+            .join(DocumentAnchor, Reference.anchor_id == DocumentAnchor.id)
+            .join(Document, DocumentAnchor.document_id == Document.id)
+            .filter(
+                Document.case_id == case_id,
+                Reference.evidence_id == evidence_id,
+                Reference.status == "active",
+            )
             .all()
         )
 
@@ -47,3 +107,9 @@ class ReferenceRepository(BaseRepository[Reference]):
         self.db.flush()
         self.db.refresh(reference)
         return reference
+
+    def deactivate_by_id(self, reference_id: int) -> Reference | None:
+        ref = self.get_by_id(reference_id)
+        if ref and ref.status == "active":
+            return self.deactivate(ref)
+        return ref

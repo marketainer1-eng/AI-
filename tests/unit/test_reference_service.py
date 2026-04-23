@@ -120,6 +120,7 @@ class TestReferenceService:
         assert found.id == ref.id
 
     def test_get_reference_none(self, db: Session):
+        from app.core.exceptions import ReferenceNotFoundError
         svc = ReferenceService(db)
-        result = svc.get_reference(99999)
-        assert result is None
+        with pytest.raises(ReferenceNotFoundError):
+            svc.get_reference(99999)
