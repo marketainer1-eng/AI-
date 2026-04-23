@@ -1,12 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
-import { Profile } from '@/types'
+import { UserRow } from '@/types'
 import { formatDateTime } from '@/lib/utils/format'
 
 export default async function AdminUsersPage() {
   const supabase = await createClient()
 
   const { data: users } = await supabase
-    .from('profiles')
+    .from('users')
     .select('*')
     .order('created_at', { ascending: false })
 
@@ -33,7 +33,7 @@ export default async function AdminUsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(users as Profile[] ?? []).map((user) => (
+              {(users as UserRow[] ?? []).map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-medium text-gray-900">{user.full_name}</td>
                   <td className="px-6 py-4 text-gray-600">{user.email}</td>

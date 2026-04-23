@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/ui/Navbar'
+import type { UserRole } from '@/types'
 
 export default async function UserLayout({
   children,
@@ -12,11 +13,12 @@ export default async function UserLayout({
 
   if (!user) redirect('/login')
 
+  // supabase.from() 의 제네릭 추론을 위해 명시적 타입 단언 사용
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('users')
     .select('full_name, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { full_name: string; role: UserRole } | null; error: unknown }
 
   return (
     <div className="min-h-screen bg-gray-50">

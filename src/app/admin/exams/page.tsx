@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Exam } from '@/types'
+import { ExamRow } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 
 export default async function AdminExamsPage() {
@@ -8,7 +8,7 @@ export default async function AdminExamsPage() {
   const { data: exams } = await supabase
     .from('exams')
     .select('*')
-    .order('exam_date', { ascending: false })
+    .order('exam_start_at', { ascending: false })
 
   return (
     <div className="space-y-6">
@@ -37,7 +37,7 @@ export default async function AdminExamsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(exams as Exam[] ?? []).map((exam) => (
+              {(exams as ExamRow[] ?? []).map((exam) => (
                 <tr key={exam.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <p className="font-medium text-gray-900">{exam.title}</p>
@@ -45,7 +45,7 @@ export default async function AdminExamsPage() {
                       <p className="text-xs text-gray-400 mt-0.5">{exam.description}</p>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{formatDate(exam.exam_date)}</td>
+                  <td className="px-6 py-4 text-gray-600">{formatDate(exam.exam_start_at)}</td>
                   <td className="px-6 py-4 text-gray-600">{exam.duration_minutes}분</td>
                   <td className="px-6 py-4 text-gray-600">{exam.passing_score}점 이상</td>
                   <td className="px-6 py-4 text-gray-600">{formatCurrency(exam.fee)}</td>

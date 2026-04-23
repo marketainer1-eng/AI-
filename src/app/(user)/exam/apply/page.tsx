@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ExamApplyForm from '@/components/exam/ExamApplyForm'
-import { Exam } from '@/types'
+import { ExamRow } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 
 export default async function ExamApplyPage() {
@@ -14,8 +14,8 @@ export default async function ExamApplyPage() {
     .from('exams')
     .select('*')
     .eq('is_active', true)
-    .gte('exam_date', new Date().toISOString().split('T')[0])
-    .order('exam_date', { ascending: true })
+    .gte('exam_start_at', new Date().toISOString().split('T')[0])
+    .order('exam_start_at', { ascending: true })
 
   // 이미 신청한 시험 ID 목록
   const { data: myApplications } = await supabase
@@ -23,7 +23,9 @@ export default async function ExamApplyPage() {
     .select('exam_id')
     .eq('user_id', user.id)
 
-  const appliedExamIds = new Set(myApplications?.map((a) => a.exam_id) ?? [])
+  const appliedExamIds = new Set(
+    (myApplications as { exam_id: string }[] | null)?.map((a) => a.exam_id) ?? []
+  )
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -47,7 +49,7 @@ export default async function ExamApplyPage() {
       {/* 시험 목록 */}
       {exams && exams.length > 0 ? (
         <div className="space-y-4">
-          {(exams as Exam[]).map((exam) => {
+          {(exams as ExamRow[]).map((exam) => {
             const alreadyApplied = appliedExamIds.has(exam.id)
             return (
               <div
@@ -63,7 +65,7 @@ export default async function ExamApplyPage() {
                       <p className="text-sm text-gray-500 mt-1">{exam.description}</p>
                     )}
                     <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-600">
-                      <span>📅 시험일: {formatDate(exam.exam_date)}</span>
+                      <span>📅 시험일: {formatDate(exam.exam_start_at)}</span>
                       <span>⏱ 시험 시간: {exam.duration_minutes}분</span>
                       <span>✅ 합격 기준: {exam.passing_score}점 이상</span>
                       <span>💳 응시료: {formatCurrency(exam.fee)}</span>

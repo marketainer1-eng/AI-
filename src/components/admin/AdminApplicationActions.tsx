@@ -3,27 +3,26 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ExamApplication, ExamStatus } from '@/types'
+import { confirmPayment, releaseResult, issueCertificate } from '@/lib/supabase/queries'
+import type { ApplicationWithExam, ApplicationStatus } from '@/types'
 
 interface AdminApplicationActionsProps {
-  application: ExamApplication
+  application: ApplicationWithExam
 }
 
-// 각 상태에서 이동할 수 있는 다음 상태들
-const NEXT_ACTIONS: Record<ExamStatus, { status: ExamStatus; label: string; color: string }[]> = {
+// 각 상태에서 이동 가능한 액션 정의
+const NEXT_ACTIONS: Partial<
+  Record<ApplicationStatus, { status: ApplicationStatus; label: string; color: string }[]>
+> = {
   waiting_payment: [
     { status: 'approved', label: '✅ 입금 확인', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
   ],
-  approved: [],
   exam_completed: [
-    { status: 'passed', label: '🎉 합격 처리', color: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
-    { status: 'failed', label: '❌ 불합격 처리', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
+    { status: 'passed', label: '📊 점수 입력 후 처리', color: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
   ],
   passed: [
     { status: 'certificate_ready', label: '🏆 자격증 발급', color: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' },
   ],
-  failed: [],
-  certificate_ready: [],
 }
 
 export default function AdminApplicationActions({ application }: AdminApplicationActionsProps) {
@@ -31,44 +30,40 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
   const [loading, setLoading] = useState(false)
   const [scoreInput, setScoreInput] = useState<string>('')
   const [showScoreInput, setShowScoreInput] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const actions = NEXT_ACTIONS[application.status] ?? []
 
-  const handleStatusChange = async (nextStatus: ExamStatus, score?: number) => {
+  const handleAction = async (nextStatus: ApplicationStatus) => {
+    setError(null)
     setLoading(true)
     const supabase = createClient()
 
-    const updateData: Partial<ExamApplication> & Record<string, unknown> = {
-      status: nextStatus,
-      updated_at: new Date().toISOString(),
-    }
+    try {
+      if (nextStatus === 'approved') {
+        await confirmPayment(supabase, application.id)
 
-    if (nextStatus === 'approved') {
-      updateData.payment_confirmed_at = new Date().toISOString()
-    }
-    if (nextStatus === 'passed' || nextStatus === 'failed') {
-      updateData.result_released_at = new Date().toISOString()
-      if (score !== undefined) updateData.score = score
-    }
-    if (nextStatus === 'certificate_ready') {
-      updateData.certificate_issued_at = new Date().toISOString()
-      // 자격증 레코드 생성
-      const certNumber = `CERT-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-      await supabase.from('certificates').insert({
-        application_id: application.id,
-        user_id: application.user_id,
-        certificate_number: certNumber,
-      })
-    }
+      } else if (nextStatus === 'passed' || nextStatus === 'failed') {
+        // 점수 입력 UI에서 호출됨
+        const score = parseFloat(scoreInput)
+        if (isNaN(score) || score < 0 || score > 100) {
+          setError('0 ~ 100 사이의 점수를 입력하세요.')
+          setLoading(false)
+          return
+        }
+        await releaseResult(supabase, application.id, score, application.exam.passing_score)
+        setShowScoreInput(false)
 
-    await supabase
-      .from('exam_applications')
-      .update(updateData)
-      .eq('id', application.id)
+      } else if (nextStatus === 'certificate_ready') {
+        await issueCertificate(supabase, application.id, application.user_id)
+      }
 
-    setLoading(false)
-    setShowScoreInput(false)
-    router.refresh()
+      router.refresh()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '처리 중 오류가 발생했습니다.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (actions.length === 0) {
@@ -77,31 +72,31 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
 
   return (
     <div className="flex flex-col items-end gap-2">
+      {/* 에러 메시지 */}
+      {error && <p className="text-xs text-red-500">{error}</p>}
+
+      {/* 점수 입력 UI */}
       {showScoreInput && (
         <div className="flex items-center gap-2">
           <input
             type="number"
             min={0}
             max={100}
+            step={0.01}
             value={scoreInput}
             onChange={(e) => setScoreInput(e.target.value)}
-            placeholder="점수 (0-100)"
-            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded-lg"
+            placeholder="점수 (0~100)"
+            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400"
           />
           <button
-            onClick={() => {
-              const s = parseInt(scoreInput)
-              if (isNaN(s) || s < 0 || s > 100) return
-              const passed = s >= (application.exam?.passing_score ?? 60)
-              handleStatusChange(passed ? 'passed' : 'failed', s)
-            }}
+            onClick={() => handleAction('passed')}
             disabled={loading}
             className="px-2 py-1 text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg disabled:opacity-50"
           >
-            확인
+            {loading ? '처리 중...' : '확인'}
           </button>
           <button
-            onClick={() => setShowScoreInput(false)}
+            onClick={() => { setShowScoreInput(false); setError(null) }}
             className="text-xs text-gray-400 hover:text-gray-600"
           >
             취소
@@ -109,33 +104,27 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
         </div>
       )}
 
-      <div className="flex gap-1 flex-wrap justify-end">
-        {actions.map((action) => {
-          // 채점 처리는 점수 입력 UI 표시
-          if (action.status === 'passed') {
-            return (
-              <button
-                key={action.status}
-                onClick={() => setShowScoreInput(true)}
-                disabled={loading}
-                className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${action.color}`}
-              >
-                📊 점수 입력
-              </button>
-            )
-          }
-          return (
+      {/* 액션 버튼들 */}
+      {!showScoreInput && (
+        <div className="flex gap-1 flex-wrap justify-end">
+          {actions.map((action) => (
             <button
               key={action.status}
-              onClick={() => handleStatusChange(action.status)}
+              onClick={() => {
+                if (action.status === 'passed') {
+                  setShowScoreInput(true)
+                } else {
+                  handleAction(action.status)
+                }
+              }}
               disabled={loading}
               className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${action.color}`}
             >
               {loading ? '처리 중...' : action.label}
             </button>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

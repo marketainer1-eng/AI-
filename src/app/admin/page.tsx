@@ -13,7 +13,7 @@ export default async function AdminDashboardPage() {
     { count: passed },
     { count: certificates },
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'user'),
+    supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'user'),
     supabase.from('exam_applications').select('*', { count: 'exact', head: true }),
     supabase.from('exam_applications').select('*', { count: 'exact', head: true }).eq('status', 'waiting_payment'),
     supabase.from('exam_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
@@ -31,9 +31,10 @@ export default async function AdminDashboardPage() {
   ]
 
   // 최근 신청 5건
-  const { data: recentApps } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: recentApps } = await (supabase as any)
     .from('exam_applications')
-    .select('*, profile:profiles(full_name, email), exam:exams(title)')
+    .select('*, user:users(full_name, email), exam:exams(title)')
     .order('created_at', { ascending: false })
     .limit(5)
 
@@ -104,10 +105,11 @@ export default async function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {recentApps?.map((app) => (
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {recentApps?.map((app: any) => (
                 <tr key={app.id} className="hover:bg-gray-50">
                   {/* @ts-ignore */}
-                  <td className="py-3 text-gray-900">{app.profile?.full_name}</td>
+                  <td className="py-3 text-gray-900">{app.user?.full_name}</td>
                   {/* @ts-ignore */}
                   <td className="py-3 text-gray-600">{app.exam?.title}</td>
                   <td className="py-3">

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Certificate } from '@/types'
+import { CertificateRow } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils/format'
 
 export default async function AdminCertificatesPage() {
@@ -9,10 +9,10 @@ export default async function AdminCertificatesPage() {
     .from('certificates')
     .select(`
       *,
-      profile:profiles(full_name, email),
+      user:users(full_name, email),
       application:exam_applications(
         score,
-        exam:exams(title, exam_date)
+        exam:exams(title, exam_start_at)
       )
     `)
     .order('issued_at', { ascending: false })
@@ -41,14 +41,14 @@ export default async function AdminCertificatesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(certificates as Certificate[] ?? []).map((cert) => (
+              {(certificates as CertificateRow[] ?? []).map((cert) => (
                 <tr key={cert.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-mono text-xs text-gray-700">
                     {cert.certificate_number}
                   </td>
                   <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{cert.profile?.full_name}</p>
-                    <p className="text-xs text-gray-400">{cert.profile?.email}</p>
+                    <p className="font-medium text-gray-900">{(cert as any).user?.full_name}</p>
+                    <p className="text-xs text-gray-400">{(cert as any).user?.email}</p>
                   </td>
                   <td className="px-6 py-4 text-gray-600">
                     {/* @ts-ignore */}

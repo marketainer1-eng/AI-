@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ExamApplication } from '@/types'
+import { ApplicationWithExam } from '@/types'
 
 /**
  * 현재 로그인 사용자의 최신 시험 신청 정보를 가져오는 훅
  */
-export function useExamApplication() {
-  const [application, setApplication] = useState<ExamApplication | null>(null)
+export function useApplicationWithExam() {
+  const [application, setApplication] = useState<ApplicationWithExam | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -25,7 +25,7 @@ export function useExamApplication() {
         .single()
 
       if (error) setError(error.message)
-      else setApplication(data as ExamApplication)
+      else setApplication(data as ApplicationWithExam)
       setLoading(false)
     }
 

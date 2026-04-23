@@ -3,24 +3,25 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ExamApplication, ExamQuestion } from '@/types'
+import type { ApplicationWithExam, QuestionRow } from '@/types'
 
 interface ExamTakeClientProps {
-  application: ExamApplication
-  questions: ExamQuestion[]
+  application: ApplicationWithExam
+  questions: QuestionRow[]
 }
 
 export default function ExamTakeClient({ application, questions }: ExamTakeClientProps) {
   const router = useRouter()
-  const durationMs = (application.exam?.duration_minutes ?? 60) * 60 * 1000
-  const [answers, setAnswers] = useState<Record<string, number | null>>({})
-  const [timeLeft, setTimeLeft] = useState(application.exam?.duration_minutes ?? 60) // 초 단위
+  // 시험 시간(초 단위) 초기화
+  const totalSeconds = (application.exam?.duration_minutes ?? 60) * 60
+  const [answers, setAnswers] = useState<Record<string, string | null>>({})
+  const [timeLeft, setTimeLeft] = useState(totalSeconds)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // 타이머
+  // ── 타이머 ────────────────────────────────────────────────
   useEffect(() => {
-    const endTime = Date.now() + durationMs
+    const endTime = Date.now() + totalSeconds * 1000
     const timer = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000))
       setTimeLeft(remaining)
@@ -30,32 +31,34 @@ export default function ExamTakeClient({ application, questions }: ExamTakeClien
       }
     }, 1000)
     return () => clearInterval(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── 제출 처리 ─────────────────────────────────────────────
   const handleSubmit = useCallback(async () => {
     if (submitting || submitted) return
     setSubmitting(true)
 
-    const supabase = createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabase = createClient() as any
 
-    // 1. 답안 저장
-    const answerRows = questions.map((q) => ({
+    // 1. 답안 저장 (submissions 테이블)
+    const submissionRows = questions.map((q) => ({
       application_id: application.id,
       question_id: q.id,
       selected_answer: answers[q.id] ?? null,
     }))
-
-    await supabase.from('exam_answers').upsert(answerRows, {
+    await supabase.from('submissions').upsert(submissionRows, {
       onConflict: 'application_id,question_id',
     })
 
-    // 2. 채점 (클라이언트에서 임시 계산 — 실제 서비스에서는 서버 액션 사용 권장)
+    // 2. 채점 (correct_answer 와 selected_answer 비교)
     const correctCount = questions.filter(
-      (q) => answers[q.id] === q.correct_answer
+      (q) => answers[q.id] !== null && String(answers[q.id]) === String(q.correct_answer)
     ).length
-    const score = Math.round((correctCount / questions.length) * 100)
-    const passed = score >= (application.exam?.passing_score ?? 60)
+    const score = parseFloat(((correctCount / questions.length) * 100).toFixed(2))
+    const passingScore = application.exam?.passing_score ?? 60
+    const passed = score >= passingScore
 
     // 3. 신청 상태 업데이트
     await supabase
@@ -63,8 +66,8 @@ export default function ExamTakeClient({ application, questions }: ExamTakeClien
       .update({
         status: passed ? 'passed' : 'failed',
         score,
-        exam_completed_at: new Date().toISOString(),
-        result_released_at: new Date().toISOString(),
+        exam_submitted_at: new Date().toISOString(),
+        result_notified_at: new Date().toISOString(),
       })
       .eq('id', application.id)
 
@@ -91,37 +94,37 @@ export default function ExamTakeClient({ application, questions }: ExamTakeClien
     )
   }
 
-  const answeredCount = Object.values(answers).filter((v) => v !== null && v !== undefined).length
+  const answeredCount = Object.values(answers).filter((v) => v !== null).length
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      {/* 상단 정보 바 */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between sticky top-20 z-10">
+      {/* ── 상단 정보 바 ── */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between sticky top-20 z-10 shadow-sm">
         <div>
-          <h1 className="font-bold text-gray-900">{application.exam?.title}</h1>
+          <h1 className="font-bold text-gray-900 text-sm">{application.exam?.title}</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             {answeredCount} / {questions.length}문제 답변
           </p>
         </div>
-        <div className={`text-2xl font-mono font-bold ${timeLeft <= 300 ? 'text-red-600' : 'text-gray-900'}`}>
+        <div className={`text-2xl font-mono font-bold tabular-nums ${timeLeft <= 300 ? 'text-red-600 animate-pulse' : 'text-gray-900'}`}>
           ⏱ {formatTime(timeLeft)}
         </div>
       </div>
 
-      {/* 문제 목록 */}
+      {/* ── 문제 목록 ── */}
       <div className="space-y-6">
         {questions.map((q, idx) => (
           <div key={q.id} className="bg-white rounded-xl border border-gray-200 p-6">
-            <p className="font-medium text-gray-900 mb-4">
+            <p className="font-medium text-gray-900 mb-4 leading-relaxed">
               <span className="text-indigo-600 font-bold mr-2">Q{idx + 1}.</span>
               {q.question_text}
             </p>
             <div className="space-y-2">
-              {(q.options as string[]).map((option, optIdx) => (
+              {(q.options as string[] | null ?? ['O', 'X']).map((option, optIdx) => (
                 <label
                   key={optIdx}
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-colors ${
-                    answers[q.id] === optIdx
+                    answers[q.id] === String(optIdx)
                       ? 'border-indigo-500 bg-indigo-50'
                       : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'
                   }`}
@@ -129,10 +132,12 @@ export default function ExamTakeClient({ application, questions }: ExamTakeClien
                   <input
                     type="radio"
                     name={q.id}
-                    value={optIdx}
-                    checked={answers[q.id] === optIdx}
-                    onChange={() => setAnswers((prev) => ({ ...prev, [q.id]: optIdx }))}
-                    className="text-indigo-600"
+                    value={String(optIdx)}
+                    checked={answers[q.id] === String(optIdx)}
+                    onChange={() =>
+                      setAnswers((prev) => ({ ...prev, [q.id]: String(optIdx) }))
+                    }
+                    className="text-indigo-600 accent-indigo-600"
                   />
                   <span className="text-sm text-gray-800">{option}</span>
                 </label>
@@ -142,14 +147,16 @@ export default function ExamTakeClient({ application, questions }: ExamTakeClien
         ))}
       </div>
 
-      {/* 제출 버튼 */}
+      {/* ── 제출 버튼 ── */}
       <div className="flex justify-end pb-8">
         <button
           onClick={handleSubmit}
           disabled={submitting}
-          className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-xl transition-colors"
+          className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold rounded-xl transition-colors shadow-md"
         >
-          {submitting ? '제출 중...' : `시험 제출 (${answeredCount}/${questions.length} 답변)`}
+          {submitting
+            ? '제출 중...'
+            : `시험 제출 (${answeredCount}/${questions.length} 답변)`}
         </button>
       </div>
     </div>

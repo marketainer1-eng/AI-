@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import StatusBadge from '@/components/ui/StatusBadge'
 import StatusStepper from '@/components/ui/StatusStepper'
-import { ExamApplication } from '@/types'
+import { ApplicationWithExam } from '@/types'
 import { formatDate, formatCurrency } from '@/lib/utils/format'
 
 export default async function DashboardPage() {
@@ -21,7 +21,7 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const latestApp = applications?.[0] as ExamApplication | undefined
+  const latestApp = applications?.[0] as ApplicationWithExam | undefined
 
   return (
     <div className="space-y-6">
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             <div>
               <h2 className="font-semibold text-gray-900">{latestApp.exam?.title}</h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                시험일: {latestApp.exam?.exam_date ? formatDate(latestApp.exam.exam_date) : '-'}
+                시험일: {latestApp.exam?.exam_start_at ? formatDate(latestApp.exam.exam_start_at) : '-'}
               </p>
             </div>
             <StatusBadge status={latestApp.status} />
@@ -63,7 +63,7 @@ export default async function DashboardPage() {
               <>
                 <strong>입금 확인 완료 ✓</strong>
                 <p className="mt-1">
-                  시험일({latestApp.exam?.exam_date ? formatDate(latestApp.exam.exam_date) : '-'})에
+                  시험일({latestApp.exam?.exam_start_at ? formatDate(latestApp.exam.exam_start_at) : '-'})에
                   시험에 응시하세요.
                 </p>
                 <Link href="/exam/take" className="inline-block mt-2 text-indigo-600 font-medium hover:underline">
@@ -129,11 +129,11 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {(applications as ExamApplication[]).map((app) => (
+                {(applications as ApplicationWithExam[]).map((app) => (
                   <tr key={app.id} className="hover:bg-gray-50">
                     <td className="py-3 text-gray-900">{app.exam?.title}</td>
                     <td className="py-3 text-gray-600">
-                      {app.exam?.exam_date ? formatDate(app.exam.exam_date) : '-'}
+                      {app.exam?.exam_start_at ? formatDate(app.exam.exam_start_at) : '-'}
                     </td>
                     <td className="py-3 text-gray-600">
                       {app.score !== null ? `${app.score}점` : '-'}

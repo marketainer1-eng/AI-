@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ExamTakeClient from '@/components/exam/ExamTakeClient'
-import { ExamApplication, ExamQuestion } from '@/types'
+import { ApplicationWithExam, QuestionRow } from '@/types'
 
 export default async function ExamTakePage() {
   const supabase = await createClient()
@@ -32,11 +32,11 @@ export default async function ExamTakePage() {
     )
   }
 
-  // 시험 문제 조회
+  // 시험 문제 조회 (테이블명: questions)
   const { data: questions } = await supabase
-    .from('exam_questions')
+    .from('questions')
     .select('*')
-    .eq('exam_id', application.exam_id)
+    .eq('exam_id', (application as ApplicationWithExam).exam_id)
     .order('order_num', { ascending: true })
 
   if (!questions || questions.length === 0) {
@@ -51,8 +51,8 @@ export default async function ExamTakePage() {
 
   return (
     <ExamTakeClient
-      application={application as ExamApplication}
-      questions={questions as ExamQuestion[]}
+      application={application as ApplicationWithExam}
+      questions={questions as QuestionRow[]}
     />
   )
 }

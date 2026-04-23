@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import AdminApplicationActions from '@/components/admin/AdminApplicationActions'
 import StatusBadge from '@/components/ui/StatusBadge'
-import { ExamApplication, ExamStatus, EXAM_STATUS_LABEL } from '@/types'
+import { ApplicationWithRelations, ApplicationStatus, STATUS_LABEL } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils/format'
 
 interface PageProps {
@@ -16,8 +16,8 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
     .from('exam_applications')
     .select(`
       *,
-      profile:profiles(full_name, email, phone),
-      exam:exams(title, exam_date, passing_score, fee)
+      user:users(full_name, email, phone),
+      exam:exams(title, exam_start_at, passing_score, fee)
     `)
     .order('created_at', { ascending: false })
 
@@ -28,18 +28,19 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
   const { data: applications } = await query
 
   // 상태값 탭용 카운트
-  const { data: statusCounts } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: statusCounts } = await (supabase as any)
     .from('exam_applications')
     .select('status')
 
-  const countByStatus = (statusCounts ?? []).reduce<Record<string, number>>((acc, row) => {
+  const countByStatus = ((statusCounts ?? []) as { status: string }[]).reduce<Record<string, number>>((acc, row) => {
     acc[row.status] = (acc[row.status] ?? 0) + 1
     return acc
   }, {})
 
   const tabs: { value: string | null; label: string }[] = [
     { value: null, label: `전체 (${statusCounts?.length ?? 0})` },
-    ...Object.entries(EXAM_STATUS_LABEL).map(([key, label]) => ({
+    ...Object.entries(STATUS_LABEL).map(([key, label]) => ({
       value: key,
       label: `${label} (${countByStatus[key] ?? 0})`,
     })),
@@ -88,15 +89,15 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {(applications as ExamApplication[] ?? []).map((app) => (
+              {((applications ?? []) as ApplicationWithRelations[]).map((app) => (
                 <tr key={app.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{app.profile?.full_name}</p>
-                    <p className="text-xs text-gray-400">{app.profile?.email}</p>
+                    <p className="font-medium text-gray-900">{(app as any).user?.full_name}</p>
+                    <p className="text-xs text-gray-400">{(app as any).user?.email}</p>
                   </td>
                   <td className="px-6 py-4 text-gray-700">{app.exam?.title}</td>
                   <td className="px-6 py-4 text-gray-600">
-                    {app.exam?.exam_date ? formatDate(app.exam.exam_date) : '-'}
+                    {app.exam?.exam_start_at ? formatDate(app.exam.exam_start_at) : '-'}
                   </td>
                   <td className="px-6 py-4 text-gray-600">
                     {app.score !== null ? `${app.score}점` : '-'}

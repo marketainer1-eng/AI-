@@ -1,14 +1,43 @@
+/**
+ * 미들웨어 전용 Supabase 유틸
+ *
+ * 역할:
+ *  1. 매 요청마다 Supabase 세션 토큰을 갱신 (refresh)
+ *  2. 로그인 여부 및 사용자 역할에 따라 라우팅 보호
+ *
+ * 주의:
+ *  - middleware.ts 의 `updateSession()` 에서만 호출
+ *  - 서버 컴포넌트나 Server Action 에서는 server.ts 를 사용할 것
+ */
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { Database } from '@/types/database'
 
-/**
- * 미들웨어 전용 Supabase 클라이언트
- * 세션 갱신 및 쿠키 관리를 담당
- */
-export async function updateSession(request: NextRequest) {
+// ── 라우팅 규칙 상수 ──────────────────────────────────────────
+/** 로그인 없이 접근 가능한 공개 경로 (prefix 매칭) */
+const PUBLIC_PATHS = ['/login', '/signup']
+
+/** 로그인이 필요한 보호된 경로 (prefix 매칭) */
+const PROTECTED_PATHS = ['/dashboard', '/exam', '/certificate', '/admin']
+
+/** 관리자만 접근 가능한 경로 (prefix 매칭) */
+const ADMIN_PATHS = ['/admin']
+
+// ──────────────────────────────────────────────────────────────
+
+function matchesPrefix(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'))
+}
+
+export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  /**
+   * supabaseResponse 를 NextResponse.next() 로 초기화하고
+   * 이후 setAll() 에서 갱신된 쿠키를 동일 객체에 덮어씀.
+   * 이 객체를 최종 반환해야 세션이 올바르게 전달됨.
+   */
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -17,9 +46,11 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          // 요청 쿠키에 기록 (이후 미들웨어 체인이 참조)
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
+          // 응답 쿠키에도 반드시 기록 (브라우저가 수신)
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -29,46 +60,41 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // 세션 갱신 (필수 - 삭제 금지)
+  /**
+   * ⚠️  getUser() 를 반드시 호출해야 합니다.
+   *     이 호출이 토큰 갱신(refresh)을 트리거합니다.
+   *     getSession() 은 토큰을 갱신하지 않으므로 사용 금지.
+   */
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const pathname = request.nextUrl.pathname
+  const { pathname } = request.nextUrl
 
-  // ── 인증이 필요한 경로 정의 ──────────────────────────────
-  const protectedPaths = ['/dashboard', '/exam', '/certificate', '/admin']
-  const authPaths = ['/login', '/signup']
-  const adminPaths = ['/admin']
-
-  const isProtected = protectedPaths.some((p) => pathname.startsWith(p))
-  const isAuthPage = authPaths.some((p) => pathname.startsWith(p))
-  const isAdminPage = adminPaths.some((p) => pathname.startsWith(p))
-
-  // 비로그인 상태에서 보호된 경로 접근 → 로그인 페이지로
-  if (!user && isProtected) {
+  // ── 1. 비로그인 → 보호 경로 접근 시 로그인으로 리다이렉트 ──
+  if (!user && matchesPrefix(pathname, PROTECTED_PATHS)) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/login'
     redirectUrl.searchParams.set('redirectedFrom', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // 로그인 상태에서 인증 페이지 접근 → 대시보드로
-  if (user && isAuthPage) {
+  // ── 2. 로그인 → 인증 페이지 접근 시 대시보드로 ────────────
+  if (user && matchesPrefix(pathname, PUBLIC_PATHS)) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/dashboard'
     return NextResponse.redirect(redirectUrl)
   }
 
-  // 관리자 페이지 접근 권한 확인
-  if (user && isAdminPage) {
+  // ── 3. 관리자 전용 경로 접근 권한 확인 ───────────────────
+  if (user && matchesPrefix(pathname, ADMIN_PATHS)) {
     const { data: profile } = await supabase
-      .from('profiles')
+      .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
+    if (((profile as any)?.role !== 'admin')) {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/dashboard'
       return NextResponse.redirect(redirectUrl)

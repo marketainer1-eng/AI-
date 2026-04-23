@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import StatusBadge from '@/components/ui/StatusBadge'
-import { ExamApplication } from '@/types'
+import { ApplicationWithExam } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils/format'
 
 export default async function ExamResultPage() {
@@ -27,17 +27,17 @@ export default async function ExamResultPage() {
 
       {applications && applications.length > 0 ? (
         <div className="space-y-4">
-          {(applications as ExamApplication[]).map((app) => (
+          {(applications as ApplicationWithExam[]).map((app) => (
             <div key={app.id} className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="font-semibold text-gray-900">{app.exam?.title}</h2>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    시험일: {app.exam?.exam_date ? formatDate(app.exam.exam_date) : '-'}
+                    시험일: {app.exam?.exam_start_at ? formatDate(app.exam.exam_start_at) : '-'}
                   </p>
-                  {app.result_released_at && (
+                  {app.result_notified_at && (
                     <p className="text-xs text-gray-400 mt-0.5">
-                      결과 발표: {formatDateTime(app.result_released_at)}
+                      결과 발표: {formatDateTime(app.result_notified_at)}
                     </p>
                   )}
                 </div>

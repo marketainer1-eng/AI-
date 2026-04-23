@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Certificate } from '@/types'
+import { CertificateRow } from '@/types'
 import { formatDate } from '@/lib/utils/format'
 
 export default async function CertificatePage() {
@@ -15,9 +15,9 @@ export default async function CertificatePage() {
       *,
       application:exam_applications(
         score,
-        exam:exams(title, exam_date, passing_score)
+        exam:exams(title, exam_start_at, passing_score)
       ),
-      profile:profiles(full_name, email)
+      user:users(full_name, email)
     `)
     .eq('user_id', user.id)
     .order('issued_at', { ascending: false })
@@ -31,7 +31,7 @@ export default async function CertificatePage() {
 
       {certificates && certificates.length > 0 ? (
         <div className="space-y-4">
-          {(certificates as Certificate[]).map((cert) => (
+          {(certificates as CertificateRow[]).map((cert) => (
             <div key={cert.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               {/* 자격증 카드 미리보기 */}
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-8 text-white text-center">

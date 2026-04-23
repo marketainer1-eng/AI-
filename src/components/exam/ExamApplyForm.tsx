@@ -18,28 +18,38 @@ export default function ExamApplyForm({ examId, userId }: ExamApplyFormProps) {
     setError(null)
     setLoading(true)
 
-    const supabase = createClient()
-    const { error } = await supabase.from('exam_applications').insert({
-      user_id: userId,
-      exam_id: examId,
-      status: 'waiting_payment',
-    })
+    try {
+      const supabase = createClient()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from('exam_applications')
+        .insert({
+          user_id: userId,
+          exam_id: examId,
+          status: 'waiting_payment',
+        })
 
-    if (error) {
-      setError('신청에 실패했습니다. 다시 시도해주세요.')
+      if (error) {
+        if (error.code === '23505') {
+          setError('이미 신청한 시험입니다.')
+        } else {
+          setError('신청에 실패했습니다. 다시 시도해주세요.')
+        }
+        return
+      }
+
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
+      setError('신청 중 오류가 발생했습니다.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   return (
     <div>
-      {error && (
-        <p className="text-xs text-red-500 mb-2">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
       <button
         onClick={handleApply}
         disabled={loading}
