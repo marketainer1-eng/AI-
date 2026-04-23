@@ -1,129 +1,241 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { confirmPayment, releaseResult, issueCertificate } from '@/lib/supabase/queries'
-import type { ApplicationWithExam, ApplicationStatus } from '@/types'
+import {
+  confirmPaymentAction,
+  releaseResultAction,
+  issueCertificateAction,
+} from '@/app/actions/exam'
+import type { ApplicationWithRelations } from '@/types'
 
 interface AdminApplicationActionsProps {
-  application: ApplicationWithExam
+  application: ApplicationWithRelations
 }
 
-// 각 상태에서 이동 가능한 액션 정의
-const NEXT_ACTIONS: Partial<
-  Record<ApplicationStatus, { status: ApplicationStatus; label: string; color: string }[]>
-> = {
-  waiting_payment: [
-    { status: 'approved', label: '✅ 입금 확인', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-  ],
-  exam_completed: [
-    { status: 'passed', label: '📊 점수 입력 후 처리', color: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' },
-  ],
-  passed: [
-    { status: 'certificate_ready', label: '🏆 자격증 발급', color: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200' },
-  ],
+type ToastType = 'success' | 'error'
+
+interface Toast {
+  type: ToastType
+  message: string
 }
 
 export default function AdminApplicationActions({ application }: AdminApplicationActionsProps) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [isPending, startTransition] = useTransition()
   const [scoreInput, setScoreInput] = useState<string>('')
   const [showScoreInput, setShowScoreInput] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [showConfirmId, setShowConfirmId] = useState<string | null>(null)
+  const [toast, setToast] = useState<Toast | null>(null)
 
-  const actions = NEXT_ACTIONS[application.status] ?? []
+  const showToast = (type: ToastType, message: string) => {
+    setToast({ type, message })
+    setTimeout(() => setToast(null), 3000)
+  }
 
-  const handleAction = async (nextStatus: ApplicationStatus) => {
-    setError(null)
-    setLoading(true)
-    const supabase = createClient()
-
-    try {
-      if (nextStatus === 'approved') {
-        await confirmPayment(supabase, application.id)
-
-      } else if (nextStatus === 'passed' || nextStatus === 'failed') {
-        // 점수 입력 UI에서 호출됨
-        const score = parseFloat(scoreInput)
-        if (isNaN(score) || score < 0 || score > 100) {
-          setError('0 ~ 100 사이의 점수를 입력하세요.')
-          setLoading(false)
-          return
-        }
-        await releaseResult(supabase, application.id, score, application.exam.passing_score)
-        setShowScoreInput(false)
-
-      } else if (nextStatus === 'certificate_ready') {
-        await issueCertificate(supabase, application.id, application.user_id)
+  // ─── 입금 확인 ──────────────────────────────────────
+  const handleConfirmPayment = () => {
+    startTransition(async () => {
+      const result = await confirmPaymentAction(application.id)
+      if (result.error) {
+        showToast('error', result.error)
+      } else {
+        showToast('success', `✅ 입금 확인 완료 — ${(application as any).user?.full_name}`)
+        setShowConfirmId(null)
+        router.refresh()
       }
+    })
+  }
 
-      router.refresh()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '처리 중 오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
+  // ─── 결과 처리 ──────────────────────────────────────
+  const handleReleaseResult = () => {
+    const score = parseFloat(scoreInput)
+    if (isNaN(score) || score < 0 || score > 100) {
+      showToast('error', '0 ~ 100 사이의 점수를 입력하세요.')
+      return
     }
+    startTransition(async () => {
+      const passingScore = application.exam?.passing_score ?? 60
+      const result = await releaseResultAction(application.id, score, passingScore)
+      if (result.error) {
+        showToast('error', result.error)
+      } else {
+        const passed = result.passed
+        showToast(
+          'success',
+          `${passed ? '🎉 합격' : '❌ 불합격'} 처리 완료 — ${score}점`
+        )
+        setShowScoreInput(false)
+        setScoreInput('')
+        router.refresh()
+      }
+    })
   }
 
-  if (actions.length === 0) {
-    return <span className="text-xs text-gray-400">-</span>
+  // ─── 자격증 발급 ────────────────────────────────────
+  const handleIssueCertificate = () => {
+    startTransition(async () => {
+      const result = await issueCertificateAction(
+        application.id,
+        application.user_id
+      )
+      if (result.error) {
+        showToast('error', result.error)
+      } else {
+        showToast('success', '🏆 자격증 발급 완료!')
+        router.refresh()
+      }
+    })
   }
+
+  const status = application.status
 
   return (
     <div className="flex flex-col items-end gap-2">
-      {/* 에러 메시지 */}
-      {error && <p className="text-xs text-red-500">{error}</p>}
-
-      {/* 점수 입력 UI */}
-      {showScoreInput && (
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            min={0}
-            max={100}
-            step={0.01}
-            value={scoreInput}
-            onChange={(e) => setScoreInput(e.target.value)}
-            placeholder="점수 (0~100)"
-            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400"
-          />
-          <button
-            onClick={() => handleAction('passed')}
-            disabled={loading}
-            className="px-2 py-1 text-xs bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg disabled:opacity-50"
-          >
-            {loading ? '처리 중...' : '확인'}
-          </button>
-          <button
-            onClick={() => { setShowScoreInput(false); setError(null) }}
-            className="text-xs text-gray-400 hover:text-gray-600"
-          >
-            취소
-          </button>
+      {/* 토스트 알림 */}
+      {toast && (
+        <div
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium whitespace-nowrap ${
+            toast.type === 'success'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {toast.message}
         </div>
       )}
 
-      {/* 액션 버튼들 */}
-      {!showScoreInput && (
-        <div className="flex gap-1 flex-wrap justify-end">
-          {actions.map((action) => (
+      {/* ── 입금 대기 → 승인 ── */}
+      {status === 'waiting_payment' && (
+        <>
+          {showConfirmId === application.id ? (
+            /* 재확인 다이얼로그 */
+            <div className="flex flex-col items-end gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+              <p className="text-xs text-green-800 font-medium">
+                입금 확인 처리하시겠습니까?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowConfirmId(null)}
+                  className="px-2.5 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleConfirmPayment}
+                  disabled={isPending}
+                  className="px-2.5 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  {isPending ? (
+                    <>
+                      <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      처리 중...
+                    </>
+                  ) : (
+                    '✅ 확인'
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
             <button
-              key={action.status}
-              onClick={() => {
-                if (action.status === 'passed') {
-                  setShowScoreInput(true)
-                } else {
-                  handleAction(action.status)
-                }
-              }}
-              disabled={loading}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${action.color}`}
+              onClick={() => setShowConfirmId(application.id)}
+              disabled={isPending}
+              className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50 rounded-lg transition-colors"
             >
-              {loading ? '처리 중...' : action.label}
+              입금 확인
             </button>
-          ))}
-        </div>
+          )}
+        </>
+      )}
+
+      {/* ── 시험 완료 → 결과 처리 ── */}
+      {status === 'exam_completed' && (
+        <>
+          {showScoreInput ? (
+            <div className="flex flex-col items-end gap-2 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+              <p className="text-xs text-purple-800 font-medium">점수를 입력하세요</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={scoreInput}
+                  onChange={(e) => setScoreInput(e.target.value)}
+                  placeholder="0 ~ 100"
+                  className="w-24 px-2 py-1.5 text-xs border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300 text-center"
+                  autoFocus
+                />
+                <span className="text-xs text-gray-400">
+                  / 합격:{application.exam?.passing_score}점
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowScoreInput(false); setScoreInput('') }}
+                  className="px-2.5 py-1 text-xs text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleReleaseResult}
+                  disabled={isPending || !scoreInput}
+                  className="px-2.5 py-1 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
+                >
+                  {isPending ? (
+                    <>
+                      <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                      </svg>
+                      처리 중...
+                    </>
+                  ) : (
+                    '결과 처리'
+                  )}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowScoreInput(true)}
+              disabled={isPending}
+              className="px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 rounded-lg transition-colors"
+            >
+              점수 입력
+            </button>
+          )}
+        </>
+      )}
+
+      {/* ── 합격 → 자격증 발급 ── */}
+      {status === 'passed' && (
+        <button
+          onClick={handleIssueCertificate}
+          disabled={isPending}
+          className="px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 hover:bg-indigo-200 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
+        >
+          {isPending ? (
+            <>
+              <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              발급 중...
+            </>
+          ) : (
+            '🏆 자격증 발급'
+          )}
+        </button>
+      )}
+
+      {/* 최종 상태 (no action) */}
+      {(status === 'failed' || status === 'certificate_ready') && (
+        <span className="text-xs text-gray-300">-</span>
       )}
     </div>
   )

@@ -1,62 +1,259 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { applyForExamAction } from '@/app/actions/exam'
+import { formatCurrency } from '@/lib/utils/format'
 
 interface ExamApplyFormProps {
   examId: string
   userId: string
+  examTitle: string
+  examFee: number
+  examDate: string
 }
 
-export default function ExamApplyForm({ examId, userId }: ExamApplyFormProps) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+interface ApplicationResult {
+  id: string
+  exam: {
+    title: string
+    fee: number
+    exam_start_at: string
+  }
+}
+
+export default function ExamApplyForm({
+  examId,
+  userId: _userId,
+  examTitle,
+  examFee,
+  examDate,
+}: ExamApplyFormProps) {
+  const [step, setStep] = useState<'idle' | 'confirm' | 'loading' | 'success' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [application, setApplication] = useState<ApplicationResult | null>(null)
 
   const handleApply = async () => {
-    setError(null)
-    setLoading(true)
+    setStep('loading')
+    setErrorMsg(null)
 
     try {
-      const supabase = createClient()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
-        .from('exam_applications')
-        .insert({
-          user_id: userId,
-          exam_id: examId,
-          status: 'waiting_payment',
-        })
+      const result = await applyForExamAction(examId)
 
-      if (error) {
-        if (error.code === '23505') {
-          setError('이미 신청한 시험입니다.')
-        } else {
-          setError('신청에 실패했습니다. 다시 시도해주세요.')
-        }
+      if (result?.error) {
+        setErrorMsg(result.error)
+        setStep('error')
         return
       }
 
-      router.push('/dashboard')
-      router.refresh()
+      if (result?.success && result.application) {
+        setApplication(result.application as ApplicationResult)
+        setStep('success')
+      }
     } catch {
-      setError('신청 중 오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
+      setErrorMsg('신청 중 오류가 발생했습니다. 다시 시도해주세요.')
+      setStep('error')
     }
   }
 
-  return (
-    <div>
-      {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
+  // ─── 신청 완료 모달 ───────────────────────────────────────
+  if (step === 'success' && application) {
+    return (
+      <>
+        {/* 성공 버튼 (비활성) */}
+        <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-green-100 text-green-700">
+          ✓ 신청 완료
+        </span>
+
+        {/* 모달 오버레이 */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in-95 duration-200">
+            {/* 상단 아이콘 */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <h2 className="text-xl font-bold text-gray-900 text-center mb-1">
+              시험 신청 완료!
+            </h2>
+            <p className="text-sm text-gray-500 text-center mb-6">
+              아래 안내에 따라 응시료를 입금해주세요.
+            </p>
+
+            {/* 신청 정보 카드 */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">시험명</span>
+                <span className="font-medium text-gray-900">{application.exam?.title ?? examTitle}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">시험일</span>
+                <span className="font-medium text-gray-900">
+                  {application.exam?.exam_start_at
+                    ? new Date(application.exam.exam_start_at).toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : examDate}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">응시료</span>
+                <span className="font-semibold text-indigo-600">
+                  {formatCurrency(application.exam?.fee ?? examFee)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">신청 상태</span>
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
+                  입금 대기
+                </span>
+              </div>
+            </div>
+
+            {/* 입금 안내 */}
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-1.5">
+                <span>💳</span> 입금 안내
+              </h3>
+              <dl className="space-y-1 text-sm text-blue-800">
+                <div className="flex gap-2">
+                  <dt className="text-blue-500 w-14 shrink-0">은행</dt>
+                  <dd className="font-medium">국민은행</dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt className="text-blue-500 w-14 shrink-0">계좌</dt>
+                  <dd className="font-medium">000-0000-0000-00</dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt className="text-blue-500 w-14 shrink-0">예금주</dt>
+                  <dd className="font-medium">자격증센터</dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt className="text-blue-500 w-14 shrink-0">금액</dt>
+                  <dd className="font-semibold">{formatCurrency(application.exam?.fee ?? examFee)}</dd>
+                </div>
+              </dl>
+              <p className="text-xs text-blue-600 mt-2">
+                ※ 입금자명을 이름과 동일하게 입력해주세요.
+              </p>
+            </div>
+
+            {/* 버튼 */}
+            <div className="flex gap-3">
+              <a
+                href="/dashboard"
+                className="flex-1 py-2.5 text-center text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                내 현황 보기
+              </a>
+              <button
+                onClick={() => {
+                  setStep('idle')
+                  window.location.reload()
+                }}
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // ─── 신청 확인 모달 ───────────────────────────────────────
+  if (step === 'confirm') {
+    return (
+      <>
+        <button
+          disabled
+          className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg"
+        >
+          신청하기
+        </button>
+
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">시험 신청 확인</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              아래 시험에 신청하시겠습니까?
+            </p>
+
+            <div className="bg-gray-50 rounded-lg p-3 mb-5 text-sm space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-gray-500">시험명</span>
+                <span className="font-medium">{examTitle}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">응시료</span>
+                <span className="font-semibold text-indigo-600">{formatCurrency(examFee)}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setStep('idle')}
+                className="flex-1 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleApply}
+                className="flex-1 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+              >
+                신청하기
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  // ─── 에러 ───────────────────────────────────────────────
+  if (step === 'error') {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <p className="text-xs text-red-500">{errorMsg}</p>
+        <button
+          onClick={() => setStep('idle')}
+          className="px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+        >
+          다시 시도
+        </button>
+      </div>
+    )
+  }
+
+  // ─── 로딩 ───────────────────────────────────────────────
+  if (step === 'loading') {
+    return (
       <button
-        onClick={handleApply}
-        disabled={loading}
-        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors"
+        disabled
+        className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg flex items-center gap-2"
       >
-        {loading ? '신청 중...' : '신청하기'}
+        <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
+        신청 중...
       </button>
-    </div>
+    )
+  }
+
+  // ─── 기본 (idle) ──────────────────────────────────────
+  return (
+    <button
+      onClick={() => setStep('confirm')}
+      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+    >
+      신청하기
+    </button>
   )
 }
