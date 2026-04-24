@@ -37,6 +37,55 @@ import { createServerClient }        from '@supabase/ssr'
 import { cookies }                   from 'next/headers'
 import type { Database }             from '@/types'
 
+// ─── 서버사이드 응시 가능 여부 검증 ────────────────────────────────
+//  submit 요청 시점에도 상태·시간을 재확인합니다.
+//  클라이언트 우회 방지 및 시간 종료 후 제출 방지 목적
+function verifySubmitEligibility(
+  application: {
+    status: string
+    exam?: {
+      exam_start_at?: string | null
+      exam_end_at?:   string | null
+    } | null
+  },
+  now: Date
+): { ok: true } | { ok: false; status: number; error: string } {
+
+  // ── 상태 검증 ────────────────────────────────────────────────
+  if (application.status !== 'approved') {
+    if (application.status === 'waiting_payment') {
+      return { ok: false, status: 403, error: '입금 확인이 필요합니다. 응시 가능 상태가 아닙니다.' }
+    }
+    if (
+      application.status === 'exam_completed' ||
+      application.status === 'passed' ||
+      application.status === 'failed' ||
+      application.status === 'certificate_ready'
+    ) {
+      return { ok: false, status: 409, error: '이미 제출된 시험입니다.' }
+    }
+    return { ok: false, status: 403, error: '시험 응시 가능 상태가 아닙니다.' }
+  }
+
+  // ── 시험 시간 검증 ───────────────────────────────────────────
+  const startAt = application.exam?.exam_start_at ? new Date(application.exam.exam_start_at) : null
+  const endAt   = application.exam?.exam_end_at   ? new Date(application.exam.exam_end_at)   : null
+
+  if (!startAt || !endAt) {
+    return { ok: false, status: 400, error: '시험 일정 정보를 찾을 수 없습니다.' }
+  }
+
+  if (now.getTime() < startAt.getTime()) {
+    return { ok: false, status: 403, error: '아직 시험 시작 전입니다.' }
+  }
+
+  if (now.getTime() > endAt.getTime()) {
+    return { ok: false, status: 403, error: '시험 시간이 종료되었습니다. 제출이 거부되었습니다.' }
+  }
+
+  return { ok: true }
+}
+
 // ─── Supabase 서버 클라이언트 헬퍼 ──────────────────────────────
 async function makeSupabase() {
   const cookieStore = await cookies()
@@ -157,7 +206,7 @@ export async function POST(req: NextRequest) {
     // ── 2. 신청 내역 조회 (소유권 + 상태 검증) ─────────────────────
     const { data: application, error: appErr } = await supabase
       .from('exam_applications')
-      .select('*, exam:exams(id, passing_score, question_count)')
+      .select('*, exam:exams(id, passing_score, question_count, exam_start_at, exam_end_at)')
       .eq('id', applicationId)
       .eq('user_id', user.id)   // 반드시 본인 신청건만
       .maybeSingle()
@@ -169,11 +218,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 이미 제출된 경우 중복 제출 방지
-    if (application.status !== 'approved') {
+    // ── 상태 + 시험 시간 이중 검증 (서버사이드) ─────────────────
+    const now = new Date()
+    const eligibility = verifySubmitEligibility(application, now)
+    if (!eligibility.ok) {
       return NextResponse.json(
-        { error: '이미 제출된 시험이거나 응시 가능 상태가 아닙니다.' },
-        { status: 409 }
+        { error: eligibility.error },
+        { status: eligibility.status }
       )
     }
 
@@ -226,7 +277,7 @@ export async function POST(req: NextRequest) {
     // 즉시 합격/불합격 판정 상태
     const finalStatus = passed ? 'passed' : 'failed'
 
-    const now = new Date().toISOString()
+    const nowIso = now.toISOString()
 
     // ── 6. submissions 테이블에 답안 + 채점 결과 저장 ──────────────
     const submissionRows = detail.map((d) => ({
@@ -235,7 +286,7 @@ export async function POST(req: NextRequest) {
       selected_answer: d.selectedAnswer,
       is_correct:      d.isCorrect,
       score_earned:    d.scoreEarned,
-      answered_at:     now,
+      answered_at:     nowIso,
     }))
 
     const { error: subErr } = await supabase
@@ -254,9 +305,9 @@ export async function POST(req: NextRequest) {
       .update({
         status:             finalStatus,   // 'passed' | 'failed'
         score,
-        exam_started_at:    application.exam_started_at ?? now,
-        exam_submitted_at:  now,
-        result_notified_at: now,           // 즉시 판정이므로 동시 기록
+        exam_started_at:    application.exam_started_at ?? nowIso,
+        exam_submitted_at:  nowIso,
+        result_notified_at: nowIso,        // 즉시 판정이므로 동시 기록
       })
       .eq('id', applicationId)
 

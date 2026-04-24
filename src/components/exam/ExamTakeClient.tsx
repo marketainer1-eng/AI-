@@ -10,6 +10,8 @@ interface ExamTakeClientProps {
   initialRemainingSeconds: number
   totalQuestionCount: number        // 전체 문제 풀 수 (정보 표시용)
   selectedCount: number             // 실제 출제 수
+  /** 시험 종료 시각 ISO 문자열 — 응시 중 실시간 시험 시간 만료 감지용 */
+  examEndAt: string
 }
 
 // ─── 채점 결과 타입 (API 응답) ────────────────────────────────
@@ -71,14 +73,17 @@ export default function ExamTakeClient({
   initialRemainingSeconds,
   totalQuestionCount,
   selectedCount,
+  examEndAt,
 }: ExamTakeClientProps) {
   const router = useRouter()
 
-  const [answers,     setAnswers]     = useState<Record<string, string | null>>({})
-  const [timeLeft,    setTimeLeft]    = useState(initialRemainingSeconds)
-  const [submitting,  setSubmitting]  = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [page,        setPage]        = useState(0)
+  const [answers,          setAnswers]          = useState<Record<string, string | null>>({})
+  const [timeLeft,         setTimeLeft]         = useState(initialRemainingSeconds)
+  const [submitting,       setSubmitting]       = useState(false)
+  const [showConfirm,      setShowConfirm]      = useState(false)
+  const [page,             setPage]             = useState(0)
+  /** 시험 종료 시각 초과로 강제 제출된 경우 */
+  const [examTimeExpired,  setExamTimeExpired]  = useState(false)
 
   // ─── 채점 결과 상태 ────────────────────────────────────────
   const [gradeResult, setGradeResult] = useState<GradeResult | null>(null)
@@ -130,7 +135,7 @@ export default function ExamTakeClient({
     }
   }, [answers, application.id])
 
-  // ── 타이머 ──────────────────────────────────────────────────
+  // ── 타이머 (duration 기반) ──────────────────────────────────
   useEffect(() => {
     if (gradeResult || submitting) return
     if (timeLeft <= 0) { handleSubmit(true); return }
@@ -142,6 +147,29 @@ export default function ExamTakeClient({
     }, 500)
     return () => clearInterval(id)
   }, [gradeResult, submitting]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 시험 종료 시각(exam_end_at) 실시간 감지 ──────────────────
+  // duration 타이머와 별개로, 서버의 exam_end_at 을 직접 체크하여
+  // 종료 시각이 지나면 즉시 강제 제출합니다.
+  useEffect(() => {
+    if (gradeResult || submitting) return
+
+    const endTs = new Date(examEndAt).getTime()
+
+    function checkExamEnd() {
+      if (Date.now() >= endTs) {
+        setExamTimeExpired(true)
+        handleSubmit(true)
+      }
+    }
+
+    // 이미 종료된 경우 즉시 처리
+    checkExamEnd()
+
+    // 매 5초마다 체크 (타이머와 별도 주기)
+    const id = setInterval(checkExamEnd, 5000)
+    return () => clearInterval(id)
+  }, [examEndAt, gradeResult, submitting]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 페이지 이동 헬퍼 ────────────────────────────────────────
   const goPage = (n: number) => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }) }
@@ -167,6 +195,17 @@ export default function ExamTakeClient({
 
   return (
     <div className="max-w-3xl mx-auto pb-20">
+
+      {/* ═══ 시험 종료 시각 초과 경고 배너 ═══ */}
+      {examTimeExpired && (
+        <div className="mb-4 p-4 bg-red-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2 animate-pulse">
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+          시험 종료 시각이 지나 자동 제출 중입니다...
+        </div>
+      )}
 
       {/* ═══ 상단 고정 헤더 ═══ */}
       <div className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm
