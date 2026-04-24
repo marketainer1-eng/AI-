@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import type { ApplicationWithExam, QuestionRow } from '@/types'
 
 interface ExamTakeClientProps {
@@ -13,6 +12,32 @@ interface ExamTakeClientProps {
   selectedCount: number             // 실제 출제 수
 }
 
+// ─── 채점 결과 타입 (API 응답) ────────────────────────────────
+interface GradeDetail {
+  questionId:     string
+  questionText:   string
+  questionType:   string
+  orderNum:       number
+  selectedAnswer: string | null
+  correctAnswer:  string
+  isCorrect:      boolean
+  scoreWeight:    number
+  scoreEarned:    number
+  options:        string[] | null
+  explanation:    string | null
+}
+
+interface GradeResult {
+  success:        boolean
+  score:          number
+  passed:         boolean
+  passingScore:   number
+  totalQuestions: number
+  correctCount:   number
+  totalWeight:    number
+  detail:         GradeDetail[]
+}
+
 // ─── 시간 포맷 ────────────────────────────────────────────────
 function formatTime(sec: number): string {
   const h = Math.floor(sec / 3600)
@@ -21,21 +46,6 @@ function formatTime(sec: number): string {
   if (h > 0)
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
-
-// ─── 배점 가중치 기반 채점 ────────────────────────────────────
-function calcScore(
-  questions: QuestionRow[],
-  answers: Record<string, string | null>
-): number {
-  const totalW = questions.reduce((s, q) => s + q.score_weight, 0)
-  if (totalW === 0) return 0
-  const earnedW = questions.reduce((s, q) => {
-    const given   = (answers[q.id] ?? '').trim().toLowerCase()
-    const correct = String(q.correct_answer ?? '').trim().toLowerCase()
-    return s + (given === correct ? q.score_weight : 0)
-  }, 0)
-  return parseFloat(((earnedW / totalW) * 100).toFixed(2))
 }
 
 // ─── 선택지 추출 ─────────────────────────────────────────────
@@ -67,9 +77,13 @@ export default function ExamTakeClient({
   const [answers,     setAnswers]     = useState<Record<string, string | null>>({})
   const [timeLeft,    setTimeLeft]    = useState(initialRemainingSeconds)
   const [submitting,  setSubmitting]  = useState(false)
-  const [submitted,   setSubmitted]   = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [page,        setPage]        = useState(0)
+
+  // ─── 채점 결과 상태 ────────────────────────────────────────
+  const [gradeResult, setGradeResult] = useState<GradeResult | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
   const submitRef = useRef(false)
 
   const totalPages    = Math.ceil(questions.length / PER_PAGE)
@@ -78,51 +92,47 @@ export default function ExamTakeClient({
   const unanswered    = questions.length - answeredCount
   const progress      = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0
 
-  // ── 제출 ────────────────────────────────────────────────────
+  // ── 서버 API 채점 제출 ──────────────────────────────────────
   const handleSubmit = useCallback(async (auto = false) => {
     if (submitRef.current) return
     submitRef.current = true
     setSubmitting(true)
     setShowConfirm(false)
+    setSubmitError(null)
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = createClient() as any
     try {
-      // 1. 답안 저장
-      const rows = questions.map(q => ({
-        application_id:  application.id,
-        question_id:     q.id,
-        selected_answer: answers[q.id] ?? null,
-      }))
-      await supabase
-        .from('submissions')
-        .upsert(rows, { onConflict: 'application_id,question_id' })
+      const res = await fetch('/api/exam/submit', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          applicationId: application.id,
+          answers,
+        }),
+      })
 
-      // 2. 자동 채점 (배점 가중치 기반)
-      const score = calcScore(questions, answers)
+      const data = await res.json()
 
-      // 3. 신청 상태 업데이트
-      await supabase
-        .from('exam_applications')
-        .update({
-          status:           'exam_completed',
-          score,
-          exam_started_at:  application.exam_started_at ?? new Date().toISOString(),
-          exam_submitted_at: new Date().toISOString(),
-        })
-        .eq('id', application.id)
+      if (!res.ok) {
+        setSubmitError(data.error ?? '제출 중 오류가 발생했습니다.')
+        submitRef.current = false
+        setSubmitting(false)
+        return
+      }
 
-      setSubmitted(true)
-      setTimeout(() => { router.push('/exam/result'); router.refresh() }, 2500)
+      // 채점 결과 화면으로 전환
+      setGradeResult(data as GradeResult)
+      setSubmitting(false)
+
     } catch {
+      setSubmitError('네트워크 오류가 발생했습니다. 다시 시도해주세요.')
       submitRef.current = false
       setSubmitting(false)
     }
-  }, [answers, application, questions, router])
+  }, [answers, application.id])
 
   // ── 타이머 ──────────────────────────────────────────────────
   useEffect(() => {
-    if (submitted || submitting) return
+    if (gradeResult || submitting) return
     if (timeLeft <= 0) { handleSubmit(true); return }
     const end = Date.now() + timeLeft * 1000
     const id = setInterval(() => {
@@ -131,32 +141,25 @@ export default function ExamTakeClient({
       if (rem === 0) { clearInterval(id); handleSubmit(true) }
     }, 500)
     return () => clearInterval(id)
-  }, [submitted, submitting]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [gradeResult, submitting]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 페이지 이동 헬퍼 ────────────────────────────────────────
   const goPage = (n: number) => { setPage(n); window.scrollTo({ top: 0, behavior: 'smooth' }) }
 
-  // ── 제출 완료 화면 ───────────────────────────────────────────
-  if (submitted) {
+  // ════════════════════════════════════════════════════════════
+  // 채점 결과 화면
+  // ════════════════════════════════════════════════════════════
+  if (gradeResult) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-            <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">시험 제출 완료!</h1>
-          <p className="text-gray-500 text-sm">결과 조회 페이지로 이동합니다...</p>
-          <div className="mt-4 flex justify-center">
-            <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-          </div>
-        </div>
-      </div>
+      <GradeResultView
+        result={gradeResult}
+        examTitle={application.exam?.title ?? '시험'}
+        onGoResult={() => { router.push('/exam/result'); router.refresh() }}
+      />
     )
   }
 
-  // ── 타이머 색상 ──────────────────────────────────────────────
+  // ─── 타이머 색상 ──────────────────────────────────────────
   const timerCls =
     timeLeft <= DANGER_SEC ? 'text-red-600 animate-pulse font-mono font-black' :
     timeLeft <= WARN_SEC   ? 'text-orange-500 font-mono font-bold' :
@@ -178,7 +181,7 @@ export default function ExamTakeClient({
                   {application.exam?.title}
                 </h1>
                 <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">
-                  {selectedCount}문제 출제 / 전체 {totalQuestionCount}문항 중
+                  {selectedCount}문제 / 전체 {totalQuestionCount}문항
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -216,6 +219,23 @@ export default function ExamTakeClient({
         </div>
       </div>
 
+      {/* ═══ 오류 배너 ═══ */}
+      {submitError && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-2">
+          <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{submitError}</span>
+          <button
+            onClick={() => { submitRef.current = false; setSubmitError(null) }}
+            className="ml-auto text-red-400 hover:text-red-600"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* ═══ 문제 목록 ═══ */}
       <div className="space-y-6">
         {pagedQs.map((q, relIdx) => {
@@ -239,20 +259,16 @@ export default function ExamTakeClient({
               <div className={`px-6 py-4 border-b ${answered ? 'bg-indigo-50 border-indigo-100' : 'bg-gray-50 border-gray-100'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    {/* 문제 번호 */}
                     <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
                       answered ? 'bg-indigo-600 text-white' : 'bg-white border-2 border-gray-200 text-gray-600'
                     }`}>
                       {absIdx + 1}
                     </span>
-                    {/* 유형 뱃지 */}
                     <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-semibold ${typeMeta.cls}`}>
                       {typeMeta.label}
                     </span>
-                    {/* 배점 */}
                     <span className="text-xs text-gray-400">{q.score_weight}점</span>
                   </div>
-                  {/* 답변 완료 표시 */}
                   {answered && (
                     <span className="flex items-center gap-1 text-xs text-indigo-600 font-semibold shrink-0">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -265,12 +281,11 @@ export default function ExamTakeClient({
               </div>
 
               <div className="px-6 py-5">
-                {/* 문제 텍스트 */}
                 <p className="text-gray-900 font-semibold text-[15px] leading-relaxed mb-5 whitespace-pre-wrap">
                   {q.question_text}
                 </p>
 
-                {/* ── 객관식 선택지 ── */}
+                {/* ── 객관식 ── */}
                 {!isTF && !isShort && choices.length > 0 && (
                   <div className="space-y-2.5">
                     {choices.map((option, oi) => {
@@ -285,7 +300,6 @@ export default function ExamTakeClient({
                               : 'border-gray-100 bg-gray-50 hover:border-indigo-200 hover:bg-indigo-50/30'
                           }`}
                         >
-                          {/* 번호 원 */}
                           <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold
                                            transition-colors ${
                             selected
@@ -294,21 +308,16 @@ export default function ExamTakeClient({
                           }`}>
                             {oi + 1}
                           </span>
-
-                          {/* 보기 텍스트 */}
                           <span className={`flex-1 text-sm leading-relaxed ${
                             selected ? 'text-indigo-900 font-semibold' : 'text-gray-700'
                           }`}>
                             {option}
                           </span>
-
-                          {/* 선택 아이콘 */}
                           {selected && (
                             <svg className="w-5 h-5 text-indigo-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                           )}
-
                           <input
                             type="radio"
                             name={q.id}
@@ -323,7 +332,7 @@ export default function ExamTakeClient({
                   </div>
                 )}
 
-                {/* ── O / X 선택지 ── */}
+                {/* ── O / X ── */}
                 {isTF && (
                   <div className="flex gap-3">
                     {['O', 'X'].map(v => {
@@ -344,16 +353,12 @@ export default function ExamTakeClient({
                             selected
                               ? v === 'O' ? 'text-blue-600' : 'text-red-500'
                               : 'text-gray-300'
-                          }`}>
-                            {v}
-                          </span>
+                          }`}>{v}</span>
                           <span className={`text-xs font-medium ${
                             selected
                               ? v === 'O' ? 'text-blue-500' : 'text-red-400'
                               : 'text-gray-400'
-                          }`}>
-                            {v === 'O' ? '맞다' : '틀리다'}
-                          </span>
+                          }`}>{v === 'O' ? '맞다' : '틀리다'}</span>
                           <input
                             type="radio"
                             name={q.id}
@@ -368,7 +373,7 @@ export default function ExamTakeClient({
                   </div>
                 )}
 
-                {/* ── 단답형 입력 ── */}
+                {/* ── 단답형 ── */}
                 {isShort && (
                   <div>
                     <input
@@ -385,13 +390,10 @@ export default function ExamTakeClient({
                           : 'border-gray-200 bg-gray-50 text-gray-800 hover:border-gray-300'
                       }`}
                     />
-                    <p className="text-xs text-gray-400 mt-2">
-                      💡 대소문자를 구분하지 않습니다.
-                    </p>
+                    <p className="text-xs text-gray-400 mt-2">💡 대소문자를 구분하지 않습니다.</p>
                   </div>
                 )}
 
-                {/* 미답변 안내 */}
                 {!answered && (
                   <p className="mt-4 text-xs text-gray-400 flex items-center gap-1.5">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -418,14 +420,11 @@ export default function ExamTakeClient({
           >
             ← 이전
           </button>
-
           <div className="flex gap-1">
             {Array.from({ length: totalPages }, (_, i) => {
-              // 답변 완료 여부 계산 (해당 페이지)
-              const pageQs  = questions.slice(i * PER_PAGE, (i + 1) * PER_PAGE)
-              const allDone = pageQs.every(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '')
+              const pageQs   = questions.slice(i * PER_PAGE, (i + 1) * PER_PAGE)
+              const allDone  = pageQs.every(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '')
               const someDone = pageQs.some(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== '')
-
               return (
                 <button
                   key={i}
@@ -449,7 +448,6 @@ export default function ExamTakeClient({
               )
             })}
           </div>
-
           <button
             onClick={() => goPage(Math.min(totalPages - 1, page + 1))}
             disabled={page === totalPages - 1}
@@ -463,7 +461,6 @@ export default function ExamTakeClient({
 
       {/* ═══ 답변 현황 + 제출 패널 ═══ */}
       <div className="mt-8 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* 헤더 */}
         <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-sm font-bold text-gray-800">답변 현황</h2>
           <div className="flex items-center gap-3 text-xs text-gray-500">
@@ -475,9 +472,7 @@ export default function ExamTakeClient({
             </span>
           </div>
         </div>
-
         <div className="px-5 py-4">
-          {/* 문제 번호 그리드 */}
           <div className="flex flex-wrap gap-1.5 mb-5">
             {questions.map((q, idx) => {
               const ans      = answers[q.id]
@@ -500,8 +495,6 @@ export default function ExamTakeClient({
               )
             })}
           </div>
-
-          {/* 통계 + 제출 버튼 */}
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-4 text-sm">
@@ -520,7 +513,6 @@ export default function ExamTakeClient({
                 합격 기준: {application.exam?.passing_score}점 이상
               </div>
             </div>
-
             <button
               onClick={() => setShowConfirm(true)}
               disabled={submitting}
@@ -534,13 +526,12 @@ export default function ExamTakeClient({
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  제출 중...
+                  채점 중...
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   시험 제출
                 </>
@@ -553,26 +544,20 @@ export default function ExamTakeClient({
       {/* ═══ 제출 확인 모달 ═══ */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7">
             <div className="text-center mb-6">
               <div className="text-5xl mb-4">📝</div>
               <h2 className="text-xl font-bold text-gray-900">시험을 제출하시겠습니까?</h2>
               <p className="text-sm text-gray-500 mt-1">제출 후에는 수정이 불가합니다.</p>
             </div>
-
-            {/* 미답변 경고 */}
             {unanswered > 0 && (
               <div className="mb-4 p-3.5 bg-orange-50 border border-orange-200 rounded-xl text-center">
                 <p className="text-sm text-orange-700">
                   ⚠️ <strong>{unanswered}개</strong> 문제에 답변하지 않았습니다.
                 </p>
-                <p className="text-xs text-orange-500 mt-0.5">
-                  미답변 문제는 오답 처리됩니다.
-                </p>
+                <p className="text-xs text-orange-500 mt-0.5">미답변 문제는 오답 처리됩니다.</p>
               </div>
             )}
-
-            {/* 요약 */}
             <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-2.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">출제 문제</span>
@@ -591,7 +576,6 @@ export default function ExamTakeClient({
                 </span>
               </div>
             </div>
-
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
@@ -606,12 +590,404 @@ export default function ExamTakeClient({
                 className="flex-1 py-3 text-sm font-bold text-white bg-indigo-600
                            hover:bg-indigo-700 disabled:opacity-50 rounded-xl transition-colors"
               >
-                {submitting ? '제출 중...' : '최종 제출'}
+                {submitting ? '채점 중...' : '최종 제출'}
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ════════════════════════════════════════════════════════════════
+// 채점 결과 화면 컴포넌트
+// ════════════════════════════════════════════════════════════════
+function GradeResultView({
+  result,
+  examTitle,
+  onGoResult,
+}: {
+  result: GradeResult
+  examTitle: string
+  onGoResult: () => void
+}) {
+  const [showDetail, setShowDetail]     = useState(false)
+  const [filterMode, setFilterMode]     = useState<'all' | 'wrong' | 'correct'>('all')
+  const [reviewPage, setReviewPage]     = useState(0)
+  const REVIEW_PER_PAGE = 5
+
+  const filtered = result.detail.filter((d) => {
+    if (filterMode === 'wrong')   return !d.isCorrect
+    if (filterMode === 'correct') return d.isCorrect
+    return true
+  })
+  const reviewTotalPages = Math.ceil(filtered.length / REVIEW_PER_PAGE)
+  const pagedReview = filtered.slice(reviewPage * REVIEW_PER_PAGE, (reviewPage + 1) * REVIEW_PER_PAGE)
+
+  const barWidth = Math.min(100, Math.max(0, result.score))
+  const wrongCount = result.totalQuestions - result.correctCount
+
+  return (
+    <div className="max-w-3xl mx-auto pb-20 space-y-6">
+
+      {/* ── 결과 헤더 카드 ── */}
+      <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border-2 ${
+        result.passed ? 'border-green-200' : 'border-red-200'
+      }`}>
+        {/* 컬러 띠 */}
+        <div className={`h-2 ${
+          result.passed
+            ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+            : 'bg-gradient-to-r from-red-400 to-rose-500'
+        }`} />
+
+        <div className="p-6 sm:p-8">
+          {/* 헤더 */}
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">시험 완료</p>
+              <h1 className="text-xl font-bold text-gray-900">{examTitle}</h1>
+            </div>
+            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${
+              result.passed
+                ? 'bg-green-100 text-green-700'
+                : 'bg-red-100 text-red-600'
+            }`}>
+              {result.passed ? '🎉 합격' : '😔 불합격'}
+            </span>
+          </div>
+
+          {/* 점수 섹션 */}
+          <div className={`rounded-2xl p-6 mb-6 ${
+            result.passed
+              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100'
+              : 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-100'
+          }`}>
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${
+                  result.passed ? 'text-green-500' : 'text-red-400'
+                }`}>최종 점수</p>
+                <div className="flex items-end gap-1">
+                  <span className={`text-6xl font-extrabold tabular-nums leading-none ${
+                    result.passed ? 'text-green-700' : 'text-red-600'
+                  }`}>
+                    {result.score}
+                  </span>
+                  <span className={`text-xl font-bold mb-1 ${
+                    result.passed ? 'text-green-500' : 'text-red-400'
+                  }`}>점</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-400 mb-0.5">합격 기준</p>
+                <p className="text-lg font-bold text-gray-600">
+                  {result.passingScore}<span className="text-sm font-medium">점 이상</span>
+                </p>
+              </div>
+            </div>
+
+            {/* 점수 바 */}
+            <div className="space-y-1.5">
+              <div className="relative h-3 bg-white/60 rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 bottom-0 w-0.5 bg-gray-400/60 z-10"
+                  style={{ left: `${result.passingScore}%` }}
+                />
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    result.passed ? 'bg-green-500' : 'bg-red-400'
+                  }`}
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-gray-400">
+                <span>0점</span>
+                <span className="text-gray-500">합격선 {result.passingScore}점</span>
+                <span>100점</span>
+              </div>
+            </div>
+
+            <p className={`mt-3 text-xs font-medium text-center ${
+              result.passed ? 'text-green-600' : 'text-red-500'
+            }`}>
+              {result.passed
+                ? `합격 기준(${result.passingScore}점)을 ${(result.score - result.passingScore).toFixed(1)}점 초과 달성했습니다.`
+                : `합격 기준(${result.passingScore}점)까지 ${(result.passingScore - result.score).toFixed(1)}점 부족합니다.`}
+            </p>
+          </div>
+
+          {/* 통계 그리드 */}
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <StatCell
+              label="총 문항"
+              value={`${result.totalQuestions}문제`}
+              cls="bg-gray-50"
+              valCls="text-gray-800"
+            />
+            <StatCell
+              label="정답"
+              value={`${result.correctCount}개`}
+              cls="bg-green-50"
+              valCls="text-green-700"
+            />
+            <StatCell
+              label="오답"
+              value={`${wrongCount}개`}
+              cls="bg-red-50"
+              valCls="text-red-600"
+            />
+          </div>
+
+          {/* 액션 버튼 */}
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => { setShowDetail(!showDetail); setReviewPage(0) }}
+              className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-colors border ${
+                showDetail
+                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  : 'bg-white text-indigo-600 border-indigo-300 hover:bg-indigo-50'
+              }`}
+            >
+              {showDetail ? '▲ 채점 결과 닫기' : '📋 문제별 채점 결과 보기'}
+            </button>
+            <button
+              onClick={onGoResult}
+              className="flex-1 py-3 text-sm font-semibold text-white bg-indigo-600
+                         hover:bg-indigo-700 rounded-xl transition-colors"
+            >
+              결과 페이지 이동 →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 문제별 채점 결과 (상세 리뷰) ── */}
+      {showDetail && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          {/* 리뷰 헤더 */}
+          <div className="px-5 py-4 bg-gray-50 border-b border-gray-100">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-sm font-bold text-gray-800">문제별 채점 결과</h2>
+              {/* 필터 */}
+              <div className="flex gap-1.5">
+                {([
+                  { key: 'all',     label: `전체 ${result.totalQuestions}` },
+                  { key: 'correct', label: `정답 ${result.correctCount}` },
+                  { key: 'wrong',   label: `오답 ${wrongCount}` },
+                ] as const).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => { setFilterMode(key); setReviewPage(0) }}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                      filterMode === key
+                        ? key === 'correct'
+                          ? 'bg-green-500 text-white'
+                          : key === 'wrong'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-indigo-600 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 문제 리스트 */}
+          <div className="divide-y divide-gray-100">
+            {pagedReview.map((d) => (
+              <ReviewItem key={d.questionId} detail={d} />
+            ))}
+            {pagedReview.length === 0 && (
+              <div className="py-10 text-center text-sm text-gray-400">
+                해당하는 문제가 없습니다.
+              </div>
+            )}
+          </div>
+
+          {/* 리뷰 페이지네이션 */}
+          {reviewTotalPages > 1 && (
+            <div className="flex justify-center gap-1.5 px-5 py-4 border-t border-gray-100">
+              <button
+                onClick={() => setReviewPage(Math.max(0, reviewPage - 1))}
+                disabled={reviewPage === 0}
+                className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200
+                           rounded-lg disabled:opacity-40 hover:bg-gray-50"
+              >
+                ← 이전
+              </button>
+              {Array.from({ length: reviewTotalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setReviewPage(i)}
+                  className={`w-8 h-8 text-xs font-semibold rounded-lg ${
+                    i === reviewPage
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setReviewPage(Math.min(reviewTotalPages - 1, reviewPage + 1))}
+                disabled={reviewPage === reviewTotalPages - 1}
+                className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200
+                           rounded-lg disabled:opacity-40 hover:bg-gray-50"
+              >
+                다음 →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── 통계 셀 ─────────────────────────────────────────────────
+function StatCell({
+  label, value, cls, valCls,
+}: { label: string; value: string; cls: string; valCls: string }) {
+  return (
+    <div className={`${cls} rounded-xl px-4 py-3 text-center`}>
+      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">{label}</p>
+      <p className={`text-lg font-bold ${valCls}`}>{value}</p>
+    </div>
+  )
+}
+
+// ─── 개별 문제 리뷰 아이템 ────────────────────────────────────
+function ReviewItem({ detail: d }: { detail: GradeDetail }) {
+  const [open, setOpen] = useState(false)
+
+  const TYPE_LABEL: Record<string, string> = {
+    multiple_choice: '객관식',
+    true_false:      'O/X',
+    short_answer:    '단답형',
+  }
+
+  return (
+    <div className={`px-5 py-4 ${d.isCorrect ? 'bg-white' : 'bg-red-50/40'}`}>
+      {/* 문제 요약 행 */}
+      <div className="flex items-start gap-3">
+        {/* 정오 아이콘 */}
+        <div className={`shrink-0 mt-0.5 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black ${
+          d.isCorrect
+            ? 'bg-green-100 text-green-600'
+            : 'bg-red-100 text-red-600'
+        }`}>
+          {d.isCorrect ? '○' : '✕'}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          {/* 문제 번호 + 유형 + 배점 */}
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className="text-xs font-bold text-gray-500">Q{d.orderNum}</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
+              {TYPE_LABEL[d.questionType] ?? d.questionType}
+            </span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+              d.isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'
+            }`}>
+              {d.scoreEarned} / {d.scoreWeight}점
+            </span>
+          </div>
+
+          {/* 문제 텍스트 */}
+          <p className="text-sm font-medium text-gray-800 leading-relaxed mb-2 line-clamp-2">
+            {d.questionText}
+          </p>
+
+          {/* 내 답 vs 정답 */}
+          <div className="flex items-center gap-3 text-xs flex-wrap">
+            <span className={`flex items-center gap-1 ${
+              d.isCorrect ? 'text-green-600' : 'text-red-500'
+            }`}>
+              <span className="font-semibold">내 답:</span>
+              <span>{d.selectedAnswer ?? '미응답'}</span>
+            </span>
+            {!d.isCorrect && (
+              <span className="flex items-center gap-1 text-green-600">
+                <span className="font-semibold">정답:</span>
+                <span>{d.correctAnswer}</span>
+              </span>
+            )}
+          </div>
+
+          {/* 해설 + 보기 (토글) */}
+          {(d.explanation || (d.options && d.options.length > 0)) && (
+            <button
+              onClick={() => setOpen(!open)}
+              className="mt-2 text-[11px] text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1"
+            >
+              {open ? '▲ 닫기' : '▼ 해설 보기'}
+            </button>
+          )}
+
+          {open && (
+            <div className="mt-3 space-y-3">
+              {/* 보기 목록 (객관식) */}
+              {d.options && d.options.length > 0 && (
+                <div className="space-y-1.5">
+                  {d.options.map((opt, oi) => {
+                    const isSelected = d.selectedAnswer === opt
+                    const isCorrectOpt = d.correctAnswer === opt
+                    return (
+                      <div
+                        key={oi}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs ${
+                          isCorrectOpt
+                            ? 'bg-green-50 border border-green-200'
+                            : isSelected && !isCorrectOpt
+                            ? 'bg-red-50 border border-red-200'
+                            : 'bg-gray-50 border border-gray-100'
+                        }`}
+                      >
+                        <span className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center font-bold text-[10px] ${
+                          isCorrectOpt
+                            ? 'bg-green-500 text-white'
+                            : isSelected
+                            ? 'bg-red-400 text-white'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}>
+                          {oi + 1}
+                        </span>
+                        <span className={`flex-1 ${
+                          isCorrectOpt ? 'text-green-700 font-semibold' :
+                          isSelected   ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {opt}
+                        </span>
+                        {isCorrectOpt && (
+                          <span className="text-green-500 font-bold shrink-0">✓ 정답</span>
+                        )}
+                        {isSelected && !isCorrectOpt && (
+                          <span className="text-red-400 font-bold shrink-0">내 답</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* 해설 */}
+              {d.explanation && (
+                <div className="bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
+                  <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider mb-1">💡 해설</p>
+                  <p className="text-xs text-amber-900 leading-relaxed whitespace-pre-wrap">
+                    {d.explanation}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

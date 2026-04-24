@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { ApplicationWithExam } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils/format'
+import ResultReview from '@/components/result/ResultReview'
 
 interface ResultCardProps {
   application: ApplicationWithExam
@@ -149,6 +150,17 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
             />
           )}
         </div>
+
+        {/* 문제별 채점 결과 (오답 분석) — 발표 이후에만 표시 */}
+        {application.exam?.id && (
+          <div className="mb-6">
+            <ResultReview
+              applicationId={application.id}
+              examId={application.exam.id}
+              passingScore={passingScore}
+            />
+          </div>
+        )}
 
         {/* 액션 버튼 */}
         <div className="flex flex-wrap gap-3">
