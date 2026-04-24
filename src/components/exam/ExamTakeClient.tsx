@@ -27,18 +27,44 @@ function formatTime(seconds: number): string {
 const WARN_THRESHOLD  = 300  // 5분 - 경고
 const DANGER_THRESHOLD = 60  // 1분 - 위험
 
+// ─── 문제 유형별 선택지 추출 ─────────────────────────────────
+function getChoices(q: QuestionRow): string[] {
+  if (q.question_type === 'true_false') return ['O', 'X']
+  return (q.options as string[] | null) ?? []
+}
+
+// ─── 채점: 배점 가중치 기반 점수 계산 ────────────────────────
+function calcScore(
+  questions: QuestionRow[],
+  answers: Record<string, string | null>
+): number {
+  const totalWeight = questions.reduce((s, q) => s + q.score_weight, 0)
+  if (totalWeight === 0) return 0
+
+  const earnedWeight = questions.reduce((s, q) => {
+    const given = (answers[q.id] ?? '').trim()
+    const correct = String(q.correct_answer ?? '').trim()
+    // 대소문자·공백 무시 비교
+    return s + (given.toLowerCase() === correct.toLowerCase() ? q.score_weight : 0)
+  }, 0)
+
+  return parseFloat(((earnedWeight / totalWeight) * 100).toFixed(2))
+}
+
 export default function ExamTakeClient({
   application,
   questions,
   initialRemainingSeconds,
 }: ExamTakeClientProps) {
   const router = useRouter()
+
+  // answers: questionId → 선택한 실제 텍스트 (객관식·OX) 또는 직접 입력 (단답형)
   const [answers, setAnswers] = useState<Record<string, string | null>>({})
   const [timeLeft, setTimeLeft] = useState(initialRemainingSeconds)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false)
-  const [currentPage, setCurrentPage] = useState(0) // 문제 페이지네이션
+  const [currentPage, setCurrentPage] = useState(0)
   const submitCalledRef = useRef(false)
 
   const QUESTIONS_PER_PAGE = 5
@@ -59,7 +85,7 @@ export default function ExamTakeClient({
     const supabase = createClient() as any
 
     try {
-      // 1. 답안 저장
+      // 1. 답안 저장 (실제 선택/입력 텍스트 저장)
       const submissionRows = questions.map((q) => ({
         application_id: application.id,
         question_id: q.id,
@@ -69,19 +95,14 @@ export default function ExamTakeClient({
         .from('submissions')
         .upsert(submissionRows, { onConflict: 'application_id,question_id' })
 
-      // 2. 자동 채점
-      const correctCount = questions.filter(
-        (q) => answers[q.id] != null && String(answers[q.id]) === String(q.correct_answer)
-      ).length
-      const score = parseFloat(((correctCount / questions.length) * 100).toFixed(2))
-      const passingScore = application.exam?.passing_score ?? 60
-      const passed = score >= passingScore
+      // 2. 자동 채점 (배점 가중치 반영)
+      const score = calcScore(questions, answers)
 
-      // 3. 상태 업데이트
+      // 3. 상태 업데이트 (exam_completed: 관리자가 최종 확인 후 passed/failed 처리)
       await supabase
         .from('exam_applications')
         .update({
-          status: 'exam_completed',   // 관리자가 최종 확인 후 passed/failed 처리
+          status: 'exam_completed',
           score,
           exam_started_at:   application.exam_started_at ?? new Date().toISOString(),
           exam_submitted_at: new Date().toISOString(),
@@ -99,16 +120,13 @@ export default function ExamTakeClient({
     }
   }, [answers, application, questions, router])
 
-  // ── 타이머 (클라이언트 사이드 카운트다운) ──────────────────
+  // ── 타이머 ────────────────────────────────────────────────────
   useEffect(() => {
     if (submitted || submitting) return
-
-    // 남은 시간이 0 이면 즉시 자동 제출
     if (timeLeft <= 0) {
       handleSubmit(true)
       return
     }
-
     const endAt = Date.now() + timeLeft * 1000
     const id = setInterval(() => {
       const remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
@@ -118,11 +136,10 @@ export default function ExamTakeClient({
         handleSubmit(true)
       }
     }, 500)
-
     return () => clearInterval(id)
   }, [submitted, submitting]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── 타이머 색상 ───────────────────────────────────────────
+  // ── 타이머 색상 ──────────────────────────────────────────────
   const timerClass =
     timeLeft <= DANGER_THRESHOLD
       ? 'text-red-600 animate-pulse'
@@ -130,7 +147,7 @@ export default function ExamTakeClient({
       ? 'text-orange-500'
       : 'text-gray-900'
 
-  // ── 제출 완료 화면 ───────────────────────────────────────
+  // ── 제출 완료 화면 ───────────────────────────────────────────
   if (submitted) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -150,9 +167,9 @@ export default function ExamTakeClient({
     )
   }
 
-  const answeredCount = Object.values(answers).filter((v) => v !== null).length
+  const answeredCount = Object.values(answers).filter((v) => v !== null && v !== '').length
   const unansweredCount = questions.length - answeredCount
-  const progressPercent = (answeredCount / questions.length) * 100
+  const progressPercent = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0
 
   return (
     <div className="max-w-3xl mx-auto pb-16">
@@ -160,13 +177,11 @@ export default function ExamTakeClient({
       {/* ── 상단 고정 헤더 ── */}
       <div className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-6">
         <div className="max-w-3xl mx-auto py-3 flex items-center justify-between gap-4">
-          {/* 시험명 + 진행도 */}
           <div className="min-w-0 flex-1">
             <h1 className="font-bold text-gray-900 text-sm truncate">
               {application.exam?.title}
             </h1>
             <div className="flex items-center gap-2 mt-1">
-              {/* 프로그레스 바 */}
               <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-500 rounded-full transition-all duration-300"
@@ -178,8 +193,6 @@ export default function ExamTakeClient({
               </span>
             </div>
           </div>
-
-          {/* 타이머 */}
           <div className="shrink-0 flex flex-col items-end">
             <div className={`text-2xl font-mono font-bold tabular-nums ${timerClass}`}>
               ⏱ {formatTime(timeLeft)}
@@ -197,7 +210,9 @@ export default function ExamTakeClient({
       <div className="space-y-5">
         {pagedQuestions.map((q, relIdx) => {
           const absIdx = currentPage * QUESTIONS_PER_PAGE + relIdx
-          const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null
+          const currentAnswer = answers[q.id] ?? null
+          const isAnswered = currentAnswer !== null && currentAnswer !== ''
+          const choices = getChoices(q)
 
           return (
             <article
@@ -207,80 +222,116 @@ export default function ExamTakeClient({
                 isAnswered ? 'border-indigo-200' : 'border-gray-200'
               }`}
             >
-              {/* 문제 번호 + 배점 */}
-              <div className="flex items-start justify-between mb-3">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">
-                  Q{absIdx + 1}
-                </span>
+              {/* 문제 번호 + 유형 뱃지 + 배점 */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold">
+                    Q{absIdx + 1}
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    q.question_type === 'multiple_choice' ? 'bg-blue-100 text-blue-600' :
+                    q.question_type === 'true_false'      ? 'bg-orange-100 text-orange-600' :
+                                                            'bg-teal-100 text-teal-600'
+                  }`}>
+                    {q.question_type === 'multiple_choice' ? '객관식' :
+                     q.question_type === 'true_false'      ? 'O/X' : '단답형'}
+                  </span>
+                </div>
                 <span className="text-xs text-gray-400">{q.score_weight}점</span>
               </div>
 
               {/* 문제 텍스트 */}
-              <p className="text-gray-900 font-medium leading-relaxed mb-4">
+              <p className="text-gray-900 font-medium leading-relaxed mb-4 whitespace-pre-wrap">
                 {q.question_text}
               </p>
 
-              {/* 선택지 */}
-              <div className="space-y-2">
-                {(q.question_type === 'true_false'
-                  ? ['O', 'X']
-                  : (q.options as string[] | null) ?? []
-                ).map((option, optIdx) => {
-                  const value = String(optIdx)
-                  const selected = answers[q.id] === value
-                  return (
-                    <label
-                      key={optIdx}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer border-2 transition-all select-none ${
-                        selected
-                          ? 'border-indigo-500 bg-indigo-50 shadow-sm'
-                          : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {/* 커스텀 라디오 */}
-                      <span
-                        className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          selected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'
+              {/* ── 객관식 / O×X 선택지 ── */}
+              {(q.question_type === 'multiple_choice' || q.question_type === 'true_false') && (
+                <div className={`gap-2 ${q.question_type === 'true_false' ? 'flex' : 'space-y-2'}`}>
+                  {choices.map((option, optIdx) => {
+                    // value = 실제 보기 텍스트 (정답 비교에 직접 사용)
+                    const selected = currentAnswer === option
+                    return (
+                      <label
+                        key={optIdx}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer border-2 transition-all select-none ${
+                          q.question_type === 'true_false' ? 'flex-1 justify-center' : ''
+                        } ${
+                          selected
+                            ? 'border-indigo-500 bg-indigo-50 shadow-sm'
+                            : 'border-gray-100 hover:border-gray-300 hover:bg-gray-50'
                         }`}
                       >
-                        {selected && (
-                          <span className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </span>
-
-                      {/* 번호 뱃지 */}
-                      {q.question_type !== 'true_false' && (
+                        {/* 커스텀 라디오 */}
                         <span
-                          className={`shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${
-                            selected ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'
+                          className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            selected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'
                           }`}
                         >
-                          {optIdx + 1}
+                          {selected && <span className="w-2 h-2 rounded-full bg-white" />}
                         </span>
-                      )}
 
-                      <span className={`text-sm ${selected ? 'text-indigo-900 font-medium' : 'text-gray-700'}`}>
-                        {option}
-                      </span>
+                        {/* 번호 뱃지 (객관식만) */}
+                        {q.question_type === 'multiple_choice' && (
+                          <span
+                            className={`shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold ${
+                              selected ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {optIdx + 1}
+                          </span>
+                        )}
 
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value={value}
-                        checked={selected}
-                        onChange={() =>
-                          setAnswers((prev) => ({ ...prev, [q.id]: value }))
-                        }
-                        className="sr-only"
-                      />
-                    </label>
-                  )
-                })}
-              </div>
+                        <span className={`text-sm font-medium ${
+                          q.question_type === 'true_false' ? 'text-lg' : ''
+                        } ${selected ? 'text-indigo-900' : 'text-gray-700'}`}>
+                          {option}
+                        </span>
+
+                        <input
+                          type="radio"
+                          name={q.id}
+                          value={option}
+                          checked={selected}
+                          onChange={() =>
+                            setAnswers((prev) => ({ ...prev, [q.id]: option }))
+                          }
+                          className="sr-only"
+                        />
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* ── 단답형 입력 ── */}
+              {q.question_type === 'short_answer' && (
+                <div>
+                  <input
+                    type="text"
+                    value={currentAnswer ?? ''}
+                    onChange={(e) =>
+                      setAnswers((prev) => ({
+                        ...prev,
+                        [q.id]: e.target.value || null,
+                      }))
+                    }
+                    placeholder="답을 입력하세요"
+                    className={`w-full px-4 py-3 rounded-xl border-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-300 ${
+                      isAnswered
+                        ? 'border-indigo-300 bg-indigo-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  />
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    💡 정확한 답을 입력하세요. 대소문자는 구분하지 않습니다.
+                  </p>
+                </div>
+              )}
 
               {/* 미답변 표시 */}
               {!isAnswered && (
-                <p className="mt-2 text-xs text-gray-400">아직 답변하지 않았습니다.</p>
+                <p className="mt-2.5 text-xs text-gray-400">아직 답변하지 않았습니다.</p>
               )}
             </article>
           )
@@ -291,7 +342,7 @@ export default function ExamTakeClient({
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8">
           <button
-            onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+            onClick={() => { setCurrentPage((p) => Math.max(0, p - 1)); window.scrollTo(0, 0) }}
             disabled={currentPage === 0}
             className="px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
           >
@@ -300,7 +351,7 @@ export default function ExamTakeClient({
           {Array.from({ length: totalPages }).map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentPage(i)}
+              onClick={() => { setCurrentPage(i); window.scrollTo(0, 0) }}
               className={`w-8 h-8 text-sm rounded-lg transition-colors font-medium ${
                 i === currentPage
                   ? 'bg-indigo-600 text-white'
@@ -311,7 +362,7 @@ export default function ExamTakeClient({
             </button>
           ))}
           <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+            onClick={() => { setCurrentPage((p) => Math.min(totalPages - 1, p + 1)); window.scrollTo(0, 0) }}
             disabled={currentPage === totalPages - 1}
             className="px-3 py-1.5 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50 transition-colors"
           >
@@ -324,15 +375,16 @@ export default function ExamTakeClient({
       <div className="mt-8 bg-white rounded-xl border border-gray-200 p-5">
         <h2 className="text-sm font-semibold text-gray-700 mb-3">답변 현황</h2>
 
-        {/* 문제 번호 그리드 */}
+        {/* 문제 번호 그리드 (클릭 시 해당 페이지로 이동) */}
         <div className="flex flex-wrap gap-1.5 mb-5">
           {questions.map((q, idx) => {
-            const isAnswered = answers[q.id] !== undefined && answers[q.id] !== null
+            const ans = answers[q.id]
+            const isAnswered = ans !== undefined && ans !== null && ans !== ''
             const pageOfQ = Math.floor(idx / QUESTIONS_PER_PAGE)
             return (
               <button
                 key={q.id}
-                onClick={() => setCurrentPage(pageOfQ)}
+                onClick={() => { setCurrentPage(pageOfQ); window.scrollTo(0, 0) }}
                 className={`w-8 h-8 text-xs font-medium rounded-md transition-colors ${
                   isAnswered
                     ? 'bg-indigo-500 text-white'
@@ -381,12 +433,12 @@ export default function ExamTakeClient({
               </div>
             )}
 
-            <div className="bg-gray-50 rounded-xl p-3 mb-5 text-sm">
+            <div className="bg-gray-50 rounded-xl p-3 mb-5 text-sm space-y-1.5">
               <div className="flex justify-between">
                 <span className="text-gray-500">답변 완료</span>
                 <span className="font-semibold">{answeredCount} / {questions.length}</span>
               </div>
-              <div className="flex justify-between mt-1.5">
+              <div className="flex justify-between">
                 <span className="text-gray-500">남은 시간</span>
                 <span className={`font-mono font-semibold ${timeLeft <= DANGER_THRESHOLD ? 'text-red-600' : 'text-gray-700'}`}>
                   {formatTime(timeLeft)}
