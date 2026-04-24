@@ -9,14 +9,20 @@ interface ResultCardProps {
 }
 
 export default function ResultCard({ application, releasedAt }: ResultCardProps) {
-  const isPassed =
-    application.status === 'passed' || application.status === 'certificate_ready'
+  const isPassed   = application.status === 'passed' || application.status === 'certificate_ready'
+  const isFailed   = application.status === 'failed'
   const isCertReady = application.status === 'certificate_ready'
   const score       = application.score
-  const passingScore = application.exam?.passing_score ?? 60
+  // 합격 기준: DB 값 우선, 없으면 기본값 70점
+  const passingScore = application.exam?.passing_score ?? 70
 
   // 점수 바 퍼센트 (0~100 클램프)
   const barWidth = score !== null ? Math.min(100, Math.max(0, score)) : 0
+
+  // 즉시 판정 여부 (자동 채점으로 passed/failed/certificate_ready 가 된 경우)
+  const isInstant =
+    (application.status === 'passed' || application.status === 'failed' || application.status === 'certificate_ready') &&
+    application.result_notified_at != null
 
   return (
     <article className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
@@ -30,7 +36,8 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
       />
 
       <div className="p-6 sm:p-8">
-        {/* 헤더 */}
+
+        {/* ── 헤더 ─────────────────────────────────────────────── */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
             <h2 className="text-lg font-bold text-gray-900">
@@ -43,19 +50,28 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
             )}
           </div>
 
-          {/* 합격/불합격 뱃지 */}
-          <span
-            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold ${
-              isPassed
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-600'
-            }`}
-          >
-            {isPassed ? '🎉 합격' : '😔 불합격'}
-          </span>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            {/* 합격/불합격 뱃지 */}
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold ${
+                isPassed
+                  ? 'bg-green-100 text-green-700 border border-green-200'
+                  : 'bg-red-100 text-red-600 border border-red-200'
+              }`}
+            >
+              {isPassed ? '🎉 합격' : '😔 불합격'}
+            </span>
+
+            {/* 즉시 판정 뱃지 */}
+            {isInstant && (
+              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-500 border border-indigo-100 font-medium">
+                ⚡ 자동 채점 완료
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* 점수 섹션 */}
+        {/* ── 점수 섹션 ────────────────────────────────────────── */}
         {score !== null ? (
           <div
             className={`rounded-2xl p-6 mb-6 ${
@@ -64,8 +80,8 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
                 : 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-100'
             }`}
           >
+            {/* 점수 + 합격 기준 */}
             <div className="flex items-end justify-between mb-4">
-              {/* 점수 */}
               <div>
                 <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${isPassed ? 'text-green-500' : 'text-red-400'}`}>
                   최종 점수
@@ -84,11 +100,11 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
                 </div>
               </div>
 
-              {/* 합격 기준 */}
               <div className="text-right">
                 <p className="text-xs text-gray-400 mb-0.5">합격 기준</p>
                 <p className="text-lg font-bold text-gray-600">
-                  {passingScore}<span className="text-sm font-medium">점 이상</span>
+                  {passingScore}
+                  <span className="text-sm font-medium">점 이상</span>
                 </p>
               </div>
             </div>
@@ -98,7 +114,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
               <div className="relative h-3 bg-white/60 rounded-full overflow-hidden">
                 {/* 합격 기준선 */}
                 <div
-                  className="absolute top-0 bottom-0 w-0.5 bg-gray-400/50 z-10"
+                  className="absolute top-0 bottom-0 w-0.5 bg-gray-400/60 z-10"
                   style={{ left: `${passingScore}%` }}
                 />
                 {/* 점수 바 */}
@@ -111,7 +127,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
               </div>
               <div className="flex justify-between text-[10px] text-gray-400">
                 <span>0점</span>
-                <span className="text-gray-500">합격선 {passingScore}점</span>
+                <span className="text-gray-500 font-semibold">합격선 {passingScore}점</span>
                 <span>100점</span>
               </div>
             </div>
@@ -123,24 +139,25 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
               }`}
             >
               {isPassed
-                ? `합격 기준(${passingScore}점)을 ${(score - passingScore).toFixed(1)}점 초과 달성했습니다.`
+                ? `합격 기준(${passingScore}점)을 ${(score - passingScore).toFixed(1)}점 초과 달성했습니다. 🎉`
                 : `합격 기준(${passingScore}점)까지 ${(passingScore - score).toFixed(1)}점 부족합니다.`}
             </p>
           </div>
         ) : (
-          /* 점수 미집계 (exam_completed 등) */
+          /* 점수 미집계 */
           <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 mb-6 text-center text-sm text-yellow-700">
             ⏳ 점수 집계 중입니다.
           </div>
         )}
 
-        {/* 결과 메타 정보 */}
+        {/* ── 결과 메타 정보 ───────────────────────────────────── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm mb-6">
-          <InfoCell label="발표일" value={formatDate(releasedAt)} />
+          <InfoCell label="결과 발표" value={formatDateTime(releasedAt)} />
           {application.result_notified_at && (
             <InfoCell
-              label="결과 통보"
+              label="판정 일시"
               value={formatDateTime(application.result_notified_at)}
+              highlight={isInstant}
             />
           )}
           {application.exam_submitted_at && (
@@ -149,9 +166,26 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
               value={formatDateTime(application.exam_submitted_at)}
             />
           )}
+          {application.exam_started_at && (
+            <InfoCell
+              label="응시 시작"
+              value={formatDateTime(application.exam_started_at)}
+            />
+          )}
+          <InfoCell
+            label="합격 기준"
+            value={`${passingScore}점 이상`}
+          />
+          {score !== null && (
+            <InfoCell
+              label="획득 점수"
+              value={`${score}점`}
+              highlight={isPassed}
+            />
+          )}
         </div>
 
-        {/* 문제별 채점 결과 (오답 분석) — 발표 이후에만 표시 */}
+        {/* ── 문제별 채점 결과 (오답 분석) ──────────────────────── */}
         {application.exam?.id && (
           <div className="mb-6">
             <ResultReview
@@ -162,7 +196,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
           </div>
         )}
 
-        {/* 액션 버튼 */}
+        {/* ── 액션 버튼 ────────────────────────────────────────── */}
         <div className="flex flex-wrap gap-3">
           {isCertReady && (
             <Link
@@ -177,7 +211,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
               🏆 자격증 발급 준비 중...
             </div>
           )}
-          {!isPassed && (
+          {isFailed && (
             <Link
               href="/exam/apply"
               className="inline-flex items-center gap-2 px-5 py-2.5 border border-indigo-300 text-indigo-600 hover:bg-indigo-50 text-sm font-medium rounded-xl transition-colors"
@@ -189,7 +223,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
             href="/dashboard"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-xl transition-colors"
           >
-            내 현황
+            내 현황 보기
           </Link>
         </div>
       </div>
@@ -197,13 +231,23 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
   )
 }
 
-function InfoCell({ label, value }: { label: string; value: string }) {
+function InfoCell({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string
+  value: string
+  highlight?: boolean
+}) {
   return (
-    <div className="bg-gray-50 rounded-xl px-4 py-3">
+    <div className={`rounded-xl px-4 py-3 ${highlight ? 'bg-indigo-50' : 'bg-gray-50'}`}>
       <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">
         {label}
       </p>
-      <p className="text-sm font-semibold text-gray-800 truncate">{value}</p>
+      <p className={`text-sm font-semibold truncate ${highlight ? 'text-indigo-700' : 'text-gray-800'}`}>
+        {value}
+      </p>
     </div>
   )
 }

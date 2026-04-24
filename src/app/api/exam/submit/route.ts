@@ -220,8 +220,11 @@ export async function POST(req: NextRequest) {
 
     // ── 5. 서버 사이드 채점 ────────────────────────────────────────
     const { score, correctCount, totalWeight, detail } = gradeExam(questions, answers)
-    const passingScore = application.exam?.passing_score ?? 60
+    // 합격 기준: exam.passing_score 우선, 없으면 기본값 70점
+    const passingScore = application.exam?.passing_score ?? 70
     const passed = score >= passingScore
+    // 즉시 합격/불합격 판정 상태
+    const finalStatus = passed ? 'passed' : 'failed'
 
     const now = new Date().toISOString()
 
@@ -244,14 +247,16 @@ export async function POST(req: NextRequest) {
       // 답안 저장 실패해도 채점 결과는 반환 (best-effort)
     }
 
-    // ── 7. exam_applications 상태 업데이트 ────────────────────────
+    // ── 7. exam_applications 상태 업데이트 ─────────────────────────
+    // exam_completed 를 거치지 않고 passed / failed 로 즉시 전환
     const { error: updateErr } = await supabase
       .from('exam_applications')
       .update({
-        status:            'exam_completed',
+        status:             finalStatus,   // 'passed' | 'failed'
         score,
-        exam_started_at:   application.exam_started_at ?? now,
-        exam_submitted_at: now,
+        exam_started_at:    application.exam_started_at ?? now,
+        exam_submitted_at:  now,
+        result_notified_at: now,           // 즉시 판정이므로 동시 기록
       })
       .eq('id', applicationId)
 

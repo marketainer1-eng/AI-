@@ -227,8 +227,9 @@ export interface ResultVisibilityInfo {
  * 신청 건의 결과 공개 여부를 판정합니다.
  *
  * 판정 기준:
- *   1. 상태가 제출 완료(exam_completed / passed / failed / certificate_ready) 인가?
- *   2. exams.result_released_at 이 설정되어 있고 now 이후인가?
+ *   - passed / failed / certificate_ready: 즉시 공개 (자동 채점으로 이미 판정 완료)
+ *   - exam_completed: result_released_at 기준으로 공개 여부 결정
+ *     (레거시 상태 — 수동 채점 시험 등에서 사용)
  *
  * @param application  exam:exams 를 포함한 신청 건
  * @param now          현재 시각 (테스트 주입용, 기본값 new Date())
@@ -237,15 +238,16 @@ export function checkResultVisibility(
   application: ApplicationWithExam,
   now: Date = new Date()
 ): ResultVisibilityInfo {
+  const { status } = application
+
+  // 1. 아직 시험을 제출하지 않은 상태
   const SUBMITTED_STATUSES: ApplicationWithExam['status'][] = [
     'exam_completed',
     'passed',
     'failed',
     'certificate_ready',
   ]
-
-  // 1. 아직 시험을 제출하지 않은 상태
-  if (!SUBMITTED_STATUSES.includes(application.status)) {
+  if (!SUBMITTED_STATUSES.includes(status)) {
     return {
       visibility: 'pending_submission',
       releasedAt: null,
@@ -253,7 +255,21 @@ export function checkResultVisibility(
     }
   }
 
-  // 2. 발표일 파싱
+  // 2. 자동 채점으로 합격/불합격이 즉시 판정된 경우 → 바로 공개
+  //    (submit API 가 status 를 passed / failed / certificate_ready 로 직접 저장)
+  if (status === 'passed' || status === 'failed' || status === 'certificate_ready') {
+    // result_notified_at 이 있으면 그 시각을, 없으면 현재 시각 사용
+    const releasedAt = application.result_notified_at
+      ? new Date(application.result_notified_at)
+      : now
+    return {
+      visibility: 'released',
+      releasedAt,
+      msUntilRelease: null,
+    }
+  }
+
+  // 3. exam_completed 상태 — result_released_at 기준 공개 여부 결정
   const releasedAtRaw = application.exam?.result_released_at
   const releasedAt = releasedAtRaw ? new Date(releasedAtRaw) : null
 
@@ -266,7 +282,7 @@ export function checkResultVisibility(
     }
   }
 
-  // 3. 발표일 이후 → 공개
+  // 4. 발표일 이후 → 공개
   return {
     visibility: 'released',
     releasedAt,
