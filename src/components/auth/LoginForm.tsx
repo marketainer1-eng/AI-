@@ -31,8 +31,12 @@ export default function LoginForm() {
       return
     }
 
-    router.push(redirectedFrom)
+    // refresh()로 서버 컴포넌트(세션 포함)를 갱신한 뒤 이동
     router.refresh()
+    // 짧은 딜레이 후 push: refresh가 쿠키를 전파하기 전에 push하면
+    // 미들웨어가 비로그인으로 판단해 다시 /login으로 보내는 문제 방지
+    await new Promise((r) => setTimeout(r, 100))
+    router.push(redirectedFrom)
   }
 
   return (

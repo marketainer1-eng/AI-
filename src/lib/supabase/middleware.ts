@@ -50,8 +50,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          // 응답 쿠키에도 반드시 기록 (브라우저가 수신)
-          supabaseResponse = NextResponse.next({ request })
+          // ⚠️ 중요: NextResponse.next()를 새로 만들지 말고
+          //   기존 supabaseResponse의 cookies에만 덮어써야
+          //   이전에 설정된 헤더/쿠키가 유실되지 않음
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
