@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type Step = 'form' | 'verify_email' | 'done'
+
 export default function SignupPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -16,6 +18,7 @@ export default function SignupPage() {
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<Step>('form')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,7 +36,7 @@ export default function SignupPage() {
     setLoading(true)
     const supabase = createClient()
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
       options: {
@@ -44,18 +47,74 @@ export default function SignupPage() {
       },
     })
 
-    if (error) {
-      setError(error.message === 'User already registered'
-        ? '이미 가입된 이메일입니다.'
-        : '회원가입에 실패했습니다. 다시 시도해주세요.')
+    if (signUpError) {
+      const msg = signUpError.message
+      if (msg === 'User already registered') {
+        setError('이미 가입된 이메일입니다.')
+      } else if (msg.includes('Password should be')) {
+        setError('비밀번호는 6자 이상이어야 합니다.')
+      } else {
+        setError('회원가입에 실패했습니다. 다시 시도해주세요.')
+      }
       setLoading(false)
       return
     }
 
-    router.push('/dashboard')
-    router.refresh()
+    // 세션이 바로 생성된 경우 (이메일 인증 비활성화된 Supabase 프로젝트)
+    if (data.session) {
+      router.refresh()
+      await new Promise((r) => setTimeout(r, 100))
+      router.push('/dashboard')
+      return
+    }
+
+    // 세션 없음 = 이메일 인증 필요 → 안내 화면으로 전환
+    setStep('verify_email')
+    setLoading(false)
   }
 
+  // ── 이메일 인증 안내 화면 ─────────────────────────────────────
+  if (step === 'verify_email') {
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">이메일을 확인해주세요</h2>
+        <p className="text-sm text-gray-600 mb-1">
+          <span className="font-medium text-indigo-600">{formData.email}</span> 으로
+        </p>
+        <p className="text-sm text-gray-600 mb-6">
+          인증 링크를 보냈습니다. 링크를 클릭하면 자동으로 로그인됩니다.
+        </p>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700 mb-6 text-left">
+          <p className="font-medium mb-1">📬 메일이 안 보이나요?</p>
+          <ul className="space-y-1 list-disc list-inside">
+            <li>스팸/프로모션 폴더를 확인해주세요</li>
+            <li>1~2분 정도 기다려보세요</li>
+            <li>그래도 안 오면 아래에서 다시 시도해주세요</li>
+          </ul>
+        </div>
+        <Link
+          href="/login"
+          className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors text-center"
+        >
+          로그인 페이지로 이동
+        </Link>
+        <button
+          onClick={() => { setStep('form'); setError(null) }}
+          className="mt-3 text-sm text-gray-500 hover:text-gray-700 underline"
+        >
+          다시 시도하기
+        </button>
+      </div>
+    )
+  }
+
+  // ── 회원가입 폼 ───────────────────────────────────────────────
   return (
     <>
       <h2 className="text-xl font-semibold text-gray-800 mb-6">회원가입</h2>
@@ -131,7 +190,7 @@ export default function SignupPage() {
           disabled={loading}
           className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg text-sm transition-colors"
         >
-          {loading ? '가입 중...' : '회원가입'}
+          {loading ? '가입 처리 중...' : '회원가입'}
         </button>
       </form>
 
