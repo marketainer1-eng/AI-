@@ -101,12 +101,52 @@ export default function AdminQuestionsClient({
         </div>
       </div>
 
+      {/* 출제 설정 안내 배너 */}
+      {(() => {
+        const qCount = (exam as any).question_count ?? 25
+        const activeCount = questions.filter((q) => q.is_active).length
+        const isRandom = activeCount > qCount
+        return (
+          <div className={`rounded-xl p-3.5 flex items-center gap-3 text-sm ${
+            isRandom
+              ? 'bg-purple-50 border border-purple-200'
+              : 'bg-gray-50 border border-gray-200'
+          }`}>
+            <span className="text-xl">{isRandom ? '🎲' : '📋'}</span>
+            <div>
+              {isRandom ? (
+                <p className="text-purple-800 font-semibold">
+                  랜덤 출제 활성화: 전체 {activeCount}문항 중 <strong>{qCount}문항</strong> 무작위 출제
+                </p>
+              ) : (
+                <p className="text-gray-600 font-medium">
+                  전체 출제: 활성 문항 {activeCount}개 전체 출제
+                  {activeCount < qCount && (
+                    <span className="ml-2 text-orange-500">
+                      (출제 수 {qCount}문제 설정 → 실제 등록된 {activeCount}문제만 출제)
+                    </span>
+                  )}
+                </p>
+              )}
+              <p className="text-xs text-gray-400 mt-0.5">
+                출제 수는 시험 수정에서 변경할 수 있습니다
+              </p>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* 시험 요약 */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
         <SummaryCell label="전체 문제" value={`${questions.length}문항`} />
         <SummaryCell
           label="활성 문제"
           value={`${questions.filter((q) => q.is_active).length}문항`}
+        />
+        <SummaryCell
+          label="출제 문제 수"
+          value={`${(exam as any).question_count ?? 25}문항`}
+          valueClass="text-purple-700 font-bold"
         />
         <SummaryCell
           label="총 배점"

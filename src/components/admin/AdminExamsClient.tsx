@@ -128,27 +128,32 @@ export default function AdminExamsClient({ exams }: AdminExamsClientProps) {
                   value={`${exam.passing_score}점 이상`}
                   valueClass="text-indigo-600 font-semibold"
                 />
+                <InfoCell
+                  label="출제 문제 수"
+                  value={(exam as any).question_count ? `${(exam as any).question_count}문제` : '25문제(기본)'}
+                  valueClass="text-purple-600 font-semibold"
+                />
                 <InfoCell label="응시료" value={formatCurrency(exam.fee)} />
                 <InfoCell
                   label="발표일"
                   value={exam.result_released_at ? formatDate(exam.result_released_at) : '미설정'}
                   valueClass={!exam.result_released_at ? 'text-gray-300' : undefined}
                 />
-                <InfoCell
-                  label="자격증 발급일"
-                  value={exam.certificate_issued_at ? formatDate(exam.certificate_issued_at) : '미설정'}
-                  valueClass={!exam.certificate_issued_at ? 'text-gray-300' : undefined}
-                />
               </div>
 
-              {/* 접수 기간 */}
-              <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-1.5 text-xs text-gray-400">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                접수 기간: {formatDate(exam.registration_start_at)} ~ {formatDate(exam.registration_end_at)}
+              {/* 접수 기간 + 자격증 발급일 */}
+              <div className="mt-3 pt-3 border-t border-gray-50 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  접수: {formatDate(exam.registration_start_at)} ~ {formatDate(exam.registration_end_at)}
+                </span>
+                {exam.certificate_issued_at && (
+                  <span>자격증 발급: {formatDate(exam.certificate_issued_at)}</span>
+                )}
                 {exam.max_applicants && (
-                  <span className="ml-3">최대 {exam.max_applicants.toLocaleString()}명</span>
+                  <span>최대 {exam.max_applicants.toLocaleString()}명</span>
                 )}
               </div>
             </div>

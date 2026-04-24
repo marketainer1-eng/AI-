@@ -219,19 +219,42 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
             </div>
           </div>
 
-          {/* 최대 신청 인원 */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              최대 신청 인원 <span className="text-xs text-gray-400">(비워두면 제한 없음)</span>
-            </label>
-            <input
-              type="number"
-              name="max_applicants"
-              min={1}
-              defaultValue={exam?.max_applicants ?? ''}
-              placeholder="제한 없음"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
+          {/* 출제 문제 수 / 최대 신청 인원 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                출제 문제 수
+                <span className="text-xs text-gray-400 ml-1">(비워두면 25문제)</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  name="question_count"
+                  min={1}
+                  max={200}
+                  defaultValue={(exam as any)?.question_count ?? ''}
+                  placeholder="25"
+                  className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">문제</span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                랜덤으로 해당 수만큼 출제됩니다
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                최대 신청 인원 <span className="text-xs text-gray-400">(비워두면 제한 없음)</span>
+              </label>
+              <input
+                type="number"
+                name="max_applicants"
+                min={1}
+                defaultValue={exam?.max_applicants ?? ''}
+                placeholder="제한 없음"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+            </div>
           </div>
 
           {/* 활성 여부 */}

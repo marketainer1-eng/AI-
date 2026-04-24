@@ -57,6 +57,8 @@ export interface ExamRow {
   passing_score: number
   fee: number
   max_applicants: number | null
+  /** 출제 문제 수 (null이면 등록된 전체 문제 출제) */
+  question_count: number | null
   is_active: boolean
   created_at: string
   updated_at: string

@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS public.exams (
   passing_score         INTEGER     NOT NULL DEFAULT 60     CHECK (passing_score BETWEEN 0 AND 100),
   fee                   INTEGER     NOT NULL DEFAULT 50000  CHECK (fee >= 0),
   max_applicants        INTEGER                             CHECK (max_applicants > 0), -- NULL=제한없음
+  question_count        INTEGER                             CHECK (question_count > 0),  -- NULL=25문제(기본값)
   is_active             BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),

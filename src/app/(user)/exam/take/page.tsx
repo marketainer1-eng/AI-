@@ -3,7 +3,16 @@ import { createClient } from '@/lib/supabase/server'
 import ExamTakeClient from '@/components/exam/ExamTakeClient'
 import ExamAccessDenied from '@/components/exam/ExamAccessDenied'
 import { checkExamAccess, calcRemainingSeconds } from '@/lib/exam/access'
+import {
+  selectQuestions,
+  parseMemo,
+  stringifyMemo,
+  restoreQuestionsFromMemo,
+} from '@/lib/exam/selectQuestions'
 import type { ApplicationWithExam, QuestionRow } from '@/types'
+
+// 출제 문제 수 기본값 (exam.question_count가 null이면 이 값 사용)
+const DEFAULT_QUESTION_COUNT = 25
 
 export default async function ExamTakePage() {
   const supabase = await createClient()
@@ -14,8 +23,7 @@ export default async function ExamTakePage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // ── 신청 내역 조회 (approved 또는 exam_completed 포함 전체 최신) ──
-  // checkExamAccess 가 상태별로 사유를 구분하므로 상태 필터 없이 조회
+  // ── 신청 내역 조회 ───────────────────────────────────────────
   const { data: application } = await (supabase as any)
     .from('exam_applications')
     .select('*, exam:exams(*)')
@@ -43,17 +51,17 @@ export default async function ExamTakePage() {
     )
   }
 
-  // ── 시험 문제 조회 ──────────────────────────────────────────
   const app = application as ApplicationWithExam
 
-  const { data: questions } = await (supabase as any)
+  // ── 전체 문제 풀 조회 ───────────────────────────────────────
+  const { data: allQuestions } = await (supabase as any)
     .from('questions')
     .select('*')
     .eq('exam_id', app.exam_id)
     .eq('is_active', true)
     .order('order_num', { ascending: true })
 
-  if (!questions || questions.length === 0) {
+  if (!allQuestions || allQuestions.length === 0) {
     return (
       <ExamAccessDenied
         reason="no_exam_schedule"
@@ -63,14 +71,59 @@ export default async function ExamTakePage() {
     )
   }
 
-  // ── exam_end_at 기준 남은 초 계산 ──────────────────────────
+  // ── 출제 문제 결정 ──────────────────────────────────────────
+  // exam.question_count가 설정되어 있으면 해당 수만큼 출제,
+  // 없으면 기본값(DEFAULT_QUESTION_COUNT)을 사용
+  const QUESTION_COUNT = app.exam?.question_count ?? DEFAULT_QUESTION_COUNT
+
+  // memo에 이미 선택된 문제가 있으면 그대로 복원 (새로고침해도 동일)
+  // 없으면 랜덤 선택 후 memo에 저장
+  let selectedQuestions: QuestionRow[]
+
+  const existingMemo = parseMemo(app.memo)
+
+  if (existingMemo && existingMemo.selectedQuestionIds.length > 0) {
+    // ✅ 재진입: memo에서 동일 문제 순서 복원
+    selectedQuestions = restoreQuestionsFromMemo(
+      allQuestions as QuestionRow[],
+      existingMemo
+    )
+
+    // 복원 실패 시 (문제 삭제 등) 재선택
+    if (selectedQuestions.length === 0) {
+      selectedQuestions = selectQuestions(
+        allQuestions as QuestionRow[],
+        app.id,
+        QUESTION_COUNT
+      )
+      await (supabase as any)
+        .from('exam_applications')
+        .update({ memo: stringifyMemo(selectedQuestions.map((q) => q.id)) })
+        .eq('id', app.id)
+    }
+  } else {
+    // ✅ 첫 진입: 랜덤 선택 후 memo 저장
+    selectedQuestions = selectQuestions(
+      allQuestions as QuestionRow[],
+      app.id,
+      QUESTION_COUNT
+    )
+    await (supabase as any)
+      .from('exam_applications')
+      .update({ memo: stringifyMemo(selectedQuestions.map((q) => q.id)) })
+      .eq('id', app.id)
+  }
+
+  // ── 남은 시간 계산 ──────────────────────────────────────────
   const remainingSeconds = calcRemainingSeconds(app, now)
 
   return (
     <ExamTakeClient
       application={app}
-      questions={questions as QuestionRow[]}
+      questions={selectedQuestions}
       initialRemainingSeconds={remainingSeconds}
+      totalQuestionCount={allQuestions.length}
+      selectedCount={selectedQuestions.length}
     />
   )
 }

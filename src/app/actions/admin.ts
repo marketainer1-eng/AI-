@@ -34,6 +34,7 @@ export async function createExamAction(formData: FormData) {
   const { supabase, adminError } = await requireAdmin()
   if (adminError) return { error: adminError }
 
+  const questionCountRaw = formData.get('question_count') as string
   const payload: ExamInsert = {
     title:                  formData.get('title') as string,
     description:            (formData.get('description') as string) || null,
@@ -47,6 +48,7 @@ export async function createExamAction(formData: FormData) {
     passing_score:          Number(formData.get('passing_score')),
     fee:                    Number(formData.get('fee')),
     max_applicants:         formData.get('max_applicants') ? Number(formData.get('max_applicants')) : null,
+    question_count:         questionCountRaw ? Number(questionCountRaw) : null,
     is_active:              formData.get('is_active') === 'true',
   }
 
@@ -75,6 +77,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
   const { supabase, adminError } = await requireAdmin()
   if (adminError) return { error: adminError }
 
+  const questionCountRaw2 = formData.get('question_count') as string
   const payload: ExamUpdate = {
     title:                  formData.get('title') as string,
     description:            (formData.get('description') as string) || null,
@@ -88,6 +91,7 @@ export async function updateExamAction(examId: string, formData: FormData) {
     passing_score:          Number(formData.get('passing_score')),
     fee:                    Number(formData.get('fee')),
     max_applicants:         formData.get('max_applicants') ? Number(formData.get('max_applicants')) : null,
+    question_count:         questionCountRaw2 ? Number(questionCountRaw2) : null,
     is_active:              formData.get('is_active') === 'true',
   }
 
