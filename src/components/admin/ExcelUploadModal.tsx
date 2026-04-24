@@ -9,13 +9,12 @@ interface ExcelUploadModalProps {
   onClose: () => void
 }
 
-type UploadState = 'idle' | 'dragging' | 'uploading' | 'success' | 'error'
+type UploadStatus = 'idle' | 'dragging' | 'parsing' | 'uploading' | 'success' | 'error'
 
 interface UploadResult {
-  total: number
   inserted: number
-  skipped: number
-  errors: string[]
+  parseErrors: string[]
+  examTitle: string
 }
 
 export default function ExcelUploadModal({
@@ -25,104 +24,79 @@ export default function ExcelUploadModal({
 }: ExcelUploadModalProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const [state, setState] = useState<UploadState>('idle')
+  const [status, setStatus] = useState<UploadStatus>('idle')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [replaceExisting, setReplaceExisting] = useState(false)
+  const [replaceMode, setReplaceMode] = useState(false)
   const [result, setResult] = useState<UploadResult | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string>('')
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  // ── 파일 검증 ──────────────────────────────────────────────
-  const validateFile = (file: File): string | null => {
+  // ── 파일 선택 처리 ──────────────────────────────────────────
+  const handleFileSelect = useCallback((file: File) => {
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      return '.xlsx 또는 .xls 파일만 업로드 가능합니다.'
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      return '파일 크기는 5MB 이하여야 합니다.'
-    }
-    return null
-  }
-
-  const handleFileSelect = (file: File) => {
-    const err = validateFile(file)
-    if (err) {
-      setErrorMsg(err)
-      setState('error')
+      setErrorMsg('.xlsx 또는 .xls 파일만 업로드 가능합니다.')
       return
     }
     setSelectedFile(file)
-    setErrorMsg('')
-    setState('idle')
-  }
-
-  // ── 드래그 앤 드롭 ─────────────────────────────────────────
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setState('dragging')
+    setErrorMsg(null)
+    setStatus('idle')
   }, [])
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  // ── 드래그 앤 드롭 ──────────────────────────────────────────
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
-    setState(selectedFile ? 'idle' : 'idle')
-  }, [selectedFile])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
+    setStatus('dragging')
+  }
+  const handleDragLeave = () => {
+    if (status === 'dragging') setStatus('idle')
+  }
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
+    setStatus('idle')
     const file = e.dataTransfer.files[0]
     if (file) handleFileSelect(file)
-    else setState('idle')
-  }, [])
+  }
 
-  // ── 업로드 실행 ────────────────────────────────────────────
+  // ── 업로드 실행 ─────────────────────────────────────────────
   const handleUpload = async () => {
     if (!selectedFile) return
 
-    setState('uploading')
-    setErrorMsg('')
-    setResult(null)
-
-    const formData = new FormData()
-    formData.append('file', selectedFile)
-    formData.append('examId', examId)
-    formData.append('replaceExisting', String(replaceExisting))
+    setStatus('uploading')
+    setErrorMsg(null)
 
     try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('exam_id', examId)
+      formData.append('replace', String(replaceMode))
+
       const res = await fetch('/api/admin/upload-questions', {
         method: 'POST',
         body: formData,
       })
 
-      const data = await res.json()
+      const json = await res.json()
 
-      if (!res.ok || data.error) {
-        setErrorMsg(data.error ?? '업로드 중 오류가 발생했습니다.')
-        if (data.parseErrors?.length) {
-          setResult({ total: 0, inserted: 0, skipped: 0, errors: data.parseErrors })
-        }
-        setState('error')
+      if (!res.ok || json.error) {
+        setErrorMsg(json.error ?? '업로드 실패')
+        setStatus('error')
         return
       }
 
-      setResult(data.result)
-      setState('success')
+      setResult(json)
+      setStatus('success')
       router.refresh()
-    } catch {
-      setErrorMsg('네트워크 오류가 발생했습니다. 다시 시도해주세요.')
-      setState('error')
+
+    } catch (err) {
+      setErrorMsg('네트워크 오류가 발생했습니다.')
+      setStatus('error')
     }
   }
 
-  const reset = () => {
-    setSelectedFile(null)
-    setErrorMsg('')
-    setResult(null)
-    setState('idle')
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
+  const isUploading = status === 'uploading'
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
 
         {/* ── 헤더 ── */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -142,232 +116,191 @@ export default function ExcelUploadModal({
 
         <div className="px-6 py-5 space-y-5">
 
-          {/* ── 엑셀 형식 안내 ── */}
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-700 space-y-2">
-            <p className="font-semibold text-blue-800 flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              엑셀 파일 형식 안내
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white rounded-lg p-2.5 border border-blue-100">
-                <p className="font-medium text-blue-700 mb-1">📋 시트1: 문제</p>
-                <p className="text-blue-600 leading-relaxed">
-                  문항번호 | 문제 | 보기1 | 보기2 | 보기3 | 보기4
-                </p>
+          {/* ── 성공 화면 ── */}
+          {status === 'success' && result && (
+            <div className="text-center py-4">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-              <div className="bg-white rounded-lg p-2.5 border border-blue-100">
-                <p className="font-medium text-blue-700 mb-1">✅ 시트2: 정답</p>
-                <p className="text-blue-600 leading-relaxed">
-                  문항번호 | 정답
-                </p>
-              </div>
-            </div>
-            <ul className="text-blue-600 space-y-0.5 list-disc list-inside">
-              <li>보기가 없으면 O/X 또는 단답형으로 자동 인식</li>
-              <li>정답은 보기 텍스트 그대로 입력 (예: 보기1 내용)</li>
-              <li>O/X 문제는 정답에 <strong>O</strong> 또는 <strong>X</strong> 입력</li>
-            </ul>
-          </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">등록 완료!</h3>
+              <p className="text-gray-500 text-sm">
+                <span className="text-indigo-600 font-bold text-xl">{result.inserted}</span>개 문제가 등록되었습니다.
+              </p>
 
-          {/* ── 파일 업로드 영역 ── */}
-          {state !== 'success' && (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => !selectedFile && fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
-                state === 'dragging'
-                  ? 'border-indigo-400 bg-indigo-50'
-                  : selectedFile
-                  ? 'border-green-300 bg-green-50 cursor-default'
-                  : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
-              }`}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) handleFileSelect(file)
-                }}
-              />
-
-              {selectedFile ? (
-                /* 파일 선택됨 */
-                <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mx-auto">
-                    <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-                  <p className="text-xs text-gray-400">
-                    {(selectedFile.size / 1024).toFixed(1)} KB
+              {result.parseErrors.length > 0 && (
+                <div className="mt-4 text-left p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                  <p className="text-xs font-semibold text-yellow-800 mb-2">
+                    ⚠️ 일부 행이 스킵되었습니다 ({result.parseErrors.length}건)
                   </p>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); reset() }}
-                    className="text-xs text-red-500 hover:text-red-700 underline"
-                  >
-                    파일 다시 선택
-                  </button>
-                </div>
-              ) : (
-                /* 파일 미선택 */
-                <div className="space-y-2">
-                  <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    엑셀 파일을 드래그하거나 <span className="text-indigo-600 font-medium">클릭하여 선택</span>
-                  </p>
-                  <p className="text-xs text-gray-400">.xlsx, .xls · 최대 5MB</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── 기존 문제 처리 옵션 ── */}
-          {state !== 'success' && (
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div className="relative mt-0.5">
-                <input
-                  type="checkbox"
-                  checked={replaceExisting}
-                  onChange={(e) => setReplaceExisting(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-5 h-5 rounded border-2 border-gray-300 peer-checked:border-red-500 peer-checked:bg-red-500 flex items-center justify-center transition-all">
-                  {replaceExisting && (
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.172l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-700">
-                  기존 문제 모두 삭제 후 업로드
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  체크 해제 시 기존 문제에 이어서 추가됩니다.
-                  {replaceExisting && (
-                    <span className="text-red-500 ml-1 font-medium">⚠️ 기존 문제가 모두 삭제됩니다!</span>
-                  )}
-                </p>
-              </div>
-            </label>
-          )}
-
-          {/* ── 업로드 중 ── */}
-          {state === 'uploading' && (
-            <div className="flex flex-col items-center gap-3 py-4">
-              <div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
-              <p className="text-sm text-gray-600">문제를 등록하는 중...</p>
-            </div>
-          )}
-
-          {/* ── 성공 결과 ── */}
-          {state === 'success' && result && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-green-800">업로드 완료!</p>
-                  <p className="text-xs text-green-600 mt-0.5">문제가 성공적으로 등록되었습니다.</p>
-                </div>
-              </div>
-
-              {/* 통계 */}
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-gray-800">{result.total}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">전체 문제</p>
-                </div>
-                <div className="bg-green-50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-green-700">{result.inserted}</p>
-                  <p className="text-xs text-green-600 mt-0.5">등록 완료</p>
-                </div>
-                <div className="bg-orange-50 rounded-xl p-3">
-                  <p className="text-2xl font-bold text-orange-600">{result.skipped}</p>
-                  <p className="text-xs text-orange-500 mt-0.5">건너뜀</p>
-                </div>
-              </div>
-
-              {/* 파싱 경고 */}
-              {result.errors.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
-                  <p className="text-xs font-medium text-yellow-800 mb-1.5">⚠️ 처리 중 발생한 경고</p>
-                  <ul className="space-y-1">
-                    {result.errors.slice(0, 5).map((err, i) => (
-                      <li key={i} className="text-xs text-yellow-700">• {err}</li>
+                  <ul className="text-xs text-yellow-700 space-y-0.5 max-h-32 overflow-y-auto">
+                    {result.parseErrors.map((e, i) => (
+                      <li key={i}>• {e}</li>
                     ))}
-                    {result.errors.length > 5 && (
-                      <li className="text-xs text-yellow-500">외 {result.errors.length - 5}개...</li>
-                    )}
                   </ul>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* ── 에러 메시지 ── */}
-          {state === 'error' && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
-              <p className="text-sm font-medium text-red-700">❌ {errorMsg}</p>
-              {result?.errors && result.errors.length > 0 && (
-                <ul className="space-y-1">
-                  {result.errors.slice(0, 5).map((err, i) => (
-                    <li key={i} className="text-xs text-red-600">• {err}</li>
-                  ))}
-                  {result.errors.length > 5 && (
-                    <li className="text-xs text-red-400">외 {result.errors.length - 5}개...</li>
-                  )}
-                </ul>
-              )}
-              <button
-                onClick={reset}
-                className="text-xs text-red-600 hover:text-red-800 underline"
-              >
-                다시 시도
-              </button>
-            </div>
-          )}
-
-          {/* ── 액션 버튼 ── */}
-          <div className="flex justify-end gap-3 pt-1">
-            {state === 'success' ? (
               <button
                 onClick={onClose}
-                className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                className="mt-5 px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
               >
                 닫기
               </button>
-            ) : (
-              <>
+            </div>
+          )}
+
+          {/* ── 업로드 UI ── */}
+          {status !== 'success' && (
+            <>
+              {/* 엑셀 형식 안내 */}
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                <p className="text-xs font-semibold text-blue-800 mb-2">📋 엑셀 파일 형식 안내</p>
+                <div className="grid grid-cols-2 gap-3 text-xs text-blue-700">
+                  <div>
+                    <p className="font-medium mb-1">시트1: 문제</p>
+                    <ul className="space-y-0.5 text-blue-600">
+                      <li>• A열: 문항번호</li>
+                      <li>• B열: 문제</li>
+                      <li>• C열: 보기1</li>
+                      <li>• D열: 보기2</li>
+                      <li>• E열: 보기3</li>
+                      <li>• F열: 보기4</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">시트2: 정답</p>
+                    <ul className="space-y-0.5 text-blue-600">
+                      <li>• A열: 문항번호</li>
+                      <li>• B열: 정답 (1~4)</li>
+                    </ul>
+                    <p className="mt-2 text-[10px] text-blue-500">
+                      * 정답 번호는 보기1=1, 보기2=2, 보기3=3, 보기4=4
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 파일 드롭존 */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => !isUploading && fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+                  status === 'dragging'
+                    ? 'border-indigo-400 bg-indigo-50'
+                    : selectedFile
+                    ? 'border-green-400 bg-green-50'
+                    : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+                } ${isUploading ? 'pointer-events-none opacity-60' : ''}`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileSelect(file)
+                  }}
+                />
+
+                {selectedFile ? (
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-800">{selectedFile.name}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {(selectedFile.size / 1024).toFixed(1)} KB
+                    </p>
+                    <p className="text-xs text-indigo-500 mt-2">클릭하여 다른 파일 선택</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-700">
+                      엑셀 파일을 드래그하거나 클릭하여 업로드
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">.xlsx, .xls 지원</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 교체/추가 모드 선택 */}
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-xs font-semibold text-gray-700 mb-3">업로드 방식</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <label className={`flex items-start gap-2.5 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    !replaceMode ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="mode"
+                      checked={!replaceMode}
+                      onChange={() => setReplaceMode(false)}
+                      className="mt-0.5 accent-indigo-600"
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">추가</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">기존 문제 유지 후 추가</p>
+                    </div>
+                  </label>
+                  <label className={`flex items-start gap-2.5 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                    replaceMode ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="mode"
+                      checked={replaceMode}
+                      onChange={() => setReplaceMode(true)}
+                      className="mt-0.5 accent-red-500"
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-gray-800">교체</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">기존 문제 삭제 후 교체</p>
+                    </div>
+                  </label>
+                </div>
+                {replaceMode && (
+                  <p className="text-xs text-red-500 mt-2">
+                    ⚠️ 교체 모드: 이 시험의 기존 문제가 모두 삭제됩니다.
+                  </p>
+                )}
+              </div>
+
+              {/* 에러 메시지 */}
+              {errorMsg && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                  ❌ {errorMsg}
+                </div>
+              )}
+
+              {/* 버튼 */}
+              <div className="flex gap-3">
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="flex-1 py-2.5 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleUpload}
-                  disabled={!selectedFile || state === 'uploading'}
-                  className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2"
+                  disabled={!selectedFile || isUploading}
+                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
-                  {state === 'uploading' ? (
+                  {isUploading ? (
                     <>
                       <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -385,9 +318,9 @@ export default function ExcelUploadModal({
                     </>
                   )}
                 </button>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
