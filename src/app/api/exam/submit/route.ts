@@ -158,7 +158,6 @@ function gradeExam(
   earnedWeight:   number
   detail:         AnswerDetail[]
 } {
-  let totalWeight  = 0
   let earnedWeight = 0
   let correctCount = 0
 
@@ -172,7 +171,6 @@ function gradeExam(
     const isCorrect = given !== '' && given === correct
 
     const scoreEarned = isCorrect ? q.score_weight : 0
-    totalWeight  += q.score_weight
     earnedWeight += scoreEarned
     if (isCorrect) correctCount++
 
@@ -182,7 +180,7 @@ function gradeExam(
       questionType:   q.question_type,
       orderNum:       q.order_num,
       selectedAnswer: selected,
-      correctAnswer:  correctAnswerText,   // 텍스트로 반환 (UI 표시용)
+      correctAnswer:  correctAnswerText,
       isCorrect,
       scoreWeight:    q.score_weight,
       scoreEarned,
@@ -191,7 +189,22 @@ function gradeExam(
     }
   })
 
-  // 총점 100점 환산
+  // ──────────────────────────────────────────────────────────────
+  // 점수 100점 환산
+  //
+  // 문제 DB에는 50문제가 있고, 학생에게는 25문제만 랜덤 출제됩니다.
+  // 각 문제의 score_weight는 전체 50문제 기준(합계 100점)으로 설정되어 있어
+  // 25문제만 풀면 totalWeight 합계가 50이 됩니다.
+  //
+  // 따라서 "출제된 문제들의 weight 합계(50)"가 아닌
+  // "출제 문제 수 기준 100점 만점"으로 환산해야 정확합니다.
+  //
+  // 예) 25문제 중 19개 정답, 각 weight=2 →
+  //   earnedWeight = 38, totalWeight(출제분) = 50
+  //   → 38/50 × 100 = 76점  ✅ (기존: 38/100 × 100 = 38점 ❌)
+  // ──────────────────────────────────────────────────────────────
+  const totalWeight = questions.reduce((sum, q) => sum + q.score_weight, 0)
+
   const score = totalWeight > 0
     ? parseFloat(((earnedWeight / totalWeight) * 100).toFixed(2))
     : 0
