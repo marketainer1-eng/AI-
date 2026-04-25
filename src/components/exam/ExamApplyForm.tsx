@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { applyForExamAction } from '@/app/actions/exam'
 
 interface ExamApplyFormProps {
@@ -15,6 +16,7 @@ interface ApplicationResult {
   exam: {
     title: string
     exam_start_at: string
+    exam_end_at?: string
   }
 }
 
@@ -102,20 +104,38 @@ export default function ExamApplyForm({
             </div>
 
             {/* 버튼 */}
-            <div className="flex gap-3">
-              <a
-                href="/dashboard"
-                className="flex-1 py-2.5 text-center text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                내 현황 보기
-              </a>
-              <button
-                onClick={() => { setStep('idle'); window.location.reload() }}
-                className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
-              >
-                확인
-              </button>
-            </div>
+            {(() => {
+              const now = new Date()
+              const start = application.exam?.exam_start_at ? new Date(application.exam.exam_start_at) : null
+              const end   = application.exam?.exam_end_at   ? new Date(application.exam.exam_end_at)   : null
+              const inExamPeriod = start && end && now >= start && now <= end
+              return (
+                <div className="flex flex-col gap-2">
+                  {inExamPeriod && (
+                    <Link
+                      href="/exam/take"
+                      className="w-full py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      📝 지금 바로 시험 보러가기
+                    </Link>
+                  )}
+                  <div className="flex gap-3">
+                    <a
+                      href="/dashboard"
+                      className="flex-1 py-2.5 text-center text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                      내 현황 보기
+                    </a>
+                    <button
+                      onClick={() => { setStep('idle'); window.location.reload() }}
+                      className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    >
+                      닫기
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         </div>
       </>

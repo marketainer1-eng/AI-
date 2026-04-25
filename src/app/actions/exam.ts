@@ -36,7 +36,7 @@ export async function applyForExamAction(examId: string) {
       status: 'approved',
       payment_confirmed_at: new Date().toISOString(),
     })
-    .select(`*, exam:exams(title, fee, exam_start_at)`)
+    .select(`*, exam:exams(title, fee, exam_start_at, exam_end_at)`)
     .single()
 
   if (error) {

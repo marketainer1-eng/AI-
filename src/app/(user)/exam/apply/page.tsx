@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ExamApplyForm from '@/components/exam/ExamApplyForm'
 import { ExamRow } from '@/types'
@@ -127,8 +128,13 @@ export default async function ExamApplyPage() {
                   {/* 신청 버튼 영역 */}
                   <div className="shrink-0">
                     {alreadyApplied ? (
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-col items-end gap-2">
                         <AppliedBadge status={appliedStatus!} />
+                        <ExamActionButton
+                          status={appliedStatus!}
+                          examStartAt={exam.exam_start_at}
+                          examEndAt={exam.exam_end_at}
+                        />
                       </div>
                     ) : (
                       <ExamApplyForm
@@ -171,4 +177,64 @@ function AppliedBadge({ status }: { status: string }) {
       ✓ {info.label}
     </span>
   )
+}
+
+// ─── 시험 보러가기 / 결과 보기 버튼 ───────────────────────
+function ExamActionButton({
+  status,
+  examStartAt,
+  examEndAt,
+}: {
+  status: string
+  examStartAt: string | null
+  examEndAt: string | null
+}) {
+  const now = new Date()
+  const start = examStartAt ? new Date(examStartAt) : null
+  const end   = examEndAt   ? new Date(examEndAt)   : null
+  const inExamPeriod = start && end && now >= start && now <= end
+
+  // 결과 확인 가능한 상태
+  if (['passed', 'failed', 'certificate_ready', 'exam_completed'].includes(status)) {
+    return (
+      <Link
+        href="/exam/result"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded-lg transition-colors border border-indigo-200"
+      >
+        📋 결과 보기
+      </Link>
+    )
+  }
+
+  // approved 상태이고 시험 기간 중
+  if (status === 'approved' && inExamPeriod) {
+    return (
+      <Link
+        href="/exam/take"
+        className="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+      >
+        📝 시험 보러가기
+      </Link>
+    )
+  }
+
+  // approved인데 시험 기간 전
+  if (status === 'approved' && start && now < start) {
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 text-xs rounded-lg">
+        ⏰ 시험 시작 전
+      </span>
+    )
+  }
+
+  // approved인데 시험 기간 지남
+  if (status === 'approved' && end && now > end) {
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 text-xs rounded-lg">
+        🔒 시험 종료
+      </span>
+    )
+  }
+
+  return null
 }
