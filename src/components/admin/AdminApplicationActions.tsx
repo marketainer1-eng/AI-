@@ -33,14 +33,14 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
     setTimeout(() => setToast(null), 3000)
   }
 
-  // ─── 입금 확인 ──────────────────────────────────────
+  // ─── 신청 승인 ──────────────────────────────────────
   const handleConfirmPayment = () => {
     startTransition(async () => {
       const result = await confirmPaymentAction(application.id)
       if (result.error) {
         showToast('error', result.error)
       } else {
-        showToast('success', `✅ 입금 확인 완료 — ${(application as any).user?.full_name}`)
+        showToast('success', `✅ 신청 승인 완료 — ${(application as any).user?.full_name}`)
         setShowConfirmId(null)
         router.refresh()
       }
@@ -109,13 +109,13 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
         </div>
       )}
 
-      {/* ── 입금 대기 → 승인 ────────────────────────── */}
+      {/* ── 신청 확인 → 승인 ────────────────────────── */}
       {status === 'waiting_payment' && (
         <>
           {showConfirmId === application.id ? (
             <div className="flex flex-col items-end gap-2 p-3 bg-green-50 border border-green-200 rounded-xl">
               <p className="text-xs text-green-800 font-medium">
-                입금 확인 처리하시겠습니까?
+                신청 승인 처리하시겠습니까?
               </p>
               <div className="flex gap-2">
                 <button
@@ -144,7 +144,7 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
               disabled={isPending}
               className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50 rounded-lg transition-colors"
             >
-              입금 확인
+              신청 승인
             </button>
           )}
         </>

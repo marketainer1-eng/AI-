@@ -44,12 +44,11 @@ export default async function ExamApplyPage() {
         <h2 className="font-semibold text-blue-900 mb-3 flex items-center gap-1.5">
           <span>📋</span> 응시 절차 안내
         </h2>
-        <ol className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+        <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           {[
             { step: '1', label: '시험 신청', icon: '📝' },
-            { step: '2', label: '관리자 확인', icon: '✅' },
-            { step: '3', label: '시험 응시', icon: '📖' },
-            { step: '4', label: '자격증 발급', icon: '🏆' },
+            { step: '2', label: '시험 응시', icon: '📖' },
+            { step: '3', label: '자격증 발급', icon: '🏆' },
           ].map((item, idx) => (
             <li key={idx} className="flex sm:flex-col items-center sm:items-center gap-2 text-sm text-blue-800">
               <span className="w-7 h-7 shrink-0 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-xs font-bold">

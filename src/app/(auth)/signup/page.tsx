@@ -34,43 +34,59 @@ export default function SignupPage() {
     }
 
     setLoading(true)
-    const supabase = createClient()
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: {
-          full_name: formData.full_name,
-          phone: formData.phone,
+    try {
+      const supabase = createClient()
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.full_name,
+            phone: formData.phone,
+          },
         },
-      },
-    })
+      })
 
-    if (signUpError) {
-      const msg = signUpError.message
-      if (msg === 'User already registered') {
-        setError('이미 가입된 이메일입니다.')
-      } else if (msg.includes('Password should be')) {
-        setError('비밀번호는 6자 이상이어야 합니다.')
+      if (signUpError) {
+        const msg = signUpError.message
+        if (msg === 'User already registered' || msg.includes('already registered')) {
+          setError('이미 가입된 이메일입니다.')
+        } else if (msg.includes('Password should be') || msg.includes('password')) {
+          setError('비밀번호는 6자 이상이어야 합니다.')
+        } else if (msg.includes('Unable to validate') || msg.includes('fetch') || msg.includes('network')) {
+          setError('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.')
+        } else {
+          setError(`회원가입 오류: ${msg}`)
+        }
+        setLoading(false)
+        return
+      }
+
+      // 세션이 바로 생성된 경우 (이메일 인증 비활성화된 Supabase 프로젝트)
+      if (data?.session) {
+        router.refresh()
+        await new Promise((r) => setTimeout(r, 100))
+        router.push('/dashboard')
+        return
+      }
+
+      // 세션 없음 = 이메일 인증 필요 → 안내 화면으로 전환
+      setStep('verify_email')
+      setLoading(false)
+
+    } catch (err: unknown) {
+      // 네트워크 오류, Supabase URL 미설정 등 예외 상황
+      console.error('[signup] 예외 발생:', err)
+      const message = err instanceof Error ? err.message : String(err)
+      if (message.includes('fetch') || message.includes('Failed to fetch') || message.includes('network')) {
+        setError('네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.')
       } else {
-        setError('회원가입에 실패했습니다. 다시 시도해주세요.')
+        setError('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.')
       }
       setLoading(false)
-      return
     }
-
-    // 세션이 바로 생성된 경우 (이메일 인증 비활성화된 Supabase 프로젝트)
-    if (data.session) {
-      router.refresh()
-      await new Promise((r) => setTimeout(r, 100))
-      router.push('/dashboard')
-      return
-    }
-
-    // 세션 없음 = 이메일 인증 필요 → 안내 화면으로 전환
-    setStep('verify_email')
-    setLoading(false)
   }
 
   // ── 이메일 인증 안내 화면 ─────────────────────────────────────

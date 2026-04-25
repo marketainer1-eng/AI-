@@ -59,10 +59,10 @@ export default async function DashboardPage() {
             )}
             {latestApp.status === 'approved' && (
               <>
-                <strong>응시 승인 완료 ✓</strong>
+                <strong>시험 신청 완료 ✓</strong>
                 <p className="mt-1">
                   시험일({latestApp.exam?.exam_start_at ? formatDate(latestApp.exam.exam_start_at) : '-'})에
-                  시험에 응시하세요.
+                  시험 응시 페이지에서 응시하세요.
                 </p>
                 <Link href="/exam/take" className="inline-block mt-2 text-indigo-600 font-medium hover:underline">
                   시험 응시하기 →

@@ -34,7 +34,7 @@ export interface AccessGranted {
 /** 접근 거절 사유 */
 export type AccessDenyReason =
   | 'no_application'    // 신청 내역 없음
-  | 'not_approved'      // 입금 미확인 (waiting_payment)
+  | 'not_approved'      // 관리자 미확인 (waiting_payment)
   | 'already_completed' // 이미 제출 완료
   | 'before_exam'       // 시험 시작 전
   | 'after_exam'        // 시험 시간 아님 (종료)
@@ -68,10 +68,9 @@ const BASE_MESSAGE: Record<AccessDenyReason, { title: string; description: strin
     description: '시험 신청 페이지에서 원하는 시험에 신청해주세요.',
   },
   not_approved: {
-    title: '입금 확인이 필요합니다',
+    title: '관리자 확인이 필요합니다',
     description:
-      '응시료 입금 후 관리자 확인이 완료되어야 시험에 응시할 수 있습니다.\n' +
-      '입금 확인 후 상태가 "응시 가능"으로 변경되면 응시하실 수 있습니다.',
+      '신청이 접수되었습니다. 관리자 확인이 완료되면 상태가 "응시 가능"으로 변경됩니다.',
   },
   already_completed: {
     title: '이미 제출한 시험입니다',
@@ -142,7 +141,7 @@ export function checkExamAccess(
     return { granted: false, reason: 'already_completed', ...BASE_MESSAGE.already_completed }
   }
 
-  // ── 2-b. 미승인 (입금 대기) ──────────────────────────────────
+  // ── 2-b. 미승인 (관리자 확인 대기) ──────────────────────────────
   if (status === 'waiting_payment') {
     return { granted: false, reason: 'not_approved', ...BASE_MESSAGE.not_approved }
   }

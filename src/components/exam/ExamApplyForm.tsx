@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import { applyForExamAction } from '@/app/actions/exam'
-import { formatCurrency } from '@/lib/utils/format'
 
 interface ExamApplyFormProps {
   examId: string
   userId: string
   examTitle: string
-  examFee: number
   examDate: string
 }
 
@@ -16,7 +14,6 @@ interface ApplicationResult {
   id: string
   exam: {
     title: string
-    fee: number
     exam_start_at: string
   }
 }
@@ -25,7 +22,6 @@ export default function ExamApplyForm({
   examId,
   userId: _userId,
   examTitle,
-  examFee,
   examDate,
 }: ExamApplyFormProps) {
   const [step, setStep] = useState<'idle' | 'confirm' | 'loading' | 'success' | 'error'>('idle')
@@ -59,14 +55,12 @@ export default function ExamApplyForm({
   if (step === 'success' && application) {
     return (
       <>
-        {/* 성공 버튼 (비활성) */}
         <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-green-100 text-green-700">
           ✓ 신청 완료
         </span>
 
-        {/* 모달 오버레이 */}
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
             {/* 상단 아이콘 */}
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
@@ -80,7 +74,7 @@ export default function ExamApplyForm({
               시험 신청 완료!
             </h2>
             <p className="text-sm text-gray-500 text-center mb-6">
-              아래 안내에 따라 응시료를 입금해주세요.
+              시험 당일 응시 페이지에서 시험에 응시하세요.
             </p>
 
             {/* 신청 정보 카드 */}
@@ -94,53 +88,17 @@ export default function ExamApplyForm({
                 <span className="font-medium text-gray-900">
                   {application.exam?.exam_start_at
                     ? new Date(application.exam.exam_start_at).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
+                        year: 'numeric', month: 'long', day: 'numeric',
                       })
                     : examDate}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">응시료</span>
-                <span className="font-semibold text-indigo-600">
-                  {formatCurrency(application.exam?.fee ?? examFee)}
-                </span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-gray-500">신청 상태</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-                  입금 대기
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                  ✓ 응시 가능
                 </span>
               </div>
-            </div>
-
-            {/* 입금 안내 */}
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
-              <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-1.5">
-                <span>💳</span> 입금 안내
-              </h3>
-              <dl className="space-y-1 text-sm text-blue-800">
-                <div className="flex gap-2">
-                  <dt className="text-blue-500 w-14 shrink-0">은행</dt>
-                  <dd className="font-medium">국민은행</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-blue-500 w-14 shrink-0">계좌</dt>
-                  <dd className="font-medium">000-0000-0000-00</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-blue-500 w-14 shrink-0">예금주</dt>
-                  <dd className="font-medium">자격증센터</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-blue-500 w-14 shrink-0">금액</dt>
-                  <dd className="font-semibold">{formatCurrency(application.exam?.fee ?? examFee)}</dd>
-                </div>
-              </dl>
-              <p className="text-xs text-blue-600 mt-2">
-                ※ 입금자명을 이름과 동일하게 입력해주세요.
-              </p>
             </div>
 
             {/* 버튼 */}
@@ -152,10 +110,7 @@ export default function ExamApplyForm({
                 내 현황 보기
               </a>
               <button
-                onClick={() => {
-                  setStep('idle')
-                  window.location.reload()
-                }}
+                onClick={() => { setStep('idle'); window.location.reload() }}
                 className="flex-1 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
               >
                 확인
@@ -171,19 +126,14 @@ export default function ExamApplyForm({
   if (step === 'confirm') {
     return (
       <>
-        <button
-          disabled
-          className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg"
-        >
+        <button disabled className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg">
           신청하기
         </button>
 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-2">시험 신청 확인</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              아래 시험에 신청하시겠습니까?
-            </p>
+            <p className="text-sm text-gray-600 mb-4">아래 시험에 신청하시겠습니까?</p>
 
             <div className="bg-gray-50 rounded-lg p-3 mb-5 text-sm space-y-1.5">
               <div className="flex justify-between">
@@ -191,8 +141,8 @@ export default function ExamApplyForm({
                 <span className="font-medium">{examTitle}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">응시료</span>
-                <span className="font-semibold text-indigo-600">{formatCurrency(examFee)}</span>
+                <span className="text-gray-500">시험일</span>
+                <span className="font-medium">{examDate}</span>
               </div>
             </div>
 
@@ -234,10 +184,7 @@ export default function ExamApplyForm({
   // ─── 로딩 ───────────────────────────────────────────────
   if (step === 'loading') {
     return (
-      <button
-        disabled
-        className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg flex items-center gap-2"
-      >
+      <button disabled className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg flex items-center gap-2">
         <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />

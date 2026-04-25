@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
   const stats = [
     { label: '전체 회원', value: totalUsers ?? 0, icon: '👥', color: 'bg-blue-50 text-blue-600', href: '/admin/users' },
     { label: '전체 신청', value: totalApplications ?? 0, icon: '📋', color: 'bg-purple-50 text-purple-600', href: '/admin/applications' },
-    { label: '입금 대기', value: waitingPayment ?? 0, icon: '💳', color: 'bg-yellow-50 text-yellow-600', href: '/admin/applications?status=waiting_payment' },
+    { label: '확인 대기', value: waitingPayment ?? 0, icon: '📋', color: 'bg-yellow-50 text-yellow-600', href: '/admin/applications?status=waiting_payment' },
     { label: '응시 가능', value: approved ?? 0, icon: '✅', color: 'bg-green-50 text-green-600', href: '/admin/applications?status=approved' },
     { label: '합격', value: passed ?? 0, icon: '🎉', color: 'bg-emerald-50 text-emerald-600', href: '/admin/applications?status=passed' },
     { label: '자격증 발급', value: certificates ?? 0, icon: '🏆', color: 'bg-indigo-50 text-indigo-600', href: '/admin/certificates' },
@@ -68,7 +68,7 @@ export default async function AdminDashboardPage() {
           href="/admin/applications?status=waiting_payment"
           className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 hover:bg-yellow-100 transition-colors"
         >
-          <h3 className="font-semibold text-yellow-900">💳 입금 확인 대기</h3>
+          <h3 className="font-semibold text-yellow-900">📋 신청 확인 대기</h3>
           <p className="text-sm text-yellow-700 mt-1">{waitingPayment ?? 0}건 처리 필요</p>
         </Link>
         <Link

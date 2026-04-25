@@ -27,12 +27,14 @@ export async function applyForExamAction(examId: string) {
     return { error: '이미 신청한 시험입니다.' }
   }
 
+  // 응시료가 없으므로 신청 즉시 approved 상태로 저장
   const { data, error } = await (supabase as any)
     .from('exam_applications')
     .insert({
       user_id: user.id,
       exam_id: examId,
-      status: 'waiting_payment',
+      status: 'approved',
+      payment_confirmed_at: new Date().toISOString(),
     })
     .select(`*, exam:exams(title, fee, exam_start_at)`)
     .single()
