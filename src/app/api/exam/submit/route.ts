@@ -354,15 +354,16 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 8. 응답 반환 ──────────────────────────────────────────────
+    const sortedDetail = detail.sort((a, b) => a.orderNum - b.orderNum)
     return NextResponse.json({
       success:        true,
       score,
       passed,
       passingScore,
-      totalQuestions: questions.length,
+      totalQuestions: sortedDetail.length,   // 실제 출제된 문제 수 (25)
       correctCount,
       totalWeight,
-      detail: detail.sort((a, b) => a.orderNum - b.orderNum),
+      detail: sortedDetail,
     })
 
   } catch (err) {

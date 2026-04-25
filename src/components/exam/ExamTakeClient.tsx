@@ -182,7 +182,7 @@ export default function ExamTakeClient({
       <GradeResultView
         result={gradeResult}
         examTitle={application.exam?.title ?? '시험'}
-        onGoResult={() => { router.push('/exam/result'); router.refresh() }}
+        onGoResult={() => { window.location.href = '/exam/result' }}
       />
     )
   }
