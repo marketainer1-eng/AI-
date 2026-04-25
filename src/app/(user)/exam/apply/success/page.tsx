@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ApplicationWithExam } from '@/types'
-import { formatDate, formatCurrency } from '@/lib/utils/format'
+import { formatDate } from '@/lib/utils/format'
 
 export default async function ExamApplySuccessPage() {
   const supabase = await createClient()
@@ -37,7 +37,7 @@ export default async function ExamApplySuccessPage() {
           </div>
           <h1 className="text-2xl font-bold mb-1">시험 신청 완료!</h1>
           <p className="text-green-100 text-sm">
-            응시료 입금 후 관리자 확인 시 응시 가능합니다.
+            관리자 확인 후 응시가 가능합니다.
           </p>
         </div>
 
@@ -65,52 +65,23 @@ export default async function ExamApplySuccessPage() {
               <dt className="text-gray-500">합격 기준</dt>
               <dd className="text-gray-800">{app.exam?.passing_score}점 이상</dd>
             </div>
-            <div className="flex justify-between text-sm border-t border-gray-100 pt-3">
-              <dt className="text-gray-500">응시료</dt>
-              <dd className="font-bold text-indigo-600 text-base">
-                {app.exam?.fee ? formatCurrency(app.exam.fee) : '-'}
-              </dd>
-            </div>
             <div className="flex justify-between text-sm">
               <dt className="text-gray-500">현재 상태</dt>
               <dd>
                 <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">
-                  입금 대기
+                  확인 대기
                 </span>
               </dd>
             </div>
           </dl>
         </div>
 
-        {/* 입금 안내 */}
+        {/* 안내 메시지 */}
         <div className="mx-8 mb-6 bg-blue-50 border border-blue-100 rounded-xl p-5">
-          <h3 className="font-semibold text-blue-900 mb-3">💳 입금 안내</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-blue-500">은행</span>
-              <span className="font-medium text-blue-900">국민은행</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-500">계좌번호</span>
-              <span className="font-medium text-blue-900">000-0000-0000-00</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-blue-500">예금주</span>
-              <span className="font-medium text-blue-900">자격증센터</span>
-            </div>
-            <div className="flex justify-between border-t border-blue-100 pt-2">
-              <span className="text-blue-500">입금액</span>
-              <span className="font-bold text-blue-900">
-                {app.exam?.fee ? formatCurrency(app.exam.fee) : '-'}
-              </span>
-            </div>
-          </div>
-          <div className="mt-3 p-2.5 bg-yellow-50 border border-yellow-100 rounded-lg">
-            <p className="text-xs text-yellow-800">
-              ⚠️ <strong>입금자명</strong>을 반드시 본인 이름과 동일하게 입력해주세요.
-              관리자 확인 후 자동으로 상태가 변경됩니다.
-            </p>
-          </div>
+          <h3 className="font-semibold text-blue-900 mb-2">📌 안내</h3>
+          <p className="text-sm text-blue-800">
+            관리자 확인 후 응시 가능 상태로 변경됩니다. 시험 일정을 확인하고 준비하세요.
+          </p>
         </div>
 
         {/* 진행 단계 */}
@@ -121,8 +92,7 @@ export default async function ExamApplySuccessPage() {
           <div className="flex items-center">
             {[
               { label: '신청', active: true, done: true },
-              { label: '입금', active: true, done: false },
-              { label: '확인', active: false, done: false },
+              { label: '확인', active: true, done: false },
               { label: '응시', active: false, done: false },
               { label: '발급', active: false, done: false },
             ].map((step, idx, arr) => (

@@ -232,7 +232,7 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
                       {formatDateTime(app.created_at)}
                       {app.payment_confirmed_at && (
                         <p className="text-green-500 mt-0.5">
-                          입금 {formatDateTime(app.payment_confirmed_at)}
+                          승인 {formatDateTime(app.payment_confirmed_at)}
                         </p>
                       )}
                     </td>

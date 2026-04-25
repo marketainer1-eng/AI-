@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import ExamApplyForm from '@/components/exam/ExamApplyForm'
 import { ExamRow } from '@/types'
-import { formatDate, formatCurrency } from '@/lib/utils/format'
+import { formatDate } from '@/lib/utils/format'
 
 export default async function ExamApplyPage() {
   const supabase = await createClient()
@@ -44,13 +44,12 @@ export default async function ExamApplyPage() {
         <h2 className="font-semibold text-blue-900 mb-3 flex items-center gap-1.5">
           <span>📋</span> 응시 절차 안내
         </h2>
-        <ol className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+        <ol className="grid grid-cols-1 sm:grid-cols-4 gap-2">
           {[
             { step: '1', label: '시험 신청', icon: '📝' },
-            { step: '2', label: '응시료 입금', icon: '💳' },
-            { step: '3', label: '입금 확인', icon: '✅' },
-            { step: '4', label: '시험 응시', icon: '📖' },
-            { step: '5', label: '자격증 발급', icon: '🏆' },
+            { step: '2', label: '관리자 확인', icon: '✅' },
+            { step: '3', label: '시험 응시', icon: '📖' },
+            { step: '4', label: '자격증 발급', icon: '🏆' },
           ].map((item, idx) => (
             <li key={idx} className="flex sm:flex-col items-center sm:items-center gap-2 text-sm text-blue-800">
               <span className="w-7 h-7 shrink-0 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-xs font-bold">
@@ -96,7 +95,7 @@ export default async function ExamApplyPage() {
                     )}
 
                     {/* 시험 정보 그리드 */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       <div className="bg-gray-50 rounded-lg px-3 py-2">
                         <p className="text-[10px] text-gray-400 mb-0.5">시험일</p>
                         <p className="text-sm font-medium text-gray-700">
@@ -113,12 +112,6 @@ export default async function ExamApplyPage() {
                         <p className="text-[10px] text-gray-400 mb-0.5">합격 기준</p>
                         <p className="text-sm font-medium text-gray-700">
                           {exam.passing_score}점 이상
-                        </p>
-                      </div>
-                      <div className="bg-indigo-50 rounded-lg px-3 py-2">
-                        <p className="text-[10px] text-indigo-400 mb-0.5">응시료</p>
-                        <p className="text-sm font-semibold text-indigo-700">
-                          {formatCurrency(exam.fee)}
                         </p>
                       </div>
                     </div>
@@ -143,7 +136,6 @@ export default async function ExamApplyPage() {
                         examId={exam.id}
                         userId={user.id}
                         examTitle={exam.title}
-                        examFee={exam.fee}
                         examDate={formatDate(exam.exam_start_at)}
                       />
                     )}
@@ -167,7 +159,7 @@ export default async function ExamApplyPage() {
 // ─── 이미 신청한 경우 상태 배지 ───────────────────────────
 function AppliedBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
-    waiting_payment:   { label: '입금 대기', cls: 'bg-yellow-100 text-yellow-700' },
+    waiting_payment:   { label: '확인 대기', cls: 'bg-yellow-100 text-yellow-700' },
     approved:          { label: '응시 가능', cls: 'bg-blue-100 text-blue-700' },
     exam_completed:    { label: '채점 중',   cls: 'bg-purple-100 text-purple-700' },
     passed:            { label: '합격',      cls: 'bg-green-100 text-green-700' },

@@ -13,7 +13,7 @@ import type { ApplicationStatus } from './database'
 
 /** 상태값 → 한글 라벨 */
 export const STATUS_LABEL: Record<ApplicationStatus, string> = {
-  waiting_payment:   '입금 대기',
+  waiting_payment:   '확인 대기',
   approved:          '응시 가능',
   exam_completed:    '채점 중',
   passed:            '합격',
@@ -31,11 +31,12 @@ export const STATUS_COLOR: Record<ApplicationStatus, string> = {
   certificate_ready: 'bg-emerald-100 text-emerald-800 border-emerald-200',
 }
 
-/** 상태 흐름 순서 (스텝퍼 UI용, failed 는 passed 위치와 동일) */
+/** 상태 흐름 순서 (스텝퍼 UI용, failed 는 passed 위치와 동일)
+ * - waiting_payment 는 즉시 approved 로 전환되므로 UI에서 제외
+ * - exam_completed 는 자동채점으로 바로 passed/failed 로 전환되므로 UI에서 제외
+ */
 export const STATUS_FLOW: ApplicationStatus[] = [
-  'waiting_payment',
   'approved',
-  'exam_completed',
   'passed',
   'certificate_ready',
 ]

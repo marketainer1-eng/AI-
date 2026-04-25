@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import StatusBadge from '@/components/ui/StatusBadge'
 import StatusStepper from '@/components/ui/StatusStepper'
 import { ApplicationWithExam } from '@/types'
-import { formatDate, formatCurrency } from '@/lib/utils/format'
+import { formatDate } from '@/lib/utils/format'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -51,17 +51,15 @@ export default async function DashboardPage() {
           <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
             {latestApp.status === 'waiting_payment' && (
               <>
-                <strong>입금 안내</strong>
+                <strong>신청 확인 중</strong>
                 <p className="mt-1">
-                  응시료 {latestApp.exam?.fee ? formatCurrency(latestApp.exam.fee) : '-'}를 입금하시면
-                  관리자 확인 후 응시가 가능합니다.
+                  신청이 접수되었습니다. 관리자 확인 후 응시 가능 상태로 변경됩니다.
                 </p>
-                <p className="mt-1">계좌: 국민은행 000-0000-0000-00 (예금주: 자격증센터)</p>
               </>
             )}
             {latestApp.status === 'approved' && (
               <>
-                <strong>입금 확인 완료 ✓</strong>
+                <strong>응시 승인 완료 ✓</strong>
                 <p className="mt-1">
                   시험일({latestApp.exam?.exam_start_at ? formatDate(latestApp.exam.exam_start_at) : '-'})에
                   시험에 응시하세요.
