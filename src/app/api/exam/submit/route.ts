@@ -79,7 +79,9 @@ function verifySubmitEligibility(
     return { ok: false, status: 403, error: '아직 시험 시작 전입니다.' }
   }
 
-  if (now.getTime() > endAt.getTime()) {
+  // 시험 종료 후 최대 5분(300초)까지는 제출 허용 (자동 제출 등 네트워크 지연 대비)
+  const GRACE_MS = 5 * 60 * 1000
+  if (now.getTime() > endAt.getTime() + GRACE_MS) {
     return { ok: false, status: 403, error: '시험 시간이 종료되었습니다. 제출이 거부되었습니다.' }
   }
 
@@ -130,6 +132,22 @@ interface AnswerDetail {
   explanation:    string | null
 }
 
+// ─── correct_answer 인덱스 → 텍스트 변환 헬퍼 ───────────────────────
+// DB에 correct_answer는 1-based 인덱스("1","2","3","4") 또는
+// O/X, 단답형 텍스트로 저장됩니다.
+// 클라이언트는 선택지 텍스트를 그대로 answers에 담아 보냅니다.
+// 따라서 객관식의 경우 인덱스를 options 텍스트로 변환해야 합니다.
+function resolveCorrectAnswerText(q: QuestionForGrade): string {
+  if (q.question_type === 'multiple_choice' && q.options && q.options.length > 0) {
+    const idx = parseInt(q.correct_answer, 10)
+    if (!isNaN(idx) && idx >= 1 && idx <= q.options.length) {
+      return q.options[idx - 1]  // 1-based → 0-based
+    }
+  }
+  // true_false, short_answer 는 그대로
+  return q.correct_answer
+}
+
 function gradeExam(
   questions: QuestionForGrade[],
   answers: Record<string, string | null>
@@ -147,7 +165,10 @@ function gradeExam(
   const detail: AnswerDetail[] = questions.map((q) => {
     const selected = answers[q.id] ?? null
     const given    = (selected ?? '').trim().toLowerCase()
-    const correct  = String(q.correct_answer ?? '').trim().toLowerCase()
+
+    // 정답 텍스트로 변환 (객관식은 인덱스 → 선택지 텍스트)
+    const correctAnswerText = resolveCorrectAnswerText(q)
+    const correct  = correctAnswerText.trim().toLowerCase()
     const isCorrect = given !== '' && given === correct
 
     const scoreEarned = isCorrect ? q.score_weight : 0
@@ -161,7 +182,7 @@ function gradeExam(
       questionType:   q.question_type,
       orderNum:       q.order_num,
       selectedAnswer: selected,
-      correctAnswer:  q.correct_answer,
+      correctAnswer:  correctAnswerText,   // 텍스트로 반환 (UI 표시용)
       isCorrect,
       scoreWeight:    q.score_weight,
       scoreEarned,
