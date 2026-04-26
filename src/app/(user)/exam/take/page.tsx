@@ -89,21 +89,34 @@ export default async function ExamTakePage() {
       allQuestions as QuestionRow[],
       existingMemo
     )
-    // 복원 실패 시 재선택
+    // 복원 실패 시 재선택 후 반드시 memo 재저장
     if (selectedQuestions.length === 0) {
       selectedQuestions = selectQuestions(allQuestions as QuestionRow[], app.id, QUESTION_COUNT)
-      await (supabase as any)
+      const newMemo = stringifyMemo(selectedQuestions.map(q => q.id))
+      const { error: memoErr } = await (supabase as any)
         .from('exam_applications')
-        .update({ memo: stringifyMemo(selectedQuestions.map(q => q.id)) })
+        .update({ memo: newMemo })
         .eq('id', app.id)
+      if (memoErr) {
+        console.error('[take] memo 재저장 실패:', memoErr)
+      }
     }
   } else {
-    // 첫 진입: 랜덤 선택 후 memo 저장
+    // 첫 진입: 랜덤 선택 후 memo 저장 (재시도 포함)
     selectedQuestions = selectQuestions(allQuestions as QuestionRow[], app.id, QUESTION_COUNT)
-    await (supabase as any)
+    const newMemo = stringifyMemo(selectedQuestions.map(q => q.id))
+    const { error: memoErr } = await (supabase as any)
       .from('exam_applications')
-      .update({ memo: stringifyMemo(selectedQuestions.map(q => q.id)) })
+      .update({ memo: newMemo })
       .eq('id', app.id)
+    if (memoErr) {
+      // 저장 실패 시 1회 재시도
+      console.error('[take] memo 저장 실패, 재시도:', memoErr)
+      await (supabase as any)
+        .from('exam_applications')
+        .update({ memo: newMemo })
+        .eq('id', app.id)
+    }
   }
 
   // ── 남은 시간 계산 ──────────────────────────────────────────

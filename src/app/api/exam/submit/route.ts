@@ -267,10 +267,20 @@ export async function POST(req: NextRequest) {
     if (application.memo) {
       try {
         const memo = JSON.parse(application.memo)
-        if (Array.isArray(memo.selectedQuestionIds)) {
+        if (Array.isArray(memo.selectedQuestionIds) && memo.selectedQuestionIds.length > 0) {
           questionIds = memo.selectedQuestionIds as string[]
         }
-      } catch { /* memo 파싱 실패 시 전체 문제 사용 */ }
+      } catch { /* memo 파싱 실패 시 answers 키에서 복원 시도 */ }
+    }
+
+    // memo가 없거나 파싱 실패 시 → 제출된 answers의 questionId 목록으로 대체
+    // (학생이 실제 답한 문제들만 채점 → 점수 오류 방지)
+    if (!questionIds || questionIds.length === 0) {
+      const answeredIds = Object.keys(answers).filter(id => answers[id] !== null && answers[id] !== '')
+      if (answeredIds.length > 0) {
+        questionIds = answeredIds
+        console.warn('[submit] memo 없음 → answers 키로 questionIds 복원:', answeredIds.length, '개')
+      }
     }
 
     // ── 4. 문제 조회 ──────────────────────────────────────────────
@@ -281,7 +291,7 @@ export async function POST(req: NextRequest) {
       .eq('is_active', true)
 
     if (questionIds && questionIds.length > 0) {
-      // memo에 저장된 특정 문제만 조회
+      // memo(또는 answers)에 저장된 특정 문제만 조회
       questionsQuery = questionsQuery.in('id', questionIds)
     }
 
