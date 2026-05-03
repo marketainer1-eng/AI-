@@ -366,33 +366,46 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 8. 합격 시 자격증 자동 발급 ───────────────────────────────
+    // race condition 방지: 순차 채번 대신 timestamp+random 조합으로 고유번호 생성
+    // 형식: CERT-YYYY-MMDD-XXXXX (날짜+랜덤 5자리)
     let certificateNumber: string | null = null
 
     if (passed) {
       try {
-        // 기존 자격증 개수로 다음 번호 계산
-        const { count } = await supabase
+        // 이미 이 application에 자격증이 있는지 먼저 확인 (중복 발급 방지)
+        const { data: existing } = await supabase
           .from('certificates')
-          .select('*', { count: 'exact', head: true })
+          .select('id, certificate_number')
+          .eq('application_id', applicationId)
+          .maybeSingle()
 
-        const nextNum = (count ?? 0) + 1
-        certificateNumber = `CERT-${new Date().getFullYear()}-${String(nextNum).padStart(6, '0')}`
-
-        const { error: certErr } = await supabase
-          .from('certificates')
-          .insert({
-            application_id:     applicationId,
-            user_id:            user.id,
-            certificate_number: certificateNumber,
-            issued_at:          nowIso,
-          })
-
-        if (certErr) {
-          console.error('[submit] certificate insert error:', certErr)
-          // 자격증 발급 실패해도 채점 결과는 반환 (best-effort)
-          certificateNumber = null
+        if (existing) {
+          // 이미 발급된 경우 기존 번호 반환
+          certificateNumber = existing.certificate_number
+          console.log('[submit] 자격증 이미 발급됨:', certificateNumber)
         } else {
-          console.log('[submit] 자격증 자동 발급 완료:', certificateNumber)
+          // 신규 발급: timestamp+random으로 충돌 없는 번호 생성
+          const d = new Date()
+          const mm   = String(d.getUTCMonth() + 1).padStart(2, '0')
+          const dd   = String(d.getUTCDate()).padStart(2, '0')
+          const rand = String(Math.floor(Math.random() * 99999)).padStart(5, '0')
+          certificateNumber = `CERT-${d.getUTCFullYear()}-${mm}${dd}-${rand}`
+
+          const { error: certErr } = await supabase
+            .from('certificates')
+            .insert({
+              application_id:     applicationId,
+              user_id:            user.id,
+              certificate_number: certificateNumber,
+              issued_at:          nowIso,
+            })
+
+          if (certErr) {
+            console.error('[submit] certificate insert error:', certErr)
+            certificateNumber = null
+          } else {
+            console.log('[submit] 자격증 자동 발급 완료:', certificateNumber)
+          }
         }
       } catch (certEx) {
         console.error('[submit] certificate auto-issue exception:', certEx)
