@@ -112,22 +112,24 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
           </div>
 
           {/* 2. 자격증 번호
-              PPT Shape[29]: left=1666951, top=8229600, w=1905610, h=181051
-              → px: left=193, top=955, w=221, h=21
-              font=12pt → ept(12)=18px, color=#1E293B, bold
+              배경 이미지 기준:
+              - VERIFY NO.:  y=919~926px (배경에 고정)
+              - CERT 번호:   y=938~958px (코드 오버레이)
+              - URL:         y=990~999px (배경에 고정)
+              font=13pt, color=#1E293B, bold
           */}
           <div style={{
             position: 'absolute',
-            left:   `${ex(1666951)}px`,
-            top:    `${ey(8229600)}px`,
-            width:  `${ex(1905610)}px`,
-            height: `${ey(181051)}px`,
+            left:   '193px',
+            top:    '938px',
+            width:  '221px',
+            height: '22px',
             display: 'flex',
             alignItems: 'center',
-            fontSize:    `${ept(12)}px`,
+            fontSize:    '14px',
             fontWeight:  700,
             color:       '#1E293B',
-            letterSpacing: '0.05em',
+            letterSpacing: '0.03em',
             lineHeight:  1,
             whiteSpace:  'nowrap',
           }}>
