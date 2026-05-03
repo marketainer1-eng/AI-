@@ -116,7 +116,7 @@ export default async function CertificatePage() {
           <div className="flex justify-center gap-3">
             <Link
               href="/exam/apply"
-              className="px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+              className="px-5 py-2.5 bg-cyan-600 text-white text-sm font-semibold rounded-xl hover:bg-cyan-700 transition-colors"
             >
               시험 신청하기
             </Link>

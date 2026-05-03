@@ -65,7 +65,7 @@ export default async function ExamResultPage() {
               </span>
             )}
             {pendingCount > 0 && (
-              <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+              <span className="px-2.5 py-1 rounded-full bg-cyan-100 text-cyan-700 font-semibold">
                 대기 {pendingCount}건
               </span>
             )}
@@ -86,7 +86,7 @@ export default async function ExamResultPage() {
 
       {/* ── 발표일 기준 대기 배너 ───────────────────────────────── */}
       {pendingCount > 0 && (
-        <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-800">
+        <div className="flex items-start gap-3 p-4 bg-cyan-50 border border-cyan-100 rounded-xl text-sm text-cyan-800">
           <span className="text-lg shrink-0">ℹ️</span>
           <p>
             일부 결과는 <strong>발표일</strong> 이후에만 공개됩니다.
@@ -151,7 +151,7 @@ export default async function ExamResultPage() {
           </p>
           <Link
             href="/exam/apply"
-            className="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center px-5 py-2.5 bg-cyan-600 text-white text-sm font-semibold rounded-xl hover:bg-cyan-700 transition-colors"
           >
             시험 신청하기 →
           </Link>

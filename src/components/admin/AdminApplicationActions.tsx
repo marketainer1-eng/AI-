@@ -154,8 +154,8 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
       {status === 'exam_completed' && (
         <>
           {showScoreInput ? (
-            <div className="flex flex-col items-end gap-2 p-3 bg-purple-50 border border-purple-200 rounded-xl">
-              <p className="text-xs text-purple-800 font-medium">점수를 입력하세요</p>
+            <div className="flex flex-col items-end gap-2 p-3 bg-teal-50 border border-teal-200 rounded-xl">
+              <p className="text-xs text-teal-800 font-medium">점수를 입력하세요</p>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -165,7 +165,7 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
                   value={scoreInput}
                   onChange={(e) => setScoreInput(e.target.value)}
                   placeholder="0 ~ 100"
-                  className="w-24 px-2 py-1.5 text-xs border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300 text-center"
+                  className="w-24 px-2 py-1.5 text-xs border border-cyan-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300 text-center"
                   autoFocus
                 />
                 <span className="text-xs text-gray-400">
@@ -182,7 +182,7 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
                 <button
                   onClick={handleReleaseResult}
                   disabled={isPending || !scoreInput}
-                  className="px-2.5 py-1 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
+                  className="px-2.5 py-1 text-xs font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
                 >
                   {isPending ? (
                     <><svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
@@ -197,7 +197,7 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
             <button
               onClick={() => setShowScoreInput(true)}
               disabled={isPending}
-              className="px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 disabled:opacity-50 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-xs font-medium text-teal-700 bg-teal-100 hover:bg-teal-200 disabled:opacity-50 rounded-lg transition-colors"
             >
               점수 입력
             </button>
@@ -216,7 +216,7 @@ export default function AdminApplicationActions({ application }: AdminApplicatio
           <button
             onClick={handleIssueCertificate}
             disabled={isPending}
-            className="px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-100 hover:bg-indigo-200 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
+            className="px-3 py-1.5 text-xs font-medium text-cyan-700 bg-cyan-100 hover:bg-cyan-200 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1"
           >
             {isPending ? (
               <><svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">

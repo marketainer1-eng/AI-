@@ -41,7 +41,7 @@ export default async function AdminUsersPage() {
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.role === 'admin'
-                        ? 'bg-indigo-100 text-indigo-800'
+                        ? 'bg-cyan-100 text-cyan-800'
                         : 'bg-gray-100 text-gray-700'
                     }`}>
                       {user.role === 'admin' ? '관리자' : '일반 사용자'}

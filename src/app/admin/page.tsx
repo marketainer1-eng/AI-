@@ -22,12 +22,12 @@ export default async function AdminDashboardPage() {
   ])
 
   const stats = [
-    { label: '전체 회원', value: totalUsers ?? 0, icon: '👥', color: 'bg-blue-50 text-blue-600', href: '/admin/users' },
-    { label: '전체 신청', value: totalApplications ?? 0, icon: '📋', color: 'bg-purple-50 text-purple-600', href: '/admin/applications' },
+    { label: '전체 회원', value: totalUsers ?? 0, icon: '👥', color: 'bg-cyan-50 text-cyan-600', href: '/admin/users' },
+    { label: '전체 신청', value: totalApplications ?? 0, icon: '📋', color: 'bg-teal-50 text-teal-600', href: '/admin/applications' },
     { label: '확인 대기', value: waitingPayment ?? 0, icon: '📋', color: 'bg-yellow-50 text-yellow-600', href: '/admin/applications?status=waiting_payment' },
     { label: '응시 가능', value: approved ?? 0, icon: '✅', color: 'bg-green-50 text-green-600', href: '/admin/applications?status=approved' },
     { label: '합격', value: passed ?? 0, icon: '🎉', color: 'bg-emerald-50 text-emerald-600', href: '/admin/applications?status=passed' },
-    { label: '자격증 발급', value: certificates ?? 0, icon: '🏆', color: 'bg-indigo-50 text-indigo-600', href: '/admin/certificates' },
+    { label: '자격증 발급', value: certificates ?? 0, icon: '🏆', color: 'bg-cyan-50 text-cyan-600', href: '/admin/certificates' },
   ]
 
   // 최근 신청 5건
@@ -51,7 +51,7 @@ export default async function AdminDashboardPage() {
           <Link
             key={stat.label}
             href={stat.href}
-            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-indigo-300 hover:shadow-sm transition-all"
+            className="bg-white rounded-xl border border-gray-200 p-5 hover:border-cyan-300 hover:shadow-sm transition-all"
           >
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl mb-3 ${stat.color}`}>
               {stat.icon}
@@ -73,10 +73,10 @@ export default async function AdminDashboardPage() {
         </Link>
         <Link
           href="/admin/applications?status=exam_completed"
-          className="bg-purple-50 border border-purple-200 rounded-xl p-5 hover:bg-purple-100 transition-colors"
+          className="bg-teal-50 border border-teal-200 rounded-xl p-5 hover:bg-teal-100 transition-colors"
         >
-          <h3 className="font-semibold text-purple-900">📊 채점 대기</h3>
-          <p className="text-sm text-purple-700 mt-1">시험 완료 후 결과 확인</p>
+          <h3 className="font-semibold text-teal-900">📊 채점 대기</h3>
+          <p className="text-sm text-teal-700 mt-1">시험 완료 후 결과 확인</p>
         </Link>
         <Link
           href="/admin/certificates"
@@ -91,7 +91,7 @@ export default async function AdminDashboardPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-900">최근 신청</h2>
-          <Link href="/admin/applications" className="text-sm text-indigo-600 hover:underline">
+          <Link href="/admin/applications" className="text-sm text-cyan-600 hover:underline">
             전체 보기 →
           </Link>
         </div>

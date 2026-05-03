@@ -24,8 +24,8 @@ export const STATUS_LABEL: Record<ApplicationStatus, string> = {
 /** 상태값 → Tailwind 색상 클래스 */
 export const STATUS_COLOR: Record<ApplicationStatus, string> = {
   waiting_payment:   'bg-yellow-100 text-yellow-800 border-yellow-200',
-  approved:          'bg-blue-100   text-blue-800   border-blue-200',
-  exam_completed:    'bg-purple-100 text-purple-800 border-purple-200',
+  approved:          'bg-cyan-100   text-cyan-800   border-cyan-200',
+  exam_completed:    'bg-teal-100 text-teal-800 border-teal-200',
   passed:            'bg-green-100  text-green-800  border-green-200',
   failed:            'bg-red-100    text-red-800    border-red-200',
   certificate_ready: 'bg-emerald-100 text-emerald-800 border-emerald-200',

@@ -66,7 +66,7 @@ export default async function AdminCertificatesPage() {
                       <a
                         href={cert.pdf_url}
                         download
-                        className="text-indigo-600 hover:underline text-xs"
+                        className="text-cyan-600 hover:underline text-xs"
                       >
                         다운로드
                       </a>

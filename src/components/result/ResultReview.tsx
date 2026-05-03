@@ -37,7 +37,7 @@ const PER_PAGE = 5
 
 // ─── 유형 뱃지 ────────────────────────────────────────────────
 const TYPE_META: Record<string, { label: string; cls: string }> = {
-  multiple_choice: { label: '객관식', cls: 'bg-blue-100 text-blue-700' },
+  multiple_choice: { label: '객관식', cls: 'bg-cyan-100 text-cyan-700' },
   true_false:      { label: 'O / X',  cls: 'bg-orange-100 text-orange-700' },
   short_answer:    { label: '단답형',  cls: 'bg-teal-100 text-teal-700' },
 }
@@ -139,7 +139,7 @@ export default function ResultReview({
             <span className="text-[11px] text-gray-400">클릭하여 펼치기</span>
           )}
           {!open && details.length > 0 && (
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 font-medium">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-600 font-medium">
               {correctCount}/{details.length} 정답
             </span>
           )}
@@ -199,7 +199,7 @@ export default function ResultReview({
                             ? 'bg-green-500 text-white'
                             : key === 'wrong'
                             ? 'bg-red-500 text-white'
-                            : 'bg-indigo-600 text-white'
+                            : 'bg-cyan-600 text-white'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -238,7 +238,7 @@ export default function ResultReview({
                       onClick={() => setPage(i)}
                       className={`w-8 h-8 text-xs font-semibold rounded-lg transition-colors ${
                         i === page
-                          ? 'bg-indigo-600 text-white'
+                          ? 'bg-cyan-600 text-white'
                           : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                       }`}
                     >
@@ -316,7 +316,7 @@ function ReviewRow({ detail: d }: { detail: SubmissionDetail }) {
           {(d.explanation || (d.options && d.options.length > 0)) && (
             <button
               onClick={() => setOpen(v => !v)}
-              className="mt-1.5 text-[11px] text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1"
+              className="mt-1.5 text-[11px] text-cyan-500 hover:text-cyan-700 font-medium flex items-center gap-1"
             >
               {open ? '▲ 닫기' : '▼ 해설 · 보기 보기'}
             </button>

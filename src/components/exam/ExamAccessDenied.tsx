@@ -68,8 +68,8 @@ const REASON_CFG = {
   },
   before_exam: {
     icon: '⏰', badge: '시험 시작 전',
-    headerCls: 'from-blue-500 to-indigo-500',
-    ringCls: 'ring-blue-200',
+    headerCls: 'from-cyan-500 to-cyan-500',
+    ringCls: 'ring-cyan-200',
     actions: [
       { href: '/dashboard', label: '내 현황 보기', primary: true },
     ],
@@ -212,20 +212,20 @@ export default function ExamAccessDenied({
               <>
                 {/* 시험 시간 정보 */}
                 {(examStartAtFormatted || examEndAtFormatted) && (
-                  <div className="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 space-y-2">
-                    <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+                  <div className="rounded-xl bg-cyan-50 border border-cyan-100 px-4 py-3 space-y-2">
+                    <p className="text-xs font-bold text-cyan-700 uppercase tracking-wider">
                       📅 시험 일정
                     </p>
                     {examStartAtFormatted && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-blue-500">시작</span>
-                        <span className="font-semibold text-blue-900">{examStartAtFormatted}</span>
+                        <span className="text-cyan-500">시작</span>
+                        <span className="font-semibold text-cyan-900">{examStartAtFormatted}</span>
                       </div>
                     )}
                     {examEndAtFormatted && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-blue-500">종료</span>
-                        <span className="font-semibold text-blue-900">{examEndAtFormatted}</span>
+                        <span className="text-cyan-500">종료</span>
+                        <span className="font-semibold text-cyan-900">{examEndAtFormatted}</span>
                       </div>
                     )}
                   </div>
@@ -233,8 +233,8 @@ export default function ExamAccessDenied({
 
                 {/* 카운트다운 타이머 */}
                 {msUntilStart !== undefined && totalSec > 0 && (
-                  <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 px-4 py-5 text-center">
-                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-4">
+                  <div className="rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-50 border border-cyan-100 px-4 py-5 text-center">
+                    <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest mb-4">
                       시험 시작까지
                     </p>
                     <div className="flex justify-center gap-2 sm:gap-4 mb-4">
@@ -244,16 +244,16 @@ export default function ExamAccessDenied({
                         { v: seconds, l: '초' },
                       ].map(({ v, l }) => (
                         <div key={l} className="flex flex-col items-center">
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-sm border border-blue-100 flex items-center justify-center">
-                            <span className="text-2xl sm:text-3xl font-mono font-black text-blue-700 tabular-nums">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-sm border border-cyan-100 flex items-center justify-center">
+                            <span className="text-2xl sm:text-3xl font-mono font-black text-cyan-700 tabular-nums">
                               {String(v).padStart(2, '0')}
                             </span>
                           </div>
-                          <span className="text-[10px] text-blue-400 mt-1.5 font-medium">{l}</span>
+                          <span className="text-[10px] text-cyan-400 mt-1.5 font-medium">{l}</span>
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-blue-400">
+                    <p className="text-xs text-cyan-400">
                       시험 시작 시각에 이 페이지가 자동으로 새로고침됩니다.
                     </p>
                   </div>
@@ -302,7 +302,7 @@ export default function ExamAccessDenied({
                   href={a.href}
                   className={
                     a.primary
-                      ? 'w-full py-3 text-center text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm'
+                      ? 'w-full py-3 text-center text-sm font-semibold text-white bg-cyan-600 hover:bg-cyan-700 rounded-xl transition-colors shadow-sm'
                       : 'w-full py-3 text-center text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors'
                   }
                 >

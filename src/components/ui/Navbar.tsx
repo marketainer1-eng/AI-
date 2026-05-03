@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { UserRole } from '@/types'
@@ -42,18 +43,18 @@ export default function Navbar({ role, fullName }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* 로고 */}
-          <Link href={role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                />
-              </svg>
-            </div>
+          <Link href={role === 'admin' ? '/admin' : '/dashboard'} className="flex items-center gap-2.5">
+            <Image
+              src="/kaia-logo.png"
+              alt="KAIA 로고"
+              width={36}
+              height={36}
+              className="object-contain"
+            />
             <span className="font-bold text-gray-900 text-sm">
-              자격증 시험 관리
+              AI에이전트협회
               {role === 'admin' && (
-                <span className="ml-1 text-xs text-indigo-600 font-normal">[관리자]</span>
+                <span className="ml-1 text-xs text-cyan-600 font-normal">[관리자]</span>
               )}
             </span>
           </Link>
@@ -66,7 +67,7 @@ export default function Navbar({ role, fullName }: NavbarProps) {
                 href={link.href}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   pathname === link.href
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-cyan-50 text-cyan-700'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >

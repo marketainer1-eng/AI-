@@ -74,7 +74,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
               required
               defaultValue={exam?.title ?? ''}
               placeholder="예) 2025년 1회 자격증 시험"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
             />
           </div>
 
@@ -86,7 +86,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
               defaultValue={exam?.description ?? ''}
               placeholder="시험에 대한 간단한 설명"
               rows={2}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-none"
             />
           </div>
 
@@ -101,7 +101,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                   name="registration_start_at"
                   required
                   defaultValue={toDatetimeLocal(exam?.registration_start_at)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
               <div>
@@ -111,7 +111,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                   name="registration_end_at"
                   required
                   defaultValue={toDatetimeLocal(exam?.registration_end_at)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
             </div>
@@ -128,7 +128,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                   name="exam_start_at"
                   required
                   defaultValue={toDatetimeLocal(exam?.exam_start_at)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
               <div>
@@ -138,7 +138,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                   name="exam_end_at"
                   required
                   defaultValue={toDatetimeLocal(exam?.exam_end_at)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
               </div>
             </div>
@@ -156,7 +156,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
               min={1}
               max={600}
               defaultValue={exam?.duration_minutes ?? 60}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
             />
           </div>
 
@@ -168,7 +168,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                 type="datetime-local"
                 name="result_released_at"
                 defaultValue={toDatetimeLocal(exam?.result_released_at)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
               />
             </div>
             <div>
@@ -177,7 +177,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                 type="datetime-local"
                 name="certificate_issued_at"
                 defaultValue={toDatetimeLocal(exam?.certificate_issued_at)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
               />
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                 min={0}
                 max={100}
                 defaultValue={exam?.passing_score ?? 60}
-                className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">점</span>
             </div>
@@ -216,7 +216,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                   max={200}
                   defaultValue={(exam as any)?.question_count ?? ''}
                   placeholder="25"
-                  className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">문제</span>
               </div>
@@ -234,7 +234,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                 min={1}
                 defaultValue={exam?.max_applicants ?? ''}
                 placeholder="제한 없음"
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
               />
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
                   if (hidden) hidden.disabled = e.currentTarget.checked
                 }}
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-cyan-300 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
               <span className="ml-3 text-sm text-gray-600">
                 {exam?.is_active ?? true ? '공개' : '비공개'}
               </span>
@@ -286,7 +286,7 @@ export default function ExamFormModal({ exam, onClose }: ExamFormModalProps) {
             <button
               type="submit"
               disabled={isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2"
             >
               {isPending && (
                 <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">

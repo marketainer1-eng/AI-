@@ -77,9 +77,9 @@ export default async function ExamApplySuccessPage() {
         </div>
 
         {/* 안내 메시지 */}
-        <div className="mx-8 mb-6 bg-blue-50 border border-blue-100 rounded-xl p-5">
-          <h3 className="font-semibold text-blue-900 mb-2">📌 안내</h3>
-          <p className="text-sm text-blue-800">
+        <div className="mx-8 mb-6 bg-cyan-50 border border-cyan-100 rounded-xl p-5">
+          <h3 className="font-semibold text-cyan-900 mb-2">📌 안내</h3>
+          <p className="text-sm text-cyan-800">
             관리자 확인 후 응시 가능 상태로 변경됩니다. 시험 일정을 확인하고 준비하세요.
           </p>
         </div>
@@ -133,7 +133,7 @@ export default async function ExamApplySuccessPage() {
           </Link>
           <Link
             href="/dashboard"
-            className="flex-1 py-2.5 text-center text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+            className="flex-1 py-2.5 text-center text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
           >
             내 현황 보기
           </Link>

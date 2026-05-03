@@ -108,15 +108,15 @@ export default function SignupPage() {
   if (step === 'verify_email') {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg className="w-8 h-8 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-gray-800 mb-2">이메일을 확인해주세요</h2>
         <p className="text-sm text-gray-600 mb-1">
-          <span className="font-medium text-indigo-600">{formData.email}</span> 으로
+          <span className="font-medium text-cyan-600">{formData.email}</span> 으로
         </p>
         <p className="text-sm text-gray-600 mb-6">
           인증 링크를 보냈습니다. 링크를 클릭하면 자동으로 로그인됩니다.
@@ -131,7 +131,7 @@ export default function SignupPage() {
         </div>
         <Link
           href="/login"
-          className="block w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors text-center"
+          className="block w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-medium rounded-lg text-sm transition-colors text-center"
         >
           로그인 페이지로 이동
         </Link>
@@ -165,7 +165,7 @@ export default function SignupPage() {
             value={formData.full_name}
             onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
             placeholder="홍길동"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
         </div>
 
@@ -177,7 +177,7 @@ export default function SignupPage() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="example@email.com"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
         </div>
 
@@ -188,7 +188,7 @@ export default function SignupPage() {
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             placeholder="010-0000-0000"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
         </div>
 
@@ -200,7 +200,7 @@ export default function SignupPage() {
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="6자 이상"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
         </div>
 
@@ -212,14 +212,14 @@ export default function SignupPage() {
             value={formData.passwordConfirm}
             onChange={(e) => setFormData({ ...formData, passwordConfirm: e.target.value })}
             placeholder="비밀번호 재입력"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg text-sm transition-colors"
+          className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white font-medium rounded-lg text-sm transition-colors"
         >
           {loading ? '가입 처리 중...' : '회원가입'}
         </button>
@@ -227,7 +227,7 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-gray-500">
         이미 계정이 있으신가요?{' '}
-        <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+        <Link href="/login" className="text-cyan-600 hover:text-cyan-700 font-medium">
           로그인
         </Link>
       </p>

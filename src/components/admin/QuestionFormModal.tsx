@@ -87,8 +87,8 @@ export default function QuestionFormModal({
                   onClick={() => setQType(t.value)}
                   className={`p-2.5 rounded-lg border text-left transition-all ${
                     qType === t.value
-                      ? 'border-indigo-500 bg-indigo-50 ring-1 ring-indigo-400'
-                      : 'border-gray-200 hover:border-indigo-300'
+                      ? 'border-cyan-500 bg-cyan-50 ring-1 ring-cyan-400'
+                      : 'border-gray-200 hover:border-cyan-300'
                   }`}
                 >
                   <p className="text-xs font-semibold text-gray-800">{t.label}</p>
@@ -109,7 +109,7 @@ export default function QuestionFormModal({
               defaultValue={question?.question_text ?? ''}
               placeholder="문제를 입력하세요"
               rows={3}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-none"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function QuestionFormModal({
                 defaultValue={defaultOptions}
                 placeholder={`① 보기 1\n② 보기 2\n③ 보기 3\n④ 보기 4`}
                 rows={4}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none font-mono"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-none font-mono"
               />
               <p className="text-xs text-gray-400 mt-1">
                 정답은 아래 보기 번호 또는 텍스트를 입력하세요.
@@ -135,8 +135,8 @@ export default function QuestionFormModal({
 
           {/* O/X 보기 안내 */}
           {qType === 'true_false' && (
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-xs text-blue-700">
+            <div className="p-3 bg-cyan-50 rounded-lg">
+              <p className="text-xs text-cyan-700">
                 O/X 문제는 정답을 <strong>O</strong> 또는 <strong>X</strong>로 입력하세요.
               </p>
             </div>
@@ -159,7 +159,7 @@ export default function QuestionFormModal({
                       required
                       className="sr-only peer"
                     />
-                    <div className="w-full py-2.5 rounded-lg border border-gray-200 text-center text-lg font-bold cursor-pointer peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:text-indigo-700 hover:border-indigo-300 transition-all">
+                    <div className="w-full py-2.5 rounded-lg border border-gray-200 text-center text-lg font-bold cursor-pointer peer-checked:border-cyan-500 peer-checked:bg-cyan-50 peer-checked:text-cyan-700 hover:border-cyan-300 transition-all">
                       {v}
                     </div>
                   </label>
@@ -175,7 +175,7 @@ export default function QuestionFormModal({
                     ? '보기 텍스트 또는 번호 입력'
                     : '정답을 입력하세요'
                 }
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
               />
             )}
           </div>
@@ -190,7 +190,7 @@ export default function QuestionFormModal({
                 min={1}
                 max={100}
                 defaultValue={question?.score_weight ?? 1}
-                className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">점</span>
             </div>
@@ -206,7 +206,7 @@ export default function QuestionFormModal({
               defaultValue={question?.explanation ?? ''}
               placeholder="정답에 대한 해설을 입력하세요"
               rows={2}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300 resize-none"
             />
           </div>
 
@@ -222,7 +222,7 @@ export default function QuestionFormModal({
                   defaultChecked={question?.is_active ?? true}
                   className="sr-only peer"
                 />
-                <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
+                <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-cyan-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
               </label>
             </div>
           )}
@@ -247,7 +247,7 @@ export default function QuestionFormModal({
             <button
               type="submit"
               disabled={isPending}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2"
             >
               {isPending && (
                 <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">

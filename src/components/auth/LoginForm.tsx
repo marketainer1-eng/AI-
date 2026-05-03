@@ -73,7 +73,7 @@ export default function LoginForm() {
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             placeholder="example@email.com"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
           />
         </div>
 
@@ -85,14 +85,14 @@ export default function LoginForm() {
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             placeholder="••••••••"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg text-sm transition-colors"
+          className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400 text-white font-medium rounded-lg text-sm transition-colors"
         >
           {loading ? '로그인 중...' : '로그인'}
         </button>
@@ -100,7 +100,7 @@ export default function LoginForm() {
 
       <p className="mt-6 text-center text-sm text-gray-500">
         계정이 없으신가요?{' '}
-        <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 font-medium">
+        <Link href="/signup" className="text-cyan-600 hover:text-cyan-700 font-medium">
           회원가입
         </Link>
       </p>

@@ -62,7 +62,7 @@ const PER_PAGE   = 5    // 페이지당 문제 수
 
 // ─── 유형 뱃지 ───────────────────────────────────────────────
 const TYPE_META: Record<string, { label: string; cls: string }> = {
-  multiple_choice: { label: '객관식', cls: 'bg-blue-100 text-blue-700' },
+  multiple_choice: { label: '객관식', cls: 'bg-cyan-100 text-cyan-700' },
   true_false:      { label: 'O / X', cls: 'bg-orange-100 text-orange-700' },
   short_answer:    { label: '단답형', cls: 'bg-teal-100 text-teal-700' },
 }
@@ -226,7 +226,7 @@ export default function ExamTakeClient({
                 <h1 className="font-bold text-gray-900 text-sm truncate">
                   {application.exam?.title}
                 </h1>
-                <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-700 font-medium">
                   {selectedCount}문제 / 전체 {totalQuestionCount}문항
                 </span>
               </div>
@@ -298,15 +298,15 @@ export default function ExamTakeClient({
               key={q.id}
               id={`q-${q.id}`}
               className={`bg-white rounded-2xl shadow-sm border-2 transition-all duration-200 overflow-hidden ${
-                answered ? 'border-indigo-300' : 'border-gray-100 hover:border-gray-200'
+                answered ? 'border-cyan-300' : 'border-gray-100 hover:border-gray-200'
               }`}
             >
               {/* 문제 헤더 */}
-              <div className={`px-6 py-4 border-b ${answered ? 'bg-indigo-50 border-indigo-100' : 'bg-gray-50 border-gray-100'}`}>
+              <div className={`px-6 py-4 border-b ${answered ? 'bg-cyan-50 border-cyan-100' : 'bg-gray-50 border-gray-100'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 ${
-                      answered ? 'bg-indigo-600 text-white' : 'bg-white border-2 border-gray-200 text-gray-600'
+                      answered ? 'bg-cyan-600 text-white' : 'bg-white border-2 border-gray-200 text-gray-600'
                     }`}>
                       {absIdx + 1}
                     </span>
@@ -316,7 +316,7 @@ export default function ExamTakeClient({
                     <span className="text-xs text-gray-400">{q.score_weight}점</span>
                   </div>
                   {answered && (
-                    <span className="flex items-center gap-1 text-xs text-indigo-600 font-semibold shrink-0">
+                    <span className="flex items-center gap-1 text-xs text-cyan-600 font-semibold shrink-0">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
@@ -342,25 +342,25 @@ export default function ExamTakeClient({
                           className={`group flex items-center gap-3.5 px-4 py-3.5 rounded-xl border-2 cursor-pointer
                                       select-none transition-all duration-150 ${
                             selected
-                              ? 'border-indigo-500 bg-indigo-50 shadow-sm'
-                              : 'border-gray-100 bg-gray-50 hover:border-indigo-200 hover:bg-indigo-50/30'
+                              ? 'border-cyan-500 bg-cyan-50 shadow-sm'
+                              : 'border-gray-100 bg-gray-50 hover:border-cyan-200 hover:bg-cyan-50/30'
                           }`}
                         >
                           <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold
                                            transition-colors ${
                             selected
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-white border border-gray-200 text-gray-500 group-hover:border-indigo-300'
+                              ? 'bg-cyan-600 text-white'
+                              : 'bg-white border border-gray-200 text-gray-500 group-hover:border-cyan-300'
                           }`}>
                             {oi + 1}
                           </span>
                           <span className={`flex-1 text-sm leading-relaxed ${
-                            selected ? 'text-indigo-900 font-semibold' : 'text-gray-700'
+                            selected ? 'text-cyan-900 font-semibold' : 'text-gray-700'
                           }`}>
                             {option}
                           </span>
                           {selected && (
-                            <svg className="w-5 h-5 text-indigo-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-5 h-5 text-cyan-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
                           )}
@@ -390,19 +390,19 @@ export default function ExamTakeClient({
                                       select-none transition-all duration-150 ${
                             selected
                               ? v === 'O'
-                                ? 'border-blue-500 bg-blue-50 shadow-sm'
+                                ? 'border-cyan-500 bg-cyan-50 shadow-sm'
                                 : 'border-red-500 bg-red-50 shadow-sm'
                               : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                           }`}
                         >
                           <span className={`text-5xl font-black leading-none mb-1 ${
                             selected
-                              ? v === 'O' ? 'text-blue-600' : 'text-red-500'
+                              ? v === 'O' ? 'text-cyan-600' : 'text-red-500'
                               : 'text-gray-300'
                           }`}>{v}</span>
                           <span className={`text-xs font-medium ${
                             selected
-                              ? v === 'O' ? 'text-blue-500' : 'text-red-400'
+                              ? v === 'O' ? 'text-cyan-500' : 'text-red-400'
                               : 'text-gray-400'
                           }`}>{v === 'O' ? '맞다' : '틀리다'}</span>
                           <input
@@ -430,9 +430,9 @@ export default function ExamTakeClient({
                       }
                       placeholder="답을 입력하세요"
                       className={`w-full px-4 py-3.5 rounded-xl border-2 text-sm font-medium
-                                  focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-colors ${
+                                  focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-colors ${
                         answered
-                          ? 'border-indigo-300 bg-indigo-50 text-indigo-900'
+                          ? 'border-cyan-300 bg-cyan-50 text-cyan-900'
                           : 'border-gray-200 bg-gray-50 text-gray-800 hover:border-gray-300'
                       }`}
                     />
@@ -477,7 +477,7 @@ export default function ExamTakeClient({
                   onClick={() => goPage(i)}
                   className={`w-9 h-9 text-xs rounded-lg transition-all font-semibold relative ${
                     i === page
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-cyan-600 text-white shadow-sm'
                       : allDone
                       ? 'bg-green-100 text-green-700 hover:bg-green-200'
                       : someDone
@@ -511,7 +511,7 @@ export default function ExamTakeClient({
           <h2 className="text-sm font-bold text-gray-800">답변 현황</h2>
           <div className="flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-sm bg-indigo-500 inline-block" /> 완료
+              <span className="w-3 h-3 rounded-sm bg-cyan-500 inline-block" /> 완료
             </span>
             <span className="flex items-center gap-1">
               <span className="w-3 h-3 rounded-sm bg-gray-200 inline-block" /> 미답변
@@ -532,9 +532,9 @@ export default function ExamTakeClient({
                   title={`Q${idx + 1}${done ? ' ✓' : ''}`}
                   className={`w-8 h-8 text-xs font-semibold rounded-lg transition-all ${
                     done
-                      ? 'bg-indigo-500 text-white hover:bg-indigo-600'
+                      ? 'bg-cyan-500 text-white hover:bg-cyan-600'
                       : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                  } ${isCurrent ? 'ring-2 ring-offset-1 ring-indigo-400' : ''}`}
+                  } ${isCurrent ? 'ring-2 ring-offset-1 ring-cyan-400' : ''}`}
                 >
                   {idx + 1}
                 </button>
@@ -546,7 +546,7 @@ export default function ExamTakeClient({
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-gray-500">
                   완료{' '}
-                  <strong className="text-indigo-600 text-base">{answeredCount}</strong>
+                  <strong className="text-cyan-600 text-base">{answeredCount}</strong>
                   <span className="text-gray-400"> / {questions.length}</span>
                 </span>
                 {unanswered > 0 && (
@@ -562,7 +562,7 @@ export default function ExamTakeClient({
             <button
               onClick={() => setShowConfirm(true)}
               disabled={submitting}
-              className="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400
+              className="px-7 py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-cyan-400
                          text-white text-sm font-bold rounded-xl transition-colors shadow-sm
                          flex items-center gap-2"
             >
@@ -633,8 +633,8 @@ export default function ExamTakeClient({
               <button
                 onClick={() => handleSubmit(false)}
                 disabled={submitting}
-                className="flex-1 py-3 text-sm font-bold text-white bg-indigo-600
-                           hover:bg-indigo-700 disabled:opacity-50 rounded-xl transition-colors"
+                className="flex-1 py-3 text-sm font-bold text-white bg-cyan-600
+                           hover:bg-cyan-700 disabled:opacity-50 rounded-xl transition-colors"
               >
                 {submitting ? '채점 중...' : '최종 제출'}
               </button>
@@ -792,16 +792,16 @@ function GradeResultView({
               onClick={() => { setShowDetail(!showDetail); setReviewPage(0) }}
               className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-colors border ${
                 showDetail
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-indigo-600 border-indigo-300 hover:bg-indigo-50'
+                  ? 'bg-cyan-600 text-white border-cyan-600'
+                  : 'bg-white text-cyan-600 border-cyan-300 hover:bg-cyan-50'
               }`}
             >
               {showDetail ? '▲ 채점 결과 닫기' : '📋 문제별 채점 결과 보기'}
             </button>
             <button
               onClick={onGoResult}
-              className="flex-1 py-3 text-sm font-semibold text-white bg-indigo-600
-                         hover:bg-indigo-700 rounded-xl transition-colors"
+              className="flex-1 py-3 text-sm font-semibold text-white bg-cyan-600
+                         hover:bg-cyan-700 rounded-xl transition-colors"
             >
               결과 페이지 이동 →
             </button>
@@ -832,7 +832,7 @@ function GradeResultView({
                           ? 'bg-green-500 text-white'
                           : key === 'wrong'
                           ? 'bg-red-500 text-white'
-                          : 'bg-indigo-600 text-white'
+                          : 'bg-cyan-600 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -872,7 +872,7 @@ function GradeResultView({
                   onClick={() => setReviewPage(i)}
                   className={`w-8 h-8 text-xs font-semibold rounded-lg ${
                     i === reviewPage
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-cyan-600 text-white'
                       : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                   }`}
                 >
@@ -969,7 +969,7 @@ function ReviewItem({ detail: d }: { detail: GradeDetail }) {
           {(d.explanation || (d.options && d.options.length > 0)) && (
             <button
               onClick={() => setOpen(!open)}
-              className="mt-2 text-[11px] text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1"
+              className="mt-2 text-[11px] text-cyan-500 hover:text-cyan-700 font-medium flex items-center gap-1"
             >
               {open ? '▲ 닫기' : '▼ 해설 보기'}
             </button>

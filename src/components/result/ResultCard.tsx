@@ -64,7 +64,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
 
             {/* 즉시 판정 뱃지 */}
             {isInstant && (
-              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-500 border border-indigo-100 font-medium">
+              <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-500 border border-cyan-100 font-medium">
                 ⚡ 자동 채점 완료
               </span>
             )}
@@ -214,7 +214,7 @@ export default function ResultCard({ application, releasedAt }: ResultCardProps)
           {isFailed && (
             <Link
               href="/exam/apply"
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-indigo-300 text-indigo-600 hover:bg-indigo-50 text-sm font-medium rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-cyan-300 text-cyan-600 hover:bg-cyan-50 text-sm font-medium rounded-xl transition-colors"
             >
               재응시 신청하기 →
             </Link>
@@ -241,11 +241,11 @@ function InfoCell({
   highlight?: boolean
 }) {
   return (
-    <div className={`rounded-xl px-4 py-3 ${highlight ? 'bg-indigo-50' : 'bg-gray-50'}`}>
+    <div className={`rounded-xl px-4 py-3 ${highlight ? 'bg-cyan-50' : 'bg-gray-50'}`}>
       <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">
         {label}
       </p>
-      <p className={`text-sm font-semibold truncate ${highlight ? 'text-indigo-700' : 'text-gray-800'}`}>
+      <p className={`text-sm font-semibold truncate ${highlight ? 'text-cyan-700' : 'text-gray-800'}`}>
         {value}
       </p>
     </div>

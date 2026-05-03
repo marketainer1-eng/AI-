@@ -48,7 +48,7 @@ export default function ResultPending({
 
   return (
     <article className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-      <div className="h-1.5 bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400" />
+      <div className="h-1.5 bg-gradient-to-r from-cyan-400 via-teal-400 to-cyan-400" />
 
       <div className="p-6 sm:p-8">
         {/* 헤더 */}
@@ -61,32 +61,32 @@ export default function ResultPending({
               </p>
             )}
           </div>
-          <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+          <span className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-700">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
             </span>
             발표 대기 중
           </span>
         </div>
 
         {/* 메인 안내 박스 */}
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-6 text-center mb-6">
+        <div className="bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100 rounded-2xl p-6 text-center mb-6">
           <div className="text-4xl mb-3">⏳</div>
-          <h3 className="text-base font-bold text-indigo-900 mb-1">
+          <h3 className="text-base font-bold text-cyan-900 mb-1">
             결과 발표를 기다리고 있습니다
           </h3>
 
           {releasedAt ? (
             <>
-              <p className="text-sm text-indigo-600">
+              <p className="text-sm text-cyan-600">
                 발표 예정일 ·{' '}
                 <strong>{formatDateTime(releasedAt)}</strong>
               </p>
 
               {msUntilRelease !== null && totalSec > 0 && (
                 <div className="mt-5">
-                  <p className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wider mb-3">
+                  <p className="text-[10px] text-cyan-400 font-semibold uppercase tracking-wider mb-3">
                     발표까지 남은 시간
                   </p>
                   <div className="flex justify-center gap-3">
@@ -95,20 +95,20 @@ export default function ResultPending({
                     <CountdownUnit value={minutes} label="분" />
                     <CountdownUnit value={seconds} label="초" />
                   </div>
-                  <p className="text-[10px] text-indigo-300 mt-3">
+                  <p className="text-[10px] text-cyan-300 mt-3">
                     발표 시각이 되면 자동으로 새로고침됩니다.
                   </p>
                 </div>
               )}
 
               {msUntilRelease !== null && totalSec === 0 && (
-                <p className="mt-4 text-sm text-purple-600 font-medium animate-pulse">
+                <p className="mt-4 text-sm text-teal-600 font-medium animate-pulse">
                   결과를 불러오는 중...
                 </p>
               )}
             </>
           ) : (
-            <p className="text-sm text-indigo-500 mt-1">
+            <p className="text-sm text-cyan-500 mt-1">
               발표 일정이 확정되지 않았습니다. 공지를 확인해주세요.
             </p>
           )}
@@ -142,12 +142,12 @@ export default function ResultPending({
 function CountdownUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="w-14 h-14 bg-white border border-indigo-100 rounded-xl shadow-sm flex items-center justify-center">
-        <span className="text-2xl font-mono font-bold text-indigo-700 tabular-nums">
+      <div className="w-14 h-14 bg-white border border-cyan-100 rounded-xl shadow-sm flex items-center justify-center">
+        <span className="text-2xl font-mono font-bold text-cyan-700 tabular-nums">
           {String(value).padStart(2, '0')}
         </span>
       </div>
-      <span className="text-[10px] text-indigo-400 mt-1.5 font-medium">{label}</span>
+      <span className="text-[10px] text-cyan-400 mt-1.5 font-medium">{label}</span>
     </div>
   )
 }
@@ -166,7 +166,7 @@ function InfoCell({
       <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">
         {label}
       </p>
-      <p className={`text-sm font-semibold truncate ${highlight ? 'text-indigo-600' : 'text-gray-800'}`}>
+      <p className={`text-sm font-semibold truncate ${highlight ? 'text-cyan-600' : 'text-gray-800'}`}>
         {value}
       </p>
     </div>

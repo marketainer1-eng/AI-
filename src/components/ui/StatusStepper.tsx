@@ -68,11 +68,11 @@ export default function StatusStepper({ currentStatus }: StatusStepperProps) {
                   className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center text-lg border-2 transition-all',
                     isCompleted
-                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      ? 'bg-cyan-600 border-cyan-600 text-white'
                       : isCurrent
                       ? isFailedStep
                         ? 'bg-red-100 border-red-500 text-red-600'
-                        : 'bg-indigo-100 border-indigo-500 text-indigo-600'
+                        : 'bg-cyan-100 border-cyan-500 text-cyan-600'
                       : 'bg-gray-100 border-gray-300 text-gray-300'
                   )}
                 >
@@ -91,9 +91,9 @@ export default function StatusStepper({ currentStatus }: StatusStepperProps) {
                     isCurrent
                       ? isFailedStep
                         ? 'text-red-600'
-                        : 'text-indigo-600'
+                        : 'text-cyan-600'
                       : isCompleted
-                      ? 'text-indigo-500'
+                      ? 'text-cyan-500'
                       : 'text-gray-400'
                   )}
                 >
@@ -105,7 +105,7 @@ export default function StatusStepper({ currentStatus }: StatusStepperProps) {
                 {isCurrent && (
                   <span className={cn(
                     'mt-0.5 text-[10px] font-medium',
-                    isFailedStep ? 'text-red-400' : 'text-indigo-400'
+                    isFailedStep ? 'text-red-400' : 'text-cyan-400'
                   )}>
                     {currentStatus === 'approved'          ? '응시 대기'   :
                      currentStatus === 'exam_completed'    ? '채점 중'     :
@@ -121,7 +121,7 @@ export default function StatusStepper({ currentStatus }: StatusStepperProps) {
                 <div
                   className={cn(
                     'flex-1 h-0.5 mx-3 transition-colors',
-                    idx < currentIdx ? 'bg-indigo-500' : 'bg-gray-200'
+                    idx < currentIdx ? 'bg-cyan-500' : 'bg-gray-200'
                   )}
                 />
               )}

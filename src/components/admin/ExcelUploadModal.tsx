@@ -126,7 +126,7 @@ export default function ExcelUploadModal({
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">등록 완료!</h3>
               <p className="text-gray-500 text-sm">
-                <span className="text-indigo-600 font-bold text-xl">{result.inserted}</span>개 문제가 등록되었습니다.
+                <span className="text-cyan-600 font-bold text-xl">{result.inserted}</span>개 문제가 등록되었습니다.
               </p>
 
               {result.parseErrors.length > 0 && (
@@ -144,7 +144,7 @@ export default function ExcelUploadModal({
 
               <button
                 onClick={onClose}
-                className="mt-5 px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+                className="mt-5 px-6 py-2.5 bg-cyan-600 text-white text-sm font-medium rounded-xl hover:bg-cyan-700 transition-colors"
               >
                 닫기
               </button>
@@ -155,12 +155,12 @@ export default function ExcelUploadModal({
           {status !== 'success' && (
             <>
               {/* 엑셀 형식 안내 */}
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                <p className="text-xs font-semibold text-blue-800 mb-2">📋 엑셀 파일 형식 안내</p>
-                <div className="grid grid-cols-2 gap-3 text-xs text-blue-700">
+              <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4">
+                <p className="text-xs font-semibold text-cyan-800 mb-2">📋 엑셀 파일 형식 안내</p>
+                <div className="grid grid-cols-2 gap-3 text-xs text-cyan-700">
                   <div>
                     <p className="font-medium mb-1">시트1: 문제</p>
-                    <ul className="space-y-0.5 text-blue-600">
+                    <ul className="space-y-0.5 text-cyan-600">
                       <li>• A열: 문항번호</li>
                       <li>• B열: 문제</li>
                       <li>• C열: 보기1</li>
@@ -171,11 +171,11 @@ export default function ExcelUploadModal({
                   </div>
                   <div>
                     <p className="font-medium mb-1">시트2: 정답</p>
-                    <ul className="space-y-0.5 text-blue-600">
+                    <ul className="space-y-0.5 text-cyan-600">
                       <li>• A열: 문항번호</li>
                       <li>• B열: 정답 (1~4)</li>
                     </ul>
-                    <p className="mt-2 text-[10px] text-blue-500">
+                    <p className="mt-2 text-[10px] text-cyan-500">
                       * 정답 번호는 보기1=1, 보기2=2, 보기3=3, 보기4=4
                     </p>
                   </div>
@@ -190,10 +190,10 @@ export default function ExcelUploadModal({
                 onClick={() => !isUploading && fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
                   status === 'dragging'
-                    ? 'border-indigo-400 bg-indigo-50'
+                    ? 'border-cyan-400 bg-cyan-50'
                     : selectedFile
                     ? 'border-green-400 bg-green-50'
-                    : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
+                    : 'border-gray-200 hover:border-cyan-300 hover:bg-gray-50'
                 } ${isUploading ? 'pointer-events-none opacity-60' : ''}`}
               >
                 <input
@@ -219,7 +219,7 @@ export default function ExcelUploadModal({
                     <p className="text-xs text-gray-400 mt-1">
                       {(selectedFile.size / 1024).toFixed(1)} KB
                     </p>
-                    <p className="text-xs text-indigo-500 mt-2">클릭하여 다른 파일 선택</p>
+                    <p className="text-xs text-cyan-500 mt-2">클릭하여 다른 파일 선택</p>
                   </div>
                 ) : (
                   <div>
@@ -242,14 +242,14 @@ export default function ExcelUploadModal({
                 <p className="text-xs font-semibold text-gray-700 mb-3">업로드 방식</p>
                 <div className="grid grid-cols-2 gap-3">
                   <label className={`flex items-start gap-2.5 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                    !replaceMode ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                    !replaceMode ? 'border-cyan-400 bg-cyan-50' : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}>
                     <input
                       type="radio"
                       name="mode"
                       checked={!replaceMode}
                       onChange={() => setReplaceMode(false)}
-                      className="mt-0.5 accent-indigo-600"
+                      className="mt-0.5 accent-cyan-600"
                     />
                     <div>
                       <p className="text-xs font-semibold text-gray-800">추가</p>
@@ -298,7 +298,7 @@ export default function ExcelUploadModal({
                 <button
                   onClick={handleUpload}
                   disabled={!selectedFile || isUploading}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
                     <>

@@ -43,9 +43,9 @@ function useCountdown(initialMs: number | null) {
 
 // ─── 다운로드 버튼 라벨/색상 맵 ──────────────────────────────
 const BTN_CONFIG = {
-  idle:       { label: '📥 PDF 다운로드', cls: 'bg-indigo-600 hover:bg-indigo-700 text-white' },
-  rendering:  { label: '🖼️ 렌더링 중...', cls: 'bg-indigo-400 text-white cursor-not-allowed' },
-  generating: { label: '⚙️ PDF 생성 중...', cls: 'bg-indigo-400 text-white cursor-not-allowed' },
+  idle:       { label: '📥 PDF 다운로드', cls: 'bg-cyan-600 hover:bg-cyan-700 text-white' },
+  rendering:  { label: '🖼️ 렌더링 중...', cls: 'bg-cyan-400 text-white cursor-not-allowed' },
+  generating: { label: '⚙️ PDF 생성 중...', cls: 'bg-cyan-400 text-white cursor-not-allowed' },
   done:       { label: '✅ 다운로드 완료!', cls: 'bg-green-600 text-white' },
   error:      { label: '❌ 다시 시도', cls: 'bg-red-500 hover:bg-red-600 text-white' },
 }
@@ -69,7 +69,7 @@ export default function CertificateCard({
 
       <article className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
         {/* 상단 컬러 배너 */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 px-8 py-10 text-white text-center relative overflow-hidden">
+        <div className="bg-gradient-to-r from-cyan-600 via-teal-600 to-cyan-700 px-8 py-10 text-white text-center relative overflow-hidden">
           {/* 배경 패턴 */}
           <div className="absolute inset-0 opacity-10"
             style={{
@@ -82,7 +82,7 @@ export default function CertificateCard({
             <h2 className="text-2xl font-extrabold tracking-tight mb-1">
               {exam.title}
             </h2>
-            <p className="text-indigo-200 text-sm tracking-widest uppercase">
+            <p className="text-cyan-200 text-sm tracking-widest uppercase">
               Certificate of Qualification
             </p>
           </div>
@@ -218,7 +218,7 @@ function LockNotice({
 
   if (reason === 'not_issued') {
     return (
-      <div className="mb-5 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center gap-3 text-sm text-blue-700">
+      <div className="mb-5 bg-cyan-50 border border-cyan-100 rounded-xl p-4 flex items-center gap-3 text-sm text-cyan-700">
         <span className="text-xl">⏳</span>
         관리자가 자격증 발급을 처리하고 있습니다. 잠시 후 다시 확인해주세요.
       </div>
@@ -247,7 +247,7 @@ function MetaItem({
   return (
     <div>
       <dt className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5">{label}</dt>
-      <dd className={`text-sm font-semibold ${highlight ? 'text-indigo-700 text-base' : 'text-gray-800'} ${mono ? 'font-mono' : ''}`}>
+      <dd className={`text-sm font-semibold ${highlight ? 'text-cyan-700 text-base' : 'text-gray-800'} ${mono ? 'font-mono' : ''}`}>
         {value}
       </dd>
     </div>

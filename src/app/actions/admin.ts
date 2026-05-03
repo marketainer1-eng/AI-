@@ -62,7 +62,10 @@ export async function createExamAction(formData: FormData) {
     .select()
     .single()
 
-  if (error) return { error: '시험 생성 중 오류가 발생했습니다.' }
+  if (error) {
+    console.error('[createExamAction] Supabase error:', JSON.stringify(error))
+    return { error: `시험 생성 오류: ${error.message || error.code || '알 수 없는 오류'}` }
+  }
 
   revalidatePath('/admin/exams')
   revalidatePath('/exam/apply')

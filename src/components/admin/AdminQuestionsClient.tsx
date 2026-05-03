@@ -20,7 +20,7 @@ const TYPE_LABEL: Record<string, string> = {
 }
 
 const TYPE_COLOR: Record<string, string> = {
-  multiple_choice: 'bg-blue-100 text-blue-700',
+  multiple_choice: 'bg-cyan-100 text-cyan-700',
   true_false:      'bg-orange-100 text-orange-700',
   short_answer:    'bg-teal-100 text-teal-700',
 }
@@ -66,7 +66,7 @@ export default function AdminQuestionsClient({
     <div className="space-y-6">
       {/* 상단 네비게이션 */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/admin/exams" className="hover:text-indigo-600 transition-colors">
+        <Link href="/admin/exams" className="hover:text-cyan-600 transition-colors">
           시험 관리
         </Link>
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,7 +93,7 @@ export default function AdminQuestionsClient({
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+            className="px-3 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 transition-colors flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -111,13 +111,13 @@ export default function AdminQuestionsClient({
         return (
           <div className={`rounded-xl p-3.5 flex items-center gap-3 text-sm ${
             isRandom
-              ? 'bg-purple-50 border border-purple-200'
+              ? 'bg-teal-50 border border-teal-200'
               : 'bg-gray-50 border border-gray-200'
           }`}>
             <span className="text-xl">{isRandom ? '🎲' : '📋'}</span>
             <div>
               {isRandom ? (
-                <p className="text-purple-800 font-semibold">
+                <p className="text-teal-800 font-semibold">
                   랜덤 출제 활성화: 전체 {activeCount}문항 중 <strong>{qCount}문항</strong> 무작위 출제
                 </p>
               ) : (
@@ -139,7 +139,7 @@ export default function AdminQuestionsClient({
       })()}
 
       {/* 시험 요약 */}
-      <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+      <div className="bg-cyan-50 border border-cyan-100 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
         <SummaryCell label="전체 문제" value={`${questions.length}문항`} />
         <SummaryCell
           label="활성 문제"
@@ -148,16 +148,16 @@ export default function AdminQuestionsClient({
         <SummaryCell
           label="출제 문제 수"
           value={`${(exam as any).question_count ?? 25}문항`}
-          valueClass="text-purple-700 font-bold"
+          valueClass="text-teal-700 font-bold"
         />
         <SummaryCell
           label="총 배점"
           value="100점"
-          valueClass="text-indigo-700 font-bold"
+          valueClass="text-cyan-700 font-bold"
         />
         <SummaryCell
           label="문제당 배점"
-          value={activeQuestions.length > 0 ? `${(100 / qCount).toFixed(1)}점` : '-'}
+          value={qCount > 0 ? `${(100 / qCount).toFixed(1)}점` : '-'}
           valueClass="text-gray-600"
         />
         <SummaryCell
@@ -174,7 +174,7 @@ export default function AdminQuestionsClient({
           <p className="text-gray-400 text-sm">등록된 문제가 없습니다.</p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="mt-4 px-4 py-2 text-sm text-indigo-600 border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-colors"
+            className="mt-4 px-4 py-2 text-sm text-cyan-600 border border-cyan-200 rounded-lg hover:bg-cyan-50 transition-colors"
           >
             첫 번째 문제 추가하기
           </button>
@@ -186,7 +186,7 @@ export default function AdminQuestionsClient({
               key={q.id}
               className={`bg-white rounded-xl border transition-colors p-5 ${
                 q.is_active
-                  ? 'border-gray-200 hover:border-indigo-200'
+                  ? 'border-gray-200 hover:border-cyan-200'
                   : 'border-dashed border-gray-200 opacity-50'
               }`}
             >
@@ -369,7 +369,7 @@ function SummaryCell({
 }) {
   return (
     <div>
-      <p className="text-xs text-indigo-500 mb-0.5">{label}</p>
+      <p className="text-xs text-cyan-500 mb-0.5">{label}</p>
       <p className={`text-lg font-semibold text-gray-800 ${valueClass ?? ''}`}>{value}</p>
     </div>
   )

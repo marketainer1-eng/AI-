@@ -89,8 +89,8 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
               href={href}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:border-indigo-300'
+                  ? 'bg-cyan-600 text-white'
+                  : 'bg-white border border-gray-200 text-gray-600 hover:border-cyan-300'
               }`}
             >
               {tab.label}
@@ -122,12 +122,12 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
             name="q"
             defaultValue={q ?? ''}
             placeholder="이름, 이메일, 시험명 검색..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
           />
         </div>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          className="px-4 py-2 text-sm font-medium bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
         >
           검색
         </button>

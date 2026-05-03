@@ -48,7 +48,7 @@ export default async function DashboardPage() {
           <StatusStepper currentStatus={latestApp.status} />
 
           {/* 상태별 안내 메시지 */}
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm text-blue-800">
+          <div className="mt-4 p-4 bg-cyan-50 rounded-lg text-sm text-cyan-800">
             {latestApp.status === 'waiting_payment' && (
               <>
                 <strong>신청 확인 중</strong>
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
                   시험일({latestApp.exam?.exam_start_at ? formatDate(latestApp.exam.exam_start_at) : '-'})에
                   시험 응시 페이지에서 응시하세요.
                 </p>
-                <Link href="/exam/take" className="inline-block mt-2 text-indigo-600 font-medium hover:underline">
+                <Link href="/exam/take" className="inline-block mt-2 text-cyan-600 font-medium hover:underline">
                   시험 응시하기 →
                 </Link>
               </>
@@ -83,7 +83,7 @@ export default async function DashboardPage() {
               <>
                 <strong>불합격 안내</strong>
                 <p className="mt-1">점수: {latestApp.score}점 (합격 기준: {latestApp.exam?.passing_score}점)</p>
-                <Link href="/exam/apply" className="inline-block mt-2 text-indigo-600 font-medium hover:underline">
+                <Link href="/exam/apply" className="inline-block mt-2 text-cyan-600 font-medium hover:underline">
                   재응시 신청하기 →
                 </Link>
               </>
@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             {latestApp.status === 'certificate_ready' && (
               <>
                 <strong>자격증이 발급되었습니다! 🏆</strong>
-                <Link href="/certificate" className="inline-block mt-2 text-indigo-600 font-medium hover:underline">
+                <Link href="/certificate" className="inline-block mt-2 text-cyan-600 font-medium hover:underline">
                   자격증 다운로드 →
                 </Link>
               </>
@@ -105,7 +105,7 @@ export default async function DashboardPage() {
           <p className="text-sm text-gray-500 mb-4">시험 신청 페이지에서 원하는 시험에 신청하세요.</p>
           <Link
             href="/exam/apply"
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700 transition-colors"
           >
             시험 신청하기
           </Link>

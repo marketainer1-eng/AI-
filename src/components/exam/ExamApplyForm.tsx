@@ -97,7 +97,7 @@ export default function ExamApplyForm({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">신청 상태</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-cyan-100 text-cyan-800">
                   ✓ 응시 가능
                 </span>
               </div>
@@ -114,7 +114,7 @@ export default function ExamApplyForm({
                   {inExamPeriod && (
                     <Link
                       href="/exam/take"
-                      className="w-full py-3 text-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-3 text-center text-sm font-bold text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors flex items-center justify-center gap-2"
                     >
                       📝 지금 바로 시험 보러가기
                     </Link>
@@ -146,7 +146,7 @@ export default function ExamApplyForm({
   if (step === 'confirm') {
     return (
       <>
-        <button disabled className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg">
+        <button disabled className="px-4 py-2 bg-cyan-400 text-white text-sm font-medium rounded-lg">
           신청하기
         </button>
 
@@ -175,7 +175,7 @@ export default function ExamApplyForm({
               </button>
               <button
                 onClick={handleApply}
-                className="flex-1 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                className="flex-1 py-2 text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-lg transition-colors"
               >
                 신청하기
               </button>
@@ -204,7 +204,7 @@ export default function ExamApplyForm({
   // ─── 로딩 ───────────────────────────────────────────────
   if (step === 'loading') {
     return (
-      <button disabled className="px-4 py-2 bg-indigo-400 text-white text-sm font-medium rounded-lg flex items-center gap-2">
+      <button disabled className="px-4 py-2 bg-cyan-400 text-white text-sm font-medium rounded-lg flex items-center gap-2">
         <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
@@ -218,7 +218,7 @@ export default function ExamApplyForm({
   return (
     <button
       onClick={() => setStep('confirm')}
-      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-medium rounded-lg transition-colors"
     >
       신청하기
     </button>
