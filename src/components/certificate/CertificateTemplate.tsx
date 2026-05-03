@@ -374,35 +374,35 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 background: `linear-gradient(135deg, rgba(0,200,224,0.06), rgba(0,229,255,0.03))`,
                 border: `1px solid rgba(0,200,224,0.2)`,
                 borderRadius: '8px',
-                padding: '16px 0',
+                padding: '28px 0',
                 overflow: 'hidden',
               }}>
                 <div style={{ textAlign: 'center', flex: 1 }}>
                   <p style={{
-                    margin: '0 0 6px',
+                    margin: '0 0 10px',
                     fontWeight: 700,
                     color: C.primaryDark,
                     letterSpacing: '0.18em',
-                    fontSize: '10px',
+                    fontSize: '30px',
                   }}>
                     시  험  일
                   </p>
-                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '13px' }}>
+                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '39px' }}>
                     {examDate}
                   </p>
                 </div>
                 <div style={{ width: '1px', background: `linear-gradient(180deg, transparent, ${C.primaryLight}, transparent)`, margin: '0 8px' }} />
                 <div style={{ textAlign: 'center', flex: 1 }}>
                   <p style={{
-                    margin: '0 0 6px',
+                    margin: '0 0 10px',
                     fontWeight: 700,
                     color: C.primaryDark,
                     letterSpacing: '0.18em',
-                    fontSize: '10px',
+                    fontSize: '30px',
                   }}>
                     발  급  일
                   </p>
-                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '13px' }}>
+                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '39px' }}>
                     {issuedDate}
                   </p>
                 </div>
