@@ -192,7 +192,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
               />
               {/* 협회명 텍스트 */}
               <p style={{
-                fontSize: '11px',
+                fontSize: '22px',
                 color: C.primaryDark,
                 letterSpacing: '0.2em',
                 fontWeight: 700,
@@ -232,7 +232,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 position: 'relative',
                 overflow: 'hidden',
                 width: '100%',
-                height: '110px',
+                height: '70px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -253,7 +253,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                   pointerEvents: 'none',
                 }} />
                 <h1 style={{
-                  fontSize: '68px',
+                  fontSize: '34px',
                   fontWeight: 900,
                   color: '#ffffff',
                   margin: 0,
@@ -267,7 +267,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 </h1>
               </div>
               <p style={{
-                fontSize: '10px',
+                fontSize: '20px',
                 color: C.textLight,
                 letterSpacing: '0.42em',
                 margin: '0 0 22px',
@@ -322,7 +322,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 margin: '0 0 12px',
               }}>
                 <span style={{
-                  fontSize: '55px',
+                  fontSize: '27px',
                   color: C.textGray,
                   letterSpacing: '0.3em',
                   marginBottom: '8px',
@@ -334,7 +334,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                   padding: '4px 36px 8px',
                 }}>
                   <span style={{
-                    fontSize: '26px',
+                    fontSize: '52px',
                     fontWeight: 900,
                     color: C.textDark,
                     letterSpacing: '0.25em',
@@ -383,11 +383,11 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                     fontWeight: 700,
                     color: C.primaryDark,
                     letterSpacing: '0.18em',
-                    fontSize: '30px',
+                    fontSize: '15px',
                   }}>
                     시  험  일
                   </p>
-                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '39px' }}>
+                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '19px' }}>
                     {examDate}
                   </p>
                 </div>
@@ -398,11 +398,11 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                     fontWeight: 700,
                     color: C.primaryDark,
                     letterSpacing: '0.18em',
-                    fontSize: '30px',
+                    fontSize: '15px',
                   }}>
                     발  급  일
                   </p>
-                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '39px' }}>
+                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '19px' }}>
                     {issuedDate}
                   </p>
                 </div>
