@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import ExamApplyForm from '@/components/exam/ExamApplyForm'
 import { ExamRow } from '@/types'
@@ -133,12 +134,23 @@ export default async function ExamApplyPage() {
                         <p className="text-sm text-cyan-700 mt-1">
                           시험일({formatDate(exam.exam_start_at)})에 시험 응시 페이지에서 응시하세요.
                         </p>
-                        <Link
-                          href="/exam/take"
-                          className="inline-block mt-2 text-cyan-600 font-medium hover:underline text-sm"
-                        >
-                          시험 응시하기 →
-                        </Link>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Link
+                            href="/exam/take"
+                            className="inline-block text-cyan-600 font-medium hover:underline text-sm"
+                          >
+                            시험 응시하기 →
+                          </Link>
+                          <Link href="/exam/take" className="inline-flex items-center">
+                            <Image
+                              src="/exam-take-btn.png"
+                              alt="시험 응시하기"
+                              width={140}
+                              height={40}
+                              className="hover:opacity-80 transition-opacity rounded-lg"
+                            />
+                          </Link>
+                        </div>
                       </div>
                     )}
                   </div>
