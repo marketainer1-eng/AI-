@@ -224,29 +224,44 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
 
               {/* 자격증 제목 배너 */}
               <div style={{
-                background: `linear-gradient(135deg, ${C.primaryDeep} 0%, ${C.primaryDark} 25%, ${C.primary} 50%, ${C.accent} 75%, ${C.primary} 100%)`,
-                borderRadius: '10px',
-                padding: '22px 60px',
+                background: `linear-gradient(135deg, ${C.primaryDeep} 0%, ${C.primaryDark} 25%, ${C.primary} 55%, ${C.accent} 80%, ${C.primaryLight} 100%)`,
+                borderRadius: '12px',
+                padding: '0',
                 margin: '0 0 6px',
                 boxShadow: `0 6px 28px rgba(0,200,224,0.45), inset 0 1px 0 rgba(255,255,255,0.25)`,
                 position: 'relative',
                 overflow: 'hidden',
+                width: '100%',
+                height: '110px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}>
                 {/* 배너 내부 광택 */}
                 <div style={{
                   position: 'absolute',
                   top: 0, left: 0, right: 0, height: '50%',
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%)',
-                  borderRadius: '10px 10px 0 0',
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 100%)',
+                  borderRadius: '12px 12px 0 0',
+                  pointerEvents: 'none',
+                }} />
+                {/* 좌우 빛 반사 */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0, left: 0, right: 0, height: '40%',
+                  background: 'linear-gradient(0deg, rgba(0,0,0,0.08) 0%, transparent 100%)',
+                  pointerEvents: 'none',
                 }} />
                 <h1 style={{
-                  fontSize: '66px',
+                  fontSize: '68px',
                   fontWeight: 900,
                   color: '#ffffff',
                   margin: 0,
-                  letterSpacing: '0.28em',
-                  textShadow: '0 2px 12px rgba(0,0,0,0.2), 0 0 30px rgba(255,255,255,0.3)',
+                  letterSpacing: '0.3em',
+                  textShadow: '0 2px 16px rgba(0,0,0,0.25), 0 0 40px rgba(255,255,255,0.35)',
                   position: 'relative',
+                  lineHeight: 1,
+                  textAlign: 'center',
                 }}>
                   자 격 증
                 </h1>
