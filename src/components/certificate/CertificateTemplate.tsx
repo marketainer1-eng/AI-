@@ -322,7 +322,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 margin: '0 0 12px',
               }}>
                 <span style={{
-                  fontSize: '11px',
+                  fontSize: '55px',
                   color: C.textGray,
                   letterSpacing: '0.3em',
                   marginBottom: '8px',
@@ -334,7 +334,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                   padding: '4px 36px 8px',
                 }}>
                   <span style={{
-                    fontSize: '52px',
+                    fontSize: '26px',
                     fontWeight: 900,
                     color: C.textDark,
                     letterSpacing: '0.25em',
