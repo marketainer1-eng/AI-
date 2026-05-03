@@ -72,6 +72,21 @@ export default function SignupPage() {
         return
       }
 
+      // 세션 없음이지만 user가 있는 경우 → 이메일 인증 OFF인데 세션이 늦게 생성되는 경우
+      // 자동 로그인 시도
+      if (data?.user) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        })
+        if (!signInError) {
+          router.refresh()
+          await new Promise((r) => setTimeout(r, 100))
+          router.push('/dashboard')
+          return
+        }
+      }
+
       // 세션 없음 = 이메일 인증 필요 → 안내 화면으로 전환
       setStep('verify_email')
       setLoading(false)
