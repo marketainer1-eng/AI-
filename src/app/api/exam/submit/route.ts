@@ -343,15 +343,17 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 7. exam_applications 상태 업데이트 ─────────────────────────
-    // exam_completed 를 거치지 않고 passed / failed 로 즉시 전환
+    // 합격이면 바로 certificate_ready, 불합격이면 failed
+    const certFinalStatus = passed ? 'certificate_ready' : 'failed'
+
     const { error: updateErr } = await supabase
       .from('exam_applications')
       .update({
-        status:             finalStatus,   // 'passed' | 'failed'
+        status:             certFinalStatus,   // 'certificate_ready' | 'failed'
         score,
         exam_started_at:    application.exam_started_at ?? nowIso,
         exam_submitted_at:  nowIso,
-        result_notified_at: nowIso,        // 즉시 판정이므로 동시 기록
+        result_notified_at: nowIso,
       })
       .eq('id', applicationId)
 
@@ -363,17 +365,52 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── 8. 응답 반환 ──────────────────────────────────────────────
+    // ── 8. 합격 시 자격증 자동 발급 ───────────────────────────────
+    let certificateNumber: string | null = null
+
+    if (passed) {
+      try {
+        // 기존 자격증 개수로 다음 번호 계산
+        const { count } = await supabase
+          .from('certificates')
+          .select('*', { count: 'exact', head: true })
+
+        const nextNum = (count ?? 0) + 1
+        certificateNumber = `CERT-${new Date().getFullYear()}-${String(nextNum).padStart(6, '0')}`
+
+        const { error: certErr } = await supabase
+          .from('certificates')
+          .insert({
+            application_id:     applicationId,
+            user_id:            user.id,
+            certificate_number: certificateNumber,
+            issued_at:          nowIso,
+          })
+
+        if (certErr) {
+          console.error('[submit] certificate insert error:', certErr)
+          // 자격증 발급 실패해도 채점 결과는 반환 (best-effort)
+          certificateNumber = null
+        } else {
+          console.log('[submit] 자격증 자동 발급 완료:', certificateNumber)
+        }
+      } catch (certEx) {
+        console.error('[submit] certificate auto-issue exception:', certEx)
+      }
+    }
+
+    // ── 9. 응답 반환 ──────────────────────────────────────────────
     const sortedDetail = detail.sort((a, b) => a.orderNum - b.orderNum)
     return NextResponse.json({
-      success:        true,
+      success:           true,
       score,
       passed,
       passingScore,
-      totalQuestions: sortedDetail.length,   // 실제 출제된 문제 수 (25)
+      totalQuestions:    sortedDetail.length,
       correctCount,
       totalWeight,
-      detail: sortedDetail,
+      certificateNumber, // 합격 시 발급된 자격증 번호, 불합격 시 null
+      detail:            sortedDetail,
     })
 
   } catch (err) {
