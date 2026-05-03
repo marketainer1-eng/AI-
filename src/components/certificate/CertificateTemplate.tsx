@@ -183,9 +183,9 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 src="/kaia-logo.png"
                 alt="KAIA 로고"
                 style={{
-                  height: '80px',
+                  height: '130px',
                   width: 'auto',
-                  margin: '0 auto 10px',
+                  margin: '0 auto 14px',
                   display: 'block',
                   objectFit: 'contain',
                 }}
@@ -231,25 +231,40 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 <div style={{ height: '1.5px', flex: 1, background: `linear-gradient(90deg, ${C.primaryLight}, transparent)` }} />
               </div>
 
-              {/* 자격증 제목 */}
-              <h1 style={{
-                fontSize: '68px',
-                fontWeight: 900,
-                background: `linear-gradient(180deg, ${C.accentSoft} 0%, ${C.primary} 40%, ${C.primaryDark} 80%, ${C.primaryDeep} 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                margin: '0 0 2px',
-                letterSpacing: '0.25em',
-                textShadow: 'none',
-                filter: 'drop-shadow(0 2px 8px rgba(0,200,224,0.3))',
+              {/* 자격증 제목 배너 */}
+              <div style={{
+                background: `linear-gradient(135deg, ${C.primaryDeep} 0%, ${C.primaryDark} 25%, ${C.primary} 50%, ${C.accent} 75%, ${C.primary} 100%)`,
+                borderRadius: '10px',
+                padding: '22px 60px',
+                margin: '0 0 6px',
+                boxShadow: `0 6px 28px rgba(0,200,224,0.45), inset 0 1px 0 rgba(255,255,255,0.25)`,
+                position: 'relative',
+                overflow: 'hidden',
               }}>
-                자 격 증
-              </h1>
+                {/* 배너 내부 광택 */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0, left: 0, right: 0, height: '50%',
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.18) 0%, transparent 100%)',
+                  borderRadius: '10px 10px 0 0',
+                }} />
+                <h1 style={{
+                  fontSize: '66px',
+                  fontWeight: 900,
+                  color: '#ffffff',
+                  margin: 0,
+                  letterSpacing: '0.28em',
+                  textShadow: '0 2px 12px rgba(0,0,0,0.2), 0 0 30px rgba(255,255,255,0.3)',
+                  position: 'relative',
+                }}>
+                  자 격 증
+                </h1>
+              </div>
               <p style={{
-                fontSize: '11px',
+                fontSize: '10px',
                 color: C.textLight,
-                letterSpacing: '0.4em',
-                margin: '0 0 24px',
+                letterSpacing: '0.42em',
+                margin: '0 0 22px',
                 fontWeight: 600,
               }}>CERTIFICATE OF QUALIFICATION</p>
 
@@ -332,27 +347,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 </div>
               </div>
 
-              {/* 점수 표시 */}
-              {application.score !== null && (
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: `linear-gradient(135deg, rgba(0,200,224,0.08), rgba(0,229,255,0.05))`,
-                  border: `1px solid ${C.primaryLight}`,
-                  borderRadius: '20px',
-                  padding: '5px 20px',
-                  margin: '0 0 24px',
-                }}>
-                  <span style={{ fontSize: '13px', color: C.textGray }}>취득 점수</span>
-                  <strong style={{ color: C.primary, fontSize: '17px', fontWeight: 800 }}>
-                    {application.score}점
-                  </strong>
-                  <span style={{ color: C.textLight, fontSize: '12px' }}>
-                    ／ 합격 기준 {exam.passing_score}점 이상
-                  </span>
-                </div>
-              )}
+              {/* 점수 표시 삭제됨 */}
 
               {/* 구분선 */}
               <div style={{
