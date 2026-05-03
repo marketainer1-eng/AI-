@@ -25,14 +25,13 @@ export default async function CertificatePage() {
     .single()
 
   // ── 자격증 목록 조회 (관련 정보 포함) ─────────────────────
+  // certificates → exam_applications → exams 순서로 단일 체인으로 join
   const { data: rows } = await (supabase as any)
     .from('certificates')
     .select(`
       *,
       application:exam_applications (
-        id, status, score, certificate_issued_at
-      ),
-      exam:exam_applications (
+        id, status, score, certificate_issued_at,
         exam:exams (
           title, exam_start_at, passing_score, certificate_issued_at
         )
@@ -46,12 +45,13 @@ export default async function CertificatePage() {
 
   const certDataList: CertificateData[] = ((rows ?? []) as any[])
     .map((row) => {
-      const examNested = row.exam?.exam ?? row.application?.exam ?? null
+      const application = row.application ?? {}
+      const exam = application.exam ?? {}
       return {
         cert:        row,
         user:        profile ?? { full_name: user.email ?? '알 수 없음', email: user.email ?? '' },
-        application: row.application ?? {},
-        exam:        examNested ?? {},
+        application,
+        exam,
       } as CertificateData
     })
     .filter((d) => d.exam?.title) // 시험 정보가 없는 레코드 제외
