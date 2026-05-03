@@ -134,13 +134,7 @@ export default async function ExamApplyPage() {
                         <p className="text-sm text-cyan-700 mt-1">
                           시험일({formatDate(exam.exam_start_at)})에 시험 응시 페이지에서 응시하세요.
                         </p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Link
-                            href="/exam/take"
-                            className="inline-block text-cyan-600 font-medium hover:underline text-sm"
-                          >
-                            시험 응시하기 →
-                          </Link>
+                        <div className="mt-3">
                           <Link href="/exam/take" className="inline-flex items-center">
                             <Image
                               src="/exam-take-btn.png"
