@@ -97,11 +97,13 @@ function fmtDateTime(iso: string): string {
   return new Date(iso).toLocaleString('ko-KR', {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Seoul',
   })
 }
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('ko-KR', {
     hour: '2-digit', minute: '2-digit',
+    timeZone: 'Asia/Seoul',
   })
 }
 
