@@ -37,10 +37,12 @@ export default function AdminQuestionsClient({
   const [deleteTarget, setDeleteTarget] = useState<QuestionRow | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  // 총 배점 계산
-  const totalScore = questions
-    .filter((q) => q.is_active)
-    .reduce((sum, q) => sum + q.score_weight, 0)
+  // 총 배점 계산 (출제 문제 수 기준 100점 환산)
+  const qCount = (exam as any).question_count ?? 25
+  const activeQuestions = questions.filter((q) => q.is_active)
+  const rawTotalScore = activeQuestions.reduce((sum, q) => sum + q.score_weight, 0)
+  // 실제 채점은 earnedWeight/totalWeight×100 방식이므로 표시도 100점 만점으로 고정
+  const totalScore = activeQuestions.length > 0 ? 100 : 0
 
   const handleDelete = (q: QuestionRow) => {
     setDeleteError(null)
@@ -150,8 +152,13 @@ export default function AdminQuestionsClient({
         />
         <SummaryCell
           label="총 배점"
-          value={`${totalScore}점`}
+          value="100점"
           valueClass="text-indigo-700 font-bold"
+        />
+        <SummaryCell
+          label="문제당 배점"
+          value={activeQuestions.length > 0 ? `${(100 / qCount).toFixed(1)}점` : '-'}
+          valueClass="text-gray-600"
         />
         <SummaryCell
           label="합격 기준"

@@ -199,6 +199,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 8. DB 저장
+    // score_weight = 100 / 문제 수 → 모든 문제를 맞추면 정확히 100점
+    // 소수점 4자리까지 저장해 합산 오차 최소화
+    const scoreWeight = parseFloat((100 / questions.length).toFixed(4))
+
     const insertRows = questions.map((q, idx) => ({
       exam_id:        examId,
       question_type:  q.options.length > 0 ? 'multiple_choice' : 'short_answer',
@@ -206,7 +210,7 @@ export async function POST(req: NextRequest) {
       options:        q.options,
       correct_answer: q.correct_answer,
       explanation:    null,
-      score_weight:   1,
+      score_weight:   scoreWeight,
       order_num:      replaceMode ? q.order_num : baseOrder + idx + 1,
       is_active:      true,
     }))
