@@ -182,7 +182,14 @@ export default function ExamTakeClient({
       <GradeResultView
         result={gradeResult}
         examTitle={application.exam?.title ?? '시험'}
-        onGoResult={() => { window.location.href = '/exam/result' }}
+        onGoResult={async () => {
+          // 세션 쿠키를 강제로 갱신한 뒤 결과 페이지로 이동
+          // (제출 직후 미들웨어가 세션을 인식 못하는 문제 방지)
+          try {
+            await fetch('/api/auth/session-refresh', { method: 'POST', credentials: 'include' })
+          } catch { /* 실패해도 이동은 시도 */ }
+          window.location.href = '/exam/result'
+        }}
       />
     )
   }
