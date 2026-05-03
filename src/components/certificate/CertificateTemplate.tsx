@@ -183,32 +183,23 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 src="/kaia-logo.png"
                 alt="KAIA 로고"
                 style={{
-                  height: '130px',
+                  height: '180px',
                   width: 'auto',
-                  margin: '0 auto 14px',
+                  margin: '0 auto 20px',
                   display: 'block',
                   objectFit: 'contain',
                 }}
               />
-              {/* 협회명 배지 */}
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                background: `linear-gradient(135deg, ${C.primaryDark}, ${C.primary})`,
-                padding: '5px 20px',
-                borderRadius: '20px',
-                boxShadow: `0 3px 14px rgba(0,200,224,0.4)`,
+              {/* 협회명 텍스트 */}
+              <p style={{
+                fontSize: '11px',
+                color: C.primaryDark,
+                letterSpacing: '0.2em',
+                fontWeight: 700,
+                margin: 0,
               }}>
-                <span style={{
-                  fontSize: '10px',
-                  color: '#ffffff',
-                  letterSpacing: '0.25em',
-                  fontWeight: 700,
-                }}>
-                  ✦ AI AGENT ASSOCIATION 공식 인증 ✦
-                </span>
-              </div>
+                ✦ AI AGENT ASSOCIATION 공식 인증 ✦
+              </p>
             </div>
 
             {/* ── 중앙 본문 ── */}
