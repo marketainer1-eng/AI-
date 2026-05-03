@@ -451,52 +451,110 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
                 </p>
               </div>
 
-              {/* KAIA 공식 직인 */}
+              {/* KAIA 공식 직인 SVG */}
               <div style={{ textAlign: 'center' }}>
-                {/* 외부 링 */}
-                <div style={{
-                  width: '96px', height: '96px',
-                  background: `conic-gradient(from 0deg, ${C.primaryDark}, ${C.primary}, ${C.accent}, ${C.primary}, ${C.primaryDark})`,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 4px',
-                  boxShadow: `0 0 20px rgba(0,200,224,0.4), 0 0 40px rgba(0,229,255,0.15)`,
-                  padding: '3px',
-                }}>
-                  {/* 내부 원 */}
-                  <div style={{
-                    width: '100%', height: '100%',
-                    background: `radial-gradient(circle, #F0FEFF 0%, #E0F8FF 60%, ${C.bgAccent} 100%)`,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexDirection: 'column',
-                    gap: '1px',
-                  }}>
-                    <span style={{
-                      fontSize: '13px',
-                      color: C.primaryDark,
-                      fontWeight: 900,
-                      letterSpacing: '0.08em',
-                    }}>KAIA</span>
-                    <span style={{ fontSize: '22px', lineHeight: 1 }}>印</span>
-                    <span style={{
-                      fontSize: '7px',
-                      color: C.textGray,
-                      letterSpacing: '0.04em',
-                      fontWeight: 600,
-                    }}>AI에이전트협회</span>
-                  </div>
-                </div>
+                <svg
+                  width="140" height="140"
+                  viewBox="0 0 140 140"
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{ display: 'block', margin: '0 auto', filter: 'drop-shadow(0 0 10px rgba(0,200,224,0.5))' }}
+                >
+                  <defs>
+                    {/* 외곽 그라데이션 */}
+                    <linearGradient id="sealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%"   stopColor="#006880" />
+                      <stop offset="30%"  stopColor="#0096B0" />
+                      <stop offset="55%"  stopColor="#00C8E0" />
+                      <stop offset="75%"  stopColor="#00E5FF" />
+                      <stop offset="100%" stopColor="#0096B0" />
+                    </linearGradient>
+                    {/* 내부 배경 그라데이션 */}
+                    <radialGradient id="innerGrad" cx="50%" cy="40%" r="60%">
+                      <stop offset="0%"   stopColor="#ffffff" />
+                      <stop offset="60%"  stopColor="#E8FAFE" />
+                      <stop offset="100%" stopColor="#C8F5FF" />
+                    </radialGradient>
+                    {/* 원형 텍스트 경로 */}
+                    <path id="outerTextPath"
+                      d="M 70,70 m -52,0 a 52,52 0 1,1 104,0 a 52,52 0 1,1 -104,0"
+                    />
+                    <path id="innerTextPath"
+                      d="M 70,70 m -40,0 a 40,40 0 1,0 80,0 a 40,40 0 1,0 -80,0"
+                    />
+                  </defs>
+
+                  {/* ── 가장 바깥 링 (장식) ── */}
+                  <circle cx="70" cy="70" r="68" fill="none" stroke="url(#sealGrad)" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.6" />
+
+                  {/* ── 외곽 두꺼운 링 ── */}
+                  <circle cx="70" cy="70" r="63" fill="none" stroke="url(#sealGrad)" strokeWidth="5" />
+
+                  {/* ── 내부 얇은 링 ── */}
+                  <circle cx="70" cy="70" r="56" fill="none" stroke="#00C8E0" strokeWidth="1" opacity="0.5" />
+
+                  {/* ── 내부 배경 원 ── */}
+                  <circle cx="70" cy="70" r="54" fill="url(#innerGrad)" />
+
+                  {/* ── 별 모양 장식 8개 (외곽) ── */}
+                  {[0,45,90,135,180,225,270,315].map((deg, i) => {
+                    const rad = (deg * Math.PI) / 180
+                    const x = 70 + 59 * Math.cos(rad)
+                    const y = 70 + 59 * Math.sin(rad)
+                    return <circle key={i} cx={x} cy={y} r="2.2" fill="#00C8E0" opacity="0.9" />
+                  })}
+
+                  {/* ── 원형 상단 텍스트: AI 에이전트 협회 ── */}
+                  <text fontSize="9" fontWeight="700" fill="#006880" letterSpacing="2.5" fontFamily="'Noto Sans KR', sans-serif">
+                    <textPath href="#outerTextPath" startOffset="8%">
+                      AI 에이전트 협회 · KAIA · AI AGENT ASSOCIATION ·
+                    </textPath>
+                  </text>
+
+                  {/* ── 중앙 KAIA 로고 이미지 ── */}
+                  <image
+                    href="/kaia-logo.png"
+                    x="22" y="28"
+                    width="96" height="52"
+                    preserveAspectRatio="xMidYMid meet"
+                  />
+
+                  {/* ── 중앙 하단 "공식인증" 텍스트 ── */}
+                  <text
+                    x="70" y="94"
+                    textAnchor="middle"
+                    fontSize="10"
+                    fontWeight="800"
+                    fill="#0096B0"
+                    letterSpacing="3"
+                    fontFamily="'Noto Sans KR', sans-serif"
+                  >
+                    공 식 인 증
+                  </text>
+
+                  {/* ── 하단 구분선 ── */}
+                  <line x1="34" y1="100" x2="106" y2="100" stroke="#00C8E0" strokeWidth="0.8" opacity="0.6" />
+
+                  {/* ── 하단 텍스트 ── */}
+                  <text
+                    x="70" y="112"
+                    textAnchor="middle"
+                    fontSize="7.5"
+                    fontWeight="600"
+                    fill="#4A8A9A"
+                    letterSpacing="1.5"
+                    fontFamily="'Noto Sans KR', sans-serif"
+                  >
+                    OFFICIAL SEAL
+                  </text>
+
+                </svg>
                 <p style={{
-                  margin: 0,
-                  fontSize: '9px',
-                  color: C.textLight,
-                  letterSpacing: '0.1em',
-                }}>직인</p>
+                  margin: '4px 0 0',
+                  fontSize: '10px',
+                  color: C.primaryDark,
+                  letterSpacing: '0.2em',
+                  fontWeight: 700,
+                }}>직  인</p>
               </div>
             </div>
 
