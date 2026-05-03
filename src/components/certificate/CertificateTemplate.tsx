@@ -121,9 +121,9 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
           <div style={{
             position: 'absolute',
             left:   '193px',
-            top:    '938px',
+            top:    '960px',
             width:  '221px',
-            height: '22px',
+            height: '10px',
             display: 'flex',
             alignItems: 'center',
             fontSize:    '14px',
