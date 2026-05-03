@@ -1,7 +1,8 @@
 /**
- * CertificateTemplate - 고급 골드 스타일
+ * CertificateTemplate - KAIA (AI에이전트협회) 공식 자격증
  *
  * html2canvas 로 캡처해 PDF 로 변환하는 자격증 DOM 템플릿.
+ * KAIA 로고 기반 청록/시안 컬러 화사한 디자인
  */
 
 import { forwardRef } from 'react'
@@ -26,6 +27,31 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
       year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Seoul',
     })
 
+    // KAIA 로고 색상 팔레트 (청록/시안 계열)
+    const C = {
+      // 주색상
+      primary:      '#00C8E0',   // 메인 시안
+      primaryLight: '#4DE8F8',   // 밝은 시안
+      primaryDark:  '#0096B0',   // 진한 시안
+      primaryDeep:  '#006880',   // 딥 틸
+      // 보조
+      accent:       '#00E5FF',   // 강조 네온
+      accentSoft:   '#80F0FF',   // 부드러운 강조
+      // 배경
+      bgWhite:      '#ffffff',
+      bgLight:      '#F0FEFF',
+      bgMid:        '#E0FAFF',
+      bgAccent:     '#C8F5FF',
+      // 텍스트
+      textDark:     '#003D50',
+      textMid:      '#005A70',
+      textGray:     '#4A8A9A',
+      textLight:    '#90C8D8',
+      // 특수
+      gold:         '#FFD700',
+      goldLight:    '#FFF0A0',
+    }
+
     return (
       <div
         style={{
@@ -43,180 +69,213 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
             width:  `${WIDTH}px`,
             height: `${HEIGHT}px`,
             fontFamily: "'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif",
-            background: 'linear-gradient(160deg, #0a0a0a 0%, #1a1208 40%, #0d0d0d 100%)',
+            background: `linear-gradient(150deg, #ffffff 0%, #F2FEFF 35%, #E0FAFF 65%, #CCF6FF 100%)`,
             position: 'relative',
             overflow: 'hidden',
             boxSizing: 'border-box',
           }}
         >
 
-          {/* ── 배경 방사형 골드 글로우 ── */}
+          {/* ── 배경 장식: 대형 원 (우상단) ── */}
           <div style={{
             position: 'absolute',
-            top: '30%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '600px', height: '600px',
-            background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)',
+            top: '-160px', right: '-160px',
+            width: '500px', height: '500px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, rgba(0,200,224,0.18) 0%, rgba(0,229,255,0.06) 55%, transparent 70%)`,
             pointerEvents: 'none',
           }} />
 
-          {/* ── 코너 장식 (좌상) ── */}
+          {/* ── 배경 장식: 중형 원 (좌하단) ── */}
+          <div style={{
+            position: 'absolute',
+            bottom: '-120px', left: '-120px',
+            width: '420px', height: '420px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, rgba(0,150,176,0.15) 0%, rgba(0,200,224,0.05) 55%, transparent 70%)`,
+            pointerEvents: 'none',
+          }} />
+
+          {/* ── 배경 장식: 소형 원 (중앙좌) ── */}
+          <div style={{
+            position: 'absolute',
+            top: '40%', left: '-60px',
+            width: '200px', height: '200px',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, rgba(0,229,255,0.10) 0%, transparent 70%)`,
+            pointerEvents: 'none',
+          }} />
+
+          {/* ── 상단 그라데이션 띠 (두꺼운) ── */}
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, height: '10px',
+            background: `linear-gradient(90deg, ${C.primaryDeep} 0%, ${C.primaryDark} 15%, ${C.primary} 35%, ${C.accent} 50%, ${C.primary} 65%, ${C.primaryDark} 85%, ${C.primaryDeep} 100%)`,
+          }} />
+
+          {/* ── 하단 그라데이션 띠 (두꺼운) ── */}
+          <div style={{
+            position: 'absolute',
+            bottom: 0, left: 0, right: 0, height: '10px',
+            background: `linear-gradient(90deg, ${C.primaryDeep} 0%, ${C.primaryDark} 15%, ${C.primary} 35%, ${C.accent} 50%, ${C.primary} 65%, ${C.primaryDark} 85%, ${C.primaryDeep} 100%)`,
+          }} />
+
+          {/* ── 좌측 세로 띠 ── */}
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, bottom: 0, width: '6px',
+            background: `linear-gradient(180deg, ${C.primaryDeep} 0%, ${C.primary} 50%, ${C.primaryDeep} 100%)`,
+          }} />
+
+          {/* ── 우측 세로 띠 ── */}
+          <div style={{
+            position: 'absolute',
+            top: 0, right: 0, bottom: 0, width: '6px',
+            background: `linear-gradient(180deg, ${C.primaryDeep} 0%, ${C.primary} 50%, ${C.primaryDeep} 100%)`,
+          }} />
+
+          {/* ── 외곽 테두리 1 ── */}
+          <div style={{
+            position: 'absolute', inset: '22px',
+            border: `2px solid ${C.primary}`,
+            borderRadius: '8px',
+            opacity: 0.6,
+          }} />
+
+          {/* ── 외곽 테두리 2 (내부 점선) ── */}
+          <div style={{
+            position: 'absolute', inset: '32px',
+            border: `1px dashed ${C.primaryLight}`,
+            borderRadius: '6px',
+            opacity: 0.35,
+          }} />
+
+          {/* ── 네 모서리 장식 (L형) ── */}
           {[
-            { top: '18px', left: '18px', borderTop: '2px solid #d4af37', borderLeft: '2px solid #d4af37' },
-            { top: '18px', right: '18px', borderTop: '2px solid #d4af37', borderRight: '2px solid #d4af37' },
-            { bottom: '18px', left: '18px', borderBottom: '2px solid #d4af37', borderLeft: '2px solid #d4af37' },
-            { bottom: '18px', right: '18px', borderBottom: '2px solid #d4af37', borderRight: '2px solid #d4af37' },
+            { top: '18px',    left: '18px',    borderTop: `4px solid ${C.primary}`, borderLeft:  `4px solid ${C.primary}` },
+            { top: '18px',    right: '18px',   borderTop: `4px solid ${C.primary}`, borderRight: `4px solid ${C.primary}` },
+            { bottom: '18px', left: '18px',    borderBottom: `4px solid ${C.primary}`, borderLeft:  `4px solid ${C.primary}` },
+            { bottom: '18px', right: '18px',   borderBottom: `4px solid ${C.primary}`, borderRight: `4px solid ${C.primary}` },
           ].map((s, i) => (
             <div key={i} style={{
               position: 'absolute',
-              width: '48px', height: '48px',
+              width: '44px', height: '44px',
+              borderRadius: '2px',
               ...s,
             }} />
           ))}
 
-          {/* ── 외곽 골드 테두리 ── */}
-          <div style={{
-            position: 'absolute', inset: '28px',
-            border: '1px solid rgba(212,175,55,0.5)',
-          }} />
-          {/* ── 내부 얇은 테두리 ── */}
-          <div style={{
-            position: 'absolute', inset: '36px',
-            border: '1px solid rgba(212,175,55,0.2)',
-          }} />
-
-          {/* ── 상단 골드 그라디언트 띠 ── */}
+          {/* ── 본문 영역 ── */}
           <div style={{
             position: 'absolute',
-            top: 0, left: 0, right: 0, height: '6px',
-            background: 'linear-gradient(90deg, #7b5e1a 0%, #d4af37 30%, #f5e07a 50%, #d4af37 70%, #7b5e1a 100%)',
-          }} />
-          {/* ── 하단 골드 그라디언트 띠 ── */}
-          <div style={{
-            position: 'absolute',
-            bottom: 0, left: 0, right: 0, height: '6px',
-            background: 'linear-gradient(90deg, #7b5e1a 0%, #d4af37 30%, #f5e07a 50%, #d4af37 70%, #7b5e1a 100%)',
-          }} />
-
-          {/* ── 배경 문양: 큰 골드 별 ── */}
-          <div style={{
-            position: 'absolute',
-            top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            fontSize: '520px',
-            color: 'rgba(212,175,55,0.03)',
-            fontWeight: 900,
-            userSelect: 'none',
-            pointerEvents: 'none',
-            lineHeight: 1,
-          }}>★</div>
-
-          {/* ── 본문 ── */}
-          <div style={{
-            position: 'absolute',
-            inset: '52px',
+            inset: '50px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'space-between',
           }}>
 
-            {/* 상단: 엠블럼 + 기관명 */}
-            <div style={{ textAlign: 'center', paddingTop: '8px' }}>
-              {/* 골드 원형 엠블럼 */}
+            {/* ── 상단: KAIA 로고 + 협회명 ── */}
+            <div style={{ textAlign: 'center', paddingTop: '6px' }}>
+              {/* KAIA 로고 이미지 */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/kaia-logo.png"
+                alt="KAIA 로고"
+                style={{
+                  height: '80px',
+                  width: 'auto',
+                  margin: '0 auto 10px',
+                  display: 'block',
+                  objectFit: 'contain',
+                }}
+              />
+              {/* 협회명 배지 */}
               <div style={{
-                width: '90px', height: '90px',
-                background: 'linear-gradient(135deg, #7b5e1a 0%, #d4af37 40%, #f5e07a 60%, #d4af37 80%, #7b5e1a 100%)',
-                borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 14px',
-                fontSize: '42px',
-                boxShadow: '0 0 24px rgba(212,175,55,0.4), inset 0 0 12px rgba(0,0,0,0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: `linear-gradient(135deg, ${C.primaryDark}, ${C.primary})`,
+                padding: '5px 20px',
+                borderRadius: '20px',
+                boxShadow: `0 3px 14px rgba(0,200,224,0.4)`,
               }}>
-                🏆
+                <span style={{
+                  fontSize: '10px',
+                  color: '#ffffff',
+                  letterSpacing: '0.25em',
+                  fontWeight: 700,
+                }}>
+                  ✦ AI AGENT ASSOCIATION 공식 인증 ✦
+                </span>
               </div>
-
-              {/* 기관명 */}
-              <p style={{
-                fontSize: '11px',
-                color: '#d4af37',
-                letterSpacing: '0.4em',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                margin: '0 0 4px',
-              }}>
-                ✦ CERTIFICATE OF QUALIFICATION ✦
-              </p>
-              <p style={{
-                fontSize: '11px',
-                color: 'rgba(212,175,55,0.5)',
-                letterSpacing: '0.25em',
-                margin: 0,
-              }}>
-                자격증센터 공식 인증
-              </p>
             </div>
 
-            {/* 중앙 */}
+            {/* ── 중앙 본문 ── */}
             <div style={{
               textAlign: 'center',
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              gap: '0px',
               width: '100%',
             }}>
 
-              {/* 골드 구분선 */}
+              {/* 구분선 */}
               <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                margin: '0 0 28px',
+                display: 'flex', alignItems: 'center', gap: '14px',
+                margin: '20px 0 22px',
               }}>
-                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, transparent, #d4af37)' }} />
-                <span style={{ color: '#d4af37', fontSize: '14px' }}>✦</span>
-                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, #d4af37, transparent)' }} />
+                <div style={{ height: '1.5px', flex: 1, background: `linear-gradient(90deg, transparent, ${C.primaryLight})` }} />
+                <span style={{ color: C.primary, fontSize: '18px' }}>✦</span>
+                <div style={{ height: '1.5px', flex: 1, background: `linear-gradient(90deg, ${C.primaryLight}, transparent)` }} />
               </div>
 
               {/* 자격증 제목 */}
               <h1 style={{
-                fontSize: '64px',
+                fontSize: '68px',
                 fontWeight: 900,
-                background: 'linear-gradient(180deg, #f5e07a 0%, #d4af37 50%, #9a7a1a 100%)',
+                background: `linear-gradient(180deg, ${C.accentSoft} 0%, ${C.primary} 40%, ${C.primaryDark} 80%, ${C.primaryDeep} 100%)`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
-                margin: '0 0 6px',
-                letterSpacing: '0.15em',
+                margin: '0 0 2px',
+                letterSpacing: '0.25em',
                 textShadow: 'none',
+                filter: 'drop-shadow(0 2px 8px rgba(0,200,224,0.3))',
               }}>
                 자 격 증
               </h1>
-
-              {/* 영문 부제 */}
               <p style={{
-                fontSize: '12px',
-                color: 'rgba(212,175,55,0.6)',
-                letterSpacing: '0.3em',
+                fontSize: '11px',
+                color: C.textLight,
+                letterSpacing: '0.4em',
                 margin: '0 0 24px',
-                fontWeight: 500,
-              }}>CERTIFICATE</p>
+                fontWeight: 600,
+              }}>CERTIFICATE OF QUALIFICATION</p>
 
               {/* 자격증명 박스 */}
               <div style={{
-                background: 'linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.05))',
-                border: '1px solid rgba(212,175,55,0.4)',
-                borderRadius: '4px',
-                padding: '18px 40px',
-                margin: '0 auto 28px',
+                background: `linear-gradient(135deg, rgba(0,229,255,0.15) 0%, rgba(0,200,224,0.08) 50%, rgba(0,150,176,0.12) 100%)`,
+                border: `2px solid ${C.primary}`,
+                borderRadius: '10px',
+                padding: '18px 48px',
+                margin: '0 auto 24px',
                 display: 'inline-block',
-                boxShadow: 'inset 0 1px 0 rgba(212,175,55,0.2), 0 4px 20px rgba(0,0,0,0.3)',
+                boxShadow: `0 6px 30px rgba(0,200,224,0.22), inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 1px rgba(0,229,255,0.2)`,
+                position: 'relative',
               }}>
+                {/* 박스 상단 반짝이 효과 */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0, left: '20%', right: '20%', height: '1px',
+                  background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)`,
+                }} />
                 <p style={{
                   margin: 0,
                   fontSize: '24px',
                   fontWeight: 800,
-                  color: '#f5e07a',
-                  letterSpacing: '0.05em',
+                  color: C.textDark,
+                  letterSpacing: '0.04em',
                 }}>
                   {exam.title}
                 </p>
@@ -225,143 +284,222 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
               {/* 수여 문구 */}
               <p style={{
                 fontSize: '15px',
-                color: 'rgba(255,255,255,0.65)',
-                margin: '0 0 28px',
-                lineHeight: 2.0,
-                letterSpacing: '0.05em',
+                color: C.textGray,
+                margin: '0 0 26px',
+                lineHeight: 2.1,
+                letterSpacing: '0.06em',
               }}>
                 위 사람은 본 시험에서 소정의 절차를 거쳐<br />
                 합격 기준을 충족하였으므로 이 자격증을 수여합니다.
               </p>
 
-              {/* 성명 */}
+              {/* 성명 영역 */}
               <div style={{
-                display: 'flex', alignItems: 'baseline',
-                justifyContent: 'center', gap: '16px',
-                margin: '0 0 10px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                margin: '0 0 12px',
               }}>
                 <span style={{
-                  fontSize: '13px',
-                  color: 'rgba(212,175,55,0.6)',
-                  letterSpacing: '0.15em',
+                  fontSize: '11px',
+                  color: C.textGray,
+                  letterSpacing: '0.3em',
+                  marginBottom: '8px',
+                  fontWeight: 600,
                 }}>성  명</span>
-                <span style={{
-                  fontSize: '42px',
-                  fontWeight: 900,
-                  color: '#f5e07a',
-                  borderBottom: '2px solid #d4af37',
-                  paddingBottom: '4px',
-                  letterSpacing: '0.2em',
-                  textShadow: '0 0 20px rgba(212,175,55,0.3)',
+                {/* 이름 강조 박스 */}
+                <div style={{
+                  position: 'relative',
+                  padding: '4px 36px 8px',
                 }}>
-                  {user.full_name}
-                </span>
+                  <span style={{
+                    fontSize: '52px',
+                    fontWeight: 900,
+                    color: C.textDark,
+                    letterSpacing: '0.25em',
+                    display: 'block',
+                    lineHeight: 1.1,
+                  }}>
+                    {user.full_name}
+                  </span>
+                  {/* 이름 하단 라인 */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0, left: '10%', right: '10%', height: '3px',
+                    background: `linear-gradient(90deg, transparent, ${C.primary}, ${C.accent}, ${C.primary}, transparent)`,
+                    borderRadius: '2px',
+                  }} />
+                </div>
               </div>
 
-              {/* 점수 */}
+              {/* 점수 표시 */}
               {application.score !== null && (
-                <p style={{
-                  fontSize: '13px',
-                  color: 'rgba(212,175,55,0.7)',
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: `linear-gradient(135deg, rgba(0,200,224,0.08), rgba(0,229,255,0.05))`,
+                  border: `1px solid ${C.primaryLight}`,
+                  borderRadius: '20px',
+                  padding: '5px 20px',
                   margin: '0 0 24px',
-                  letterSpacing: '0.1em',
                 }}>
-                  취득 점수&nbsp;
-                  <strong style={{ color: '#f5e07a' }}>{application.score}점</strong>
-                  &nbsp;／&nbsp;
-                  합격 기준 {exam.passing_score}점 이상
-                </p>
+                  <span style={{ fontSize: '13px', color: C.textGray }}>취득 점수</span>
+                  <strong style={{ color: C.primary, fontSize: '17px', fontWeight: 800 }}>
+                    {application.score}점
+                  </strong>
+                  <span style={{ color: C.textLight, fontSize: '12px' }}>
+                    ／ 합격 기준 {exam.passing_score}점 이상
+                  </span>
+                </div>
               )}
 
               {/* 구분선 */}
               <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                margin: '0 0 24px',
+                display: 'flex', alignItems: 'center', gap: '14px',
+                margin: '0 0 22px',
               }}>
-                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.4))' }} />
-                <span style={{ color: 'rgba(212,175,55,0.4)', fontSize: '10px' }}>✦</span>
-                <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, rgba(212,175,55,0.4), transparent)' }} />
+                <div style={{ height: '1px', flex: 1, background: `linear-gradient(90deg, transparent, ${C.textLight})` }} />
+                <span style={{ color: C.textLight, fontSize: '10px' }}>◆</span>
+                <div style={{ height: '1px', flex: 1, background: `linear-gradient(90deg, ${C.textLight}, transparent)` }} />
               </div>
 
               {/* 시험일 / 발급일 */}
               <div style={{
-                display: 'flex', justifyContent: 'center', gap: '60px',
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '0',
                 fontSize: '13px',
+                background: `linear-gradient(135deg, rgba(0,200,224,0.06), rgba(0,229,255,0.03))`,
+                border: `1px solid rgba(0,200,224,0.2)`,
+                borderRadius: '8px',
+                padding: '16px 0',
+                overflow: 'hidden',
               }}>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#d4af37', letterSpacing: '0.15em', fontSize: '11px' }}>
-                    시 험 일
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  <p style={{
+                    margin: '0 0 6px',
+                    fontWeight: 700,
+                    color: C.primaryDark,
+                    letterSpacing: '0.18em',
+                    fontSize: '10px',
+                  }}>
+                    시  험  일
                   </p>
-                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em' }}>{examDate}</p>
+                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '13px' }}>
+                    {examDate}
+                  </p>
                 </div>
-                <div style={{ width: '1px', background: 'rgba(212,175,55,0.3)' }} />
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ margin: '0 0 6px', fontWeight: 700, color: '#d4af37', letterSpacing: '0.15em', fontSize: '11px' }}>
-                    발 급 일
+                <div style={{ width: '1px', background: `linear-gradient(180deg, transparent, ${C.primaryLight}, transparent)`, margin: '0 8px' }} />
+                <div style={{ textAlign: 'center', flex: 1 }}>
+                  <p style={{
+                    margin: '0 0 6px',
+                    fontWeight: 700,
+                    color: C.primaryDark,
+                    letterSpacing: '0.18em',
+                    fontSize: '10px',
+                  }}>
+                    발  급  일
                   </p>
-                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.05em' }}>{issuedDate}</p>
+                  <p style={{ margin: 0, color: C.textDark, letterSpacing: '0.04em', fontSize: '13px' }}>
+                    {issuedDate}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* 하단: 자격증 번호 + 직인 */}
+            </div>{/* /중앙 본문 */}
+
+            {/* ── 하단: 자격증 번호 + 직인 ── */}
             <div style={{
               width: '100%',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-end',
-              paddingBottom: '8px',
+              paddingBottom: '6px',
             }}>
               {/* 자격증 번호 */}
               <div>
                 <p style={{
-                  margin: '0 0 4px',
-                  fontSize: '10px',
-                  color: 'rgba(212,175,55,0.5)',
-                  letterSpacing: '0.2em',
+                  margin: '0 0 3px',
+                  fontSize: '9px',
+                  color: C.textLight,
+                  letterSpacing: '0.22em',
+                  fontFamily: 'monospace',
+                  fontWeight: 600,
                 }}>
                   CERTIFICATE NO.
                 </p>
                 <p style={{
-                  margin: 0,
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  color: '#d4af37',
-                  letterSpacing: '0.1em',
+                  margin: '0 0 3px',
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: C.primary,
+                  letterSpacing: '0.12em',
                   fontFamily: 'monospace',
                 }}>
                   {cert.certificate_number}
                 </p>
                 <p style={{
-                  margin: '4px 0 0',
-                  fontSize: '9px',
-                  color: 'rgba(255,255,255,0.2)',
+                  margin: 0,
+                  fontSize: '8px',
+                  color: C.textLight,
                   fontFamily: 'monospace',
+                  letterSpacing: '0.04em',
                 }}>
                   UUID: {cert.id}
                 </p>
               </div>
 
-              {/* 골드 직인 */}
+              {/* KAIA 공식 직인 */}
               <div style={{ textAlign: 'center' }}>
+                {/* 외부 링 */}
                 <div style={{
-                  width: '84px', height: '84px',
-                  background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05))',
-                  border: '2px solid rgba(212,175,55,0.5)',
+                  width: '96px', height: '96px',
+                  background: `conic-gradient(from 0deg, ${C.primaryDark}, ${C.primary}, ${C.accent}, ${C.primary}, ${C.primaryDark})`,
                   borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  margin: '0 auto 6px',
-                  boxShadow: '0 0 16px rgba(212,175,55,0.2)',
-                  flexDirection: 'column',
-                  gap: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 4px',
+                  boxShadow: `0 0 20px rgba(0,200,224,0.4), 0 0 40px rgba(0,229,255,0.15)`,
+                  padding: '3px',
                 }}>
-                  <span style={{ fontSize: '22px' }}>印</span>
-                  <span style={{ fontSize: '8px', color: '#d4af37', letterSpacing: '0.1em' }}>자격증센터</span>
+                  {/* 내부 원 */}
+                  <div style={{
+                    width: '100%', height: '100%',
+                    background: `radial-gradient(circle, #F0FEFF 0%, #E0F8FF 60%, ${C.bgAccent} 100%)`,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'column',
+                    gap: '1px',
+                  }}>
+                    <span style={{
+                      fontSize: '13px',
+                      color: C.primaryDark,
+                      fontWeight: 900,
+                      letterSpacing: '0.08em',
+                    }}>KAIA</span>
+                    <span style={{ fontSize: '22px', lineHeight: 1 }}>印</span>
+                    <span style={{
+                      fontSize: '7px',
+                      color: C.textGray,
+                      letterSpacing: '0.04em',
+                      fontWeight: 600,
+                    }}>AI에이전트협회</span>
+                  </div>
                 </div>
+                <p style={{
+                  margin: 0,
+                  fontSize: '9px',
+                  color: C.textLight,
+                  letterSpacing: '0.1em',
+                }}>직인</p>
               </div>
             </div>
 
-          </div>{/* /본문 */}
+          </div>{/* /본문 영역 */}
         </div>{/* /캡처 대상 */}
       </div>
     )
