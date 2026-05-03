@@ -6,6 +6,10 @@ import StatusStepper from '@/components/ui/StatusStepper'
 import { ApplicationWithExam } from '@/types'
 import { formatDate } from '@/lib/utils/format'
 
+// 항상 최신 데이터를 가져오도록 캐시 비활성화
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

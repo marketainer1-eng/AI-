@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { createClient } from '@/lib/supabase/server'
 import AdminApplicationActions from '@/components/admin/AdminApplicationActions'
 import StatusBadge from '@/components/ui/StatusBadge'

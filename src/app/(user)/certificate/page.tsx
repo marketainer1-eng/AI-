@@ -5,6 +5,9 @@ import CertificateCard from '@/components/certificate/CertificateCard'
 import { checkCertAccess } from '@/lib/certificate/access'
 import type { CertificateData } from '@/lib/certificate/access'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function CertificatePage() {
   const supabase = await createClient()
 

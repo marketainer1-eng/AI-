@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { createClient } from '@/lib/supabase/server'
 import AdminExamsClient from '@/components/admin/AdminExamsClient'
 import type { ExamRow } from '@/types'

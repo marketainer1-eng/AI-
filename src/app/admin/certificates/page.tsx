@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import { createClient } from '@/lib/supabase/server'
 import { CertificateRow } from '@/types'
 import { formatDate, formatDateTime } from '@/lib/utils/format'
