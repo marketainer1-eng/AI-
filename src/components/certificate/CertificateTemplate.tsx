@@ -138,6 +138,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
               PPT Shape[31]: left=3810305, top=8220000, w=2190902, h=143561
               → px: left=441, top=954, w=254, h=17
               font=9pt → ept(9)=13px, color=#64748B, bold
+              오른쪽 끝을 Director of AI에이전트 협회와 동일하게 맞춤 (justifyContent: flex-end)
           */}
           <div style={{
             position: 'absolute',
@@ -147,6 +148,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
             height: `${ey(143561)}px`,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'flex-end',
             fontSize:    `${ept(9)}px`,
             fontWeight:  700,
             color:       '#64748B',
