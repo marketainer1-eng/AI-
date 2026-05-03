@@ -21,7 +21,7 @@ export default function AuthLayout({
           </div>
           <h1 className="text-2xl font-bold text-gray-900">AI에이전트협회</h1>
           <p className="text-sm text-cyan-600 mt-1 font-medium">KAIA · AI AGENT ASSOCIATION</p>
-          <p className="text-xs text-gray-400 mt-1">자격증 시험 관리 시스템</p>
+          <p className="text-xs text-gray-400 mt-1">자격증 시험 응시 사이트</p>
         </div>
         {/* 카드 컨테이너 */}
         <div className="bg-white rounded-2xl shadow-xl p-8">

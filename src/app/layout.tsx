@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: '자격증 시험 관리 시스템',
+  title: '자격증 시험 응시 사이트',
   description: '시험 신청부터 자격증 발급까지 한 번에',
 }
 
