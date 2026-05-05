@@ -36,6 +36,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient }        from '@supabase/ssr'
 import { cookies }                   from 'next/headers'
 import type { Database }             from '@/types'
+import { sendCertificateEmail }      from '@/lib/email/sendCertificateEmail'
 
 // ─── 서버사이드 응시 가능 여부 검증 ────────────────────────────────
 //  submit 요청 시점에도 상태·시간을 재확인합니다.
@@ -405,6 +406,36 @@ export async function POST(req: NextRequest) {
             certificateNumber = null
           } else {
             console.log('[submit] 자격증 자동 발급 완료:', certificateNumber)
+
+            // ── 자격증 발급 직후 이메일 자동 발송 ──────────────────
+            try {
+              // 사용자 이메일 + 이름 조회
+              const { data: userProfile } = await supabase
+                .from('users')
+                .select('full_name, email')
+                .eq('id', user.id)
+                .single()
+
+              // 시험 제목 조회
+              const { data: appInfo } = await supabase
+                .from('exam_applications')
+                .select('score, exam:exams(title)')
+                .eq('id', applicationId)
+                .single()
+
+              if (userProfile?.email && certificateNumber) {
+                await sendCertificateEmail({
+                  toEmail:           userProfile.email,
+                  recipientName:     userProfile.full_name ?? '합격자',
+                  examTitle:         (appInfo?.exam as any)?.title ?? '자격증 시험',
+                  certificateNumber: certificateNumber,
+                  score:             Math.round(score),
+                  issuedAt:          nowIso,
+                })
+              }
+            } catch (emailEx) {
+              console.error('[submit] 이메일 자동 발송 예외:', emailEx)
+            }
           }
         }
       } catch (certEx) {

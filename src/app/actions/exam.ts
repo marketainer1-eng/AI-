@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { sendCertificateEmail } from '@/lib/email/sendCertificateEmail'
 
 // ────────────────────────────────────────────────
 // 시험 신청
@@ -187,13 +188,46 @@ export async function issueCertificateAction(applicationId: string, userId: stri
     return { error: '자격증 발급 중 오류가 발생했습니다.' }
   }
 
+  const nowIso = new Date().toISOString()
+
   await (supabase as any)
     .from('exam_applications')
     .update({
       status: 'certificate_ready',
-      certificate_issued_at: new Date().toISOString(),
+      certificate_issued_at: nowIso,
     })
     .eq('id', applicationId)
+
+  // ── 자격증 발급 직후 이메일 자동 발송 ──────────────────────────
+  try {
+    // 합격자 이메일·이름 조회
+    const { data: userProfile } = await (supabase as any)
+      .from('users')
+      .select('full_name, email')
+      .eq('id', userId)
+      .single()
+
+    // 시험 제목·점수 조회
+    const { data: appInfo } = await (supabase as any)
+      .from('exam_applications')
+      .select('score, exam:exams(title)')
+      .eq('id', applicationId)
+      .single()
+
+    if (userProfile?.email && cert?.certificate_number) {
+      await sendCertificateEmail({
+        toEmail:           userProfile.email,
+        recipientName:     userProfile.full_name ?? '합격자',
+        examTitle:         appInfo?.exam?.title ?? '자격증 시험',
+        certificateNumber: cert.certificate_number,
+        score:             appInfo?.score ?? 0,
+        issuedAt:          nowIso,
+      })
+    }
+  } catch (emailErr) {
+    // 이메일 실패가 자격증 발급 결과에 영향 주지 않도록 catch
+    console.error('[issueCertificate] 이메일 자동 발송 실패:', emailErr)
+  }
 
   revalidatePath('/admin/applications')
   revalidatePath('/admin/certificates')
