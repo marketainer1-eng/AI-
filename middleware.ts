@@ -16,8 +16,9 @@ export const config = {
      * - _next/static (정적 파일)
      * - _next/image (이미지 최적화)
      * - favicon.ico
+     * - geo (공개 정적 랜딩페이지: public/geo/)
      * - public 폴더의 파일들
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|geo|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
