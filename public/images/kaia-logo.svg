@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" fill="none">
+  <defs>
+    <filter id="glow-k" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="cyan-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#00A8C8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== 원자/네트워크 아이콘 (cx=40, cy=40) ===== -->
+  <g transform="translate(40,40)" filter="url(#glow-k)">
+    <!-- 타원 궤도 3개 (120도씩 회전) -->
+    <ellipse cx="0" cy="0" rx="11" ry="27" stroke="url(#cyan-grad)" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="0" cy="0" rx="11" ry="27" stroke="url(#cyan-grad)" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(60)"/>
+    <ellipse cx="0" cy="0" rx="11" ry="27" stroke="url(#cyan-grad)" stroke-width="2" fill="none" stroke-linecap="round" transform="rotate(120)"/>
+    <!-- 중앙 원 -->
+    <circle cx="0" cy="0" r="6" stroke="url(#cyan-grad)" stroke-width="2" fill="none"/>
+    <!-- 외부 노드 6개 -->
+    <circle cx="0"    cy="-27" r="2.8" fill="url(#cyan-grad)"/>
+    <circle cx="0"    cy="27"  r="2.8" fill="url(#cyan-grad)"/>
+    <circle cx="23.4" cy="-13.5" r="2.8" fill="url(#cyan-grad)"/>
+    <circle cx="-23.4" cy="13.5" r="2.8" fill="url(#cyan-grad)"/>
+    <circle cx="23.4"  cy="13.5" r="2.8" fill="url(#cyan-grad)"/>
+    <circle cx="-23.4" cy="-13.5" r="2.8" fill="url(#cyan-grad)"/>
+    <!-- 내부 교차 노드 -->
+    <circle cx="-9"  cy="-8" r="2.2" fill="url(#cyan-grad)"/>
+    <circle cx="9"   cy="8"  r="2.2" fill="url(#cyan-grad)"/>
+  </g>
+
+  <!-- ===== KAIA 메인 텍스트 ===== -->
+  <text x="82" y="47"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-weight="900"
+    font-size="34"
+    fill="url(#cyan-grad)"
+    letter-spacing="-0.5">KAIA</text>
+
+  <!-- ===== 서브 텍스트 ===== -->
+  <text x="83" y="62"
+    font-family="'Noto Sans KR', 'Apple SD Gothic Neo', Arial, sans-serif"
+    font-weight="400"
+    font-size="10"
+    fill="#00A8C8"
+    letter-spacing="0.1">AI에이전트협회  (AI Agent Association)</text>
+</svg>
