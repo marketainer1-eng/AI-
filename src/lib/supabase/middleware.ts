@@ -35,11 +35,20 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
    * 이후 setAll() 에서 갱신된 쿠키를 동일 객체에 덮어씀.
    * 이 객체를 최종 반환해야 세션이 올바르게 전달됨.
    */
-  let supabaseResponse = NextResponse.next({ request })
+  const supabaseResponse = NextResponse.next({ request })
+
+  // Supabase 환경변수가 설정되지 않은 경우(예: 공개 랜딩 전용 배포)
+  // 세션 처리를 건너뛰고 요청을 그대로 통과시킨다.
+  // 보호 경로는 어차피 페이지/서버 액션 단에서 다시 인증을 확인한다.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return supabaseResponse
+  }
 
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
