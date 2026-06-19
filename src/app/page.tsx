@@ -1,21 +1,12 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import type { UserRole } from '@/types'
+import type { Metadata } from 'next'
+import LandingPage from '@/components/landing/LandingPage'
 
-export default async function RootPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export const metadata: Metadata = {
+  title: 'AI 업무 에이전트 구축 기초 과정 | AI 에이전트 협회 아카데미',
+  description:
+    '반복 업무를 줄이고 AI 에이전트형 업무 체계를 만드는 시작. 컨설팅과 강의 활동까지 확장하세요.',
+}
 
-  if (user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single() as { data: { role: UserRole } | null; error: unknown }
-
-    if (profile?.role === 'admin') redirect('/admin')
-    else redirect('/dashboard')
-  }
-
-  redirect('/login')
+export default function RootPage() {
+  return <LandingPage />
 }
