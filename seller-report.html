@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>셀러체크 · 셀러 진단 리포트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --primary:#4F46E5; --primary-light:#EEF2FF; --primary-dark:#3730A3;
+  --success:#10B981; --warning:#F59E0B; --danger:#EF4444;
+  --gray-50:#F9FAFB; --gray-100:#F3F4F6; --gray-200:#E5E7EB;
+  --gray-400:#9CA3AF; --gray-500:#6B7280; --gray-600:#4B5563;
+  --gray-700:#374151; --gray-800:#1F2937; --gray-900:#111827;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:#F8F9FF;color:var(--gray-800);font-size:16px}
+
+/* 화면용 헤더 */
+.header{background:#fff;border-bottom:1px solid var(--gray-200);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:20px;font-weight:800;color:var(--primary);letter-spacing:-.5px;text-decoration:none}
+.header-btns{display:flex;gap:10px}
+.btn-outline{padding:8px 18px;border:1.5px solid var(--gray-200);border-radius:10px;background:#fff;cursor:pointer;font-size:14px;font-weight:600;color:var(--gray-600);font-family:inherit;transition:.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-primary{padding:10px 22px;background:var(--primary);border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;color:#fff;font-family:inherit;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.btn-primary:hover{background:var(--primary-dark)}
+
+/* 로딩 */
+.loading{text-align:center;padding:100px 20px;color:var(--gray-400)}
+.spinner{width:40px;height:40px;border:4px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 전체 래퍼 */
+.report-page{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+
+/* ════ 리포트 표지 ════ */
+.cover{background:linear-gradient(135deg,#312e81,#4F46E5,#7C3AED);color:#fff;border-radius:20px;padding:48px 40px;margin-bottom:32px;position:relative;overflow:hidden}
+.cover::before{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;background:rgba(255,255,255,.06);border-radius:50%}
+.cover-badge{display:inline-block;background:rgba(255,255,255,.2);padding:6px 16px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:20px}
+.cover h1{font-size:30px;font-weight:800;line-height:1.3;margin-bottom:16px;position:relative}
+.cover-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;position:relative}
+.cover-meta-item label{font-size:12px;opacity:.7;display:block;margin-bottom:4px;font-weight:500}
+.cover-meta-item value{font-size:15px;font-weight:700}
+
+/* ════ 스코어 히어로 ════ */
+.score-hero{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:28px}
+.score-card{background:#fff;border:1.5px solid var(--gray-200);border-radius:16px;padding:24px;text-align:center}
+.score-card .sc-label{font-size:13px;color:var(--gray-500);font-weight:500;margin-bottom:10px}
+.score-card .sc-value{font-size:36px;font-weight:800;color:var(--primary);line-height:1}
+.score-card .sc-value span{font-size:14px;font-weight:500;color:var(--gray-400)}
+.score-card .sc-sub{font-size:13px;color:var(--gray-400);margin-top:6px}
+
+/* ════ 영역별 점수 ════ */
+.section-card{background:#fff;border:1.5px solid var(--gray-200);border-radius:16px;padding:24px;margin-bottom:20px}
+.section-card h3{font-size:17px;font-weight:700;color:var(--gray-900);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.score-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.score-lbl{width:130px;font-size:13px;font-weight:600;color:var(--gray-700);flex-shrink:0}
+.score-track{flex:1;height:10px;background:var(--gray-100);border-radius:100px;overflow:hidden}
+.score-bar{height:100%;border-radius:100px;transition:width .8s ease}
+.bar-g{background:#10B981}.bar-y{background:#F59E0B}.bar-r{background:#EF4444}
+.score-pct{width:44px;font-size:13px;font-weight:700;text-align:right;flex-shrink:0}
+.score-pts{width:50px;font-size:12px;color:var(--gray-400);text-align:right;flex-shrink:0}
+
+/* ════ 강·약점 분석 ════ */
+.strength-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.str-card{border-radius:12px;padding:18px}
+.str-card.good{background:#F0FDF4;border:1.5px solid #BBF7D0}
+.str-card.weak{background:#FEF2F2;border:1.5px solid #FECACA}
+.str-card h4{font-size:14px;font-weight:700;margin-bottom:10px}
+.str-card h4.good{color:#065F46}
+.str-card h4.weak{color:#991B1B}
+.str-item{font-size:14px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;gap:8px}
+.str-item:last-child{border-bottom:none}
+
+/* ════ 추천 과정 ════ */
+.rec-item{display:flex;align-items:flex-start;gap:14px;padding:14px;background:var(--gray-50);border-radius:12px;margin-bottom:10px}
+.rec-num{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;margin-top:1px}
+.rec-info h4{font-size:15px;font-weight:700;color:var(--gray-900);margin-bottom:3px}
+.rec-info p{font-size:13px;color:var(--gray-500)}
+
+/* ════ 차트 ════ */
+.chart-wrap{height:320px;position:relative}
+.chart-wrap2{height:260px;position:relative;margin-top:16px}
+
+/* ════ 상세 Q&A ════ */
+.qa-section{margin-bottom:24px}
+.qa-section h4{font-size:14px;font-weight:700;color:var(--primary);background:var(--primary-light);padding:8px 14px;border-radius:8px;margin-bottom:10px}
+.qa-item{padding:12px 14px;border-left:3px solid var(--gray-200);margin-bottom:6px;background:#fff;border-radius:0 8px 8px 0}
+.qa-q{font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:4px}
+.qa-a{font-size:13px;color:var(--gray-500)}
+.qa-a strong{color:var(--primary)}
+
+/* ════ 확인 서명 ════ */
+.sign-area{background:#fff;border:1.5px solid var(--gray-200);border-radius:16px;padding:28px;margin-top:24px}
+.sign-area h3{font-size:16px;font-weight:700;margin-bottom:20px;color:var(--gray-900)}
+.sign-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.sign-field{border-bottom:1.5px solid var(--gray-300);padding-bottom:40px}
+.sign-field label{font-size:12px;color:var(--gray-500);display:block;margin-bottom:6px}
+.sign-field value{font-size:14px;font-weight:600;color:var(--gray-700)}
+
+/* ════ 인쇄용 ════ */
+@media print {
+  .header,.header-btns{display:none!important}
+  body{background:#fff}
+  .report-page{padding:0;max-width:100%}
+  .cover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .section-card,.score-card,.sign-area,.str-card{break-inside:avoid}
+  .score-hero{grid-template-columns:1fr 1fr 1fr}
+}
+
+@media(max-width:600px){
+  .header{padding:12px 16px}
+  .report-page{padding:24px 14px 60px}
+  .cover{padding:32px 20px}
+  .cover h1{font-size:22px}
+  .cover-meta{grid-template-columns:1fr}
+  .score-hero{grid-template-columns:1fr}
+  .strength-grid{grid-template-columns:1fr}
+  .sign-row{grid-template-columns:1fr}
+  .score-lbl{width:100px;font-size:12px}
+}
+
+.empty-state{text-align:center;padding:100px 20px;color:var(--gray-400)}
+.empty-state .icon{font-size:56px;margin-bottom:16px}
+.btn-go{display:inline-block;margin-top:20px;background:var(--primary);color:#fff;padding:14px 32px;border-radius:12px;text-decoration:none;font-weight:700;font-size:15px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="index.html" class="logo">셀러체크</a>
+  <div class="header-btns">
+    <a href="my-report.html" id="listBtn" class="btn-outline" style="display:none"><i class="fas fa-list"></i> 기록 목록</a>
+    <button class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> 출력 / PDF</button>
+  </div>
+</header>
+
+<div id="loadingBlock" class="loading">
+  <div class="spinner"></div>
+  <p>리포트를 불러오는 중...</p>
+</div>
+
+<div id="errorBlock" class="empty-state" style="display:none">
+  <div class="icon">⚠️</div>
+  <p>리포트를 불러올 수 없습니다.<br>URL을 다시 확인해 주세요.</p>
+  <a href="index.html" class="btn-go">홈으로 돌아가기</a>
+</div>
+
+<div id="reportWrap" style="display:none">
+  <div class="report-page" id="reportBody"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// 데이터 맵
+// ══════════════════════════════════════
+const SMAP = {
+  ai:      {name:'AI 도구 활용',    icon:'🤖', course:'AI 창업 과정', qs:['Q4','Q5','Q6','Q7','Q8'], max:25},
+  ch:      {name:'채널 전략',        icon:'📡', course:'쇼핑몰 창업 지도사', qs:['Q9','Q10','Q11','Q12','Q13'], max:25},
+  rev:     {name:'수익 구조 설계',  icon:'💰', course:'쇼핑몰 창업 지도사', qs:['Q14','Q15','Q16','Q17','Q18'], max:25},
+  seo:     {name:'상품 정보 & SEO', icon:'🔍', course:'SEO & GEO', qs:['Q19','Q20','Q21','Q22','Q23'], max:25},
+  detail:  {name:'상세페이지 & 카피', icon:'📝', course:'AI 마케팅', qs:['Q24','Q25','Q26','Q27','Q28'], max:25},
+  mkt:     {name:'마케팅 & 광고',   icon:'📣', course:'AI 마케팅', qs:['Q29','Q30','Q31','Q32','Q33'], max:25},
+  data:    {name:'성과 분석',        icon:'📊', course:'AI 소비자 데이터 분석', qs:['Q34','Q35','Q36','Q37','Q38'], max:25},
+  sop:     {name:'운영 & 자동화',   icon:'⚙️', course:'AI 업무 자동화', qs:['Q39','Q40','Q41','Q42','Q43'], max:25},
+  cs:      {name:'CS & 리뷰',       icon:'💬', course:'소상공인 AI 활용법', qs:['Q44','Q45','Q46','Q47','Q48'], max:25},
+  short:   {name:'숏폼 & 콘텐츠',  icon:'🎬', course:'AI 숏폼 만들기', qs:['Q49','Q50','Q51','Q52','Q53'], max:25},
+  risk:    {name:'리스크 관리',      icon:'🛡️', course:'쇼핑몰 창업 지도사', qs:['Q54','Q55','Q56','Q57','Q58'], max:25},
+  plan:    {name:'30일 실행 계획',  icon:'📅', course:'AI 창업 과정', qs:['Q59','Q60','Q61','Q62','Q63'], max:25}
+};
+
+const QS_TEXT = {
+  Q4:'AI 도구(ChatGPT 등)에 대해 얼마나 알고 계신가요?',Q5:'텍스트 작업(글쓰기·카피·기획 등)에 AI를 활용한 적 있나요?',Q6:'이미지·영상 제작에 AI 도구를 활용해본 적 있나요?',Q7:'업무 자동화나 반복 작업 줄이기에 관심이 있나요?',Q8:'AI 도구를 배우거나 활용하는 데 가장 큰 걸림돌은 무엇인가요?',
+  Q9:'관심 있거나 운영 중(예정)인 판매 채널은?',Q10:'스마트스토어·쇼핑윈도·브랜드스토어의 차이를 알고 있나요?',Q11:'온라인 판매 채널의 노출(검색·추천) 구조를 얼마나 이해하고 있나요?',Q12:'판매 채널을 처음 개설·세팅하는 것이 얼마나 자신 있나요?',Q13:'SNS 기반 쇼핑(TikTok샵·인스타·유튜브쇼핑 등)에 대해 어떻게 생각하시나요?',
+  Q14:'판매할 상품의 원가·마진·판매가를 계산해본 적 있나요?',Q15:'온라인 플랫폼 수수료 구조를 얼마나 알고 있나요?',Q16:'배송비를 어떻게 설정할지 생각해본 적 있나요?',Q17:'목표 매출을 세우고 역산해서 계획을 짤 수 있나요?',Q18:'할인·프로모션이 실제 수익에 미치는 영향을 계산할 수 있나요?',
+  Q19:'상품명을 작성할 때 고객이 검색할 키워드를 고려하나요?',Q20:'상품 등록 시 태그·속성·카테고리를 꼼꼼하게 작성할 계획이 있나요?',Q21:'온라인 검색 노출 구조(SEO)를 얼마나 알고 있나요?',Q22:'ChatGPT 같은 AI 검색에서 내 상품·브랜드가 노출되는 것에 관심이 있나요?',Q23:'상품 리뷰·평점 관리를 어떻게 할 계획인가요?',
+  Q24:'상품 상세페이지를 직접 만들 수 있을 것 같나요?',Q25:'좋은 상세페이지에 어떤 요소가 들어가야 하는지 알고 있나요?',Q26:'상품의 강점을 고객 입장에서 설득력 있게 표현할 수 있나요?',Q27:'고객 신뢰를 높이는 요소(리뷰·인증·수상 등)의 중요성을 알고 있나요?',Q28:'AI(ChatGPT 등)로 상품 소개 문구나 카피를 작성해본 적 있나요?',
+  Q29:'유료 광고(네이버·카카오·메타·구글 등)에 대해 얼마나 알고 있나요?',Q30:'SNS(인스타그램·유튜브·틱톡 등)를 마케팅에 활용할 계획이 있나요?',Q31:'신규 고객 유치와 기존 고객 재구매 유도의 차이를 알고 있나요?',Q32:'판매 예정 분야의 경쟁사를 조사해본 적 있나요?',Q33:'시즌·이벤트·프로모션을 미리 계획해서 마케팅하는 방법을 알고 있나요?',
+  Q34:'온라인 쇼핑몰의 핵심 지표(매출·방문자·전환율 등)가 무엇인지 알고 있나요?',Q35:'광고비 대비 매출 효율(ROAS)의 개념을 알고 있나요?',Q36:'어떤 상품을 팔아야 수익이 높은지 분석하거나 계획해본 적 있나요?',Q37:'목표 고객(연령·성별·구매 패턴 등)을 분석하거나 정의해본 적 있나요?',Q38:'숫자·데이터를 보고 판단하는 방식이 중요하다고 생각하나요?',
+  Q39:'주문 접수부터 배송까지 어떻게 처리할지 생각해본 적 있나요?',Q40:'재고 관리를 어떻게 할 계획인가요?',Q41:'상품 등록·발주·정산 같은 반복 업무를 줄이는 방법에 관심이 있나요?',Q42:'쇼핑몰 운영에 하루 얼마나 시간을 쓸 계획인가요?',Q43:'1인 창업 구조에서 효율적으로 운영하려면 무엇이 필요하다고 생각하나요?',
+  Q44:'고객 문의가 왔을 때 얼마나 빠르게 답변하는 것이 중요하다고 생각하나요?',Q45:'자주 오는 문의에 답변 템플릿을 만들어 둘 생각이 있나요?',Q46:'교환·환불 처리 기준을 미리 정해두는 것이 왜 중요한지 알고 있나요?',Q47:'부정 리뷰나 어려운 고객 상황에 어떻게 대응할 준비가 되어 있나요?',Q48:'고객 문의·클레임 내용을 기록하고 개선에 활용하는 것이 중요하다고 생각하나요?',
+  Q49:'숏폼(릴스·유튜브쇼츠·틱톡) 콘텐츠를 만들거나 활용할 생각이 있나요?',Q50:'짧은 영상 콘텐츠를 기획하고 만드는 것이 얼마나 자신 있나요?',Q51:'AI 도구(CapCut·Vrew 등)를 활용해 영상을 만들거나 편집해본 적 있나요?',Q52:'콘텐츠를 꾸준히 올리는 것이 왜 중요한지 알고 있나요?',Q53:'어떤 콘텐츠가 효과적인지 분석하거나 파악하려고 하나요?',
+  Q54:'온라인 판매를 시작할 때 지켜야 할 법규가 있다는 걸 알고 있나요?',Q55:'과장 표현·폰트 저작권·상표·계정 보안 같은 디지털 리스크를 알고 있나요?',Q56:'반품·교환·환불 정책을 소비자보호법에 맞게 설정해야 한다는 걸 알고 있나요?',Q57:'고객 개인정보(이름·연락처·주소 등)를 다룰 때 주의할 점을 알고 있나요?',Q58:'사업자 등록과 세금 신고 등 창업 필수 절차를 얼마나 알고 있나요?',
+  Q59:'쇼핑몰을 시작하거나 개선하기 위한 구체적인 실행 계획이 있나요?',Q60:'첫 번째 상품(또는 다음 신상품)을 언제까지 등록할 계획인가요?',Q61:'지금 나에게 가장 시급하게 해결해야 할 과제가 무엇인지 알고 있나요?',Q62:'쇼핑몰 운영에 필요한 역량을 키우기 위한 학습 계획이 있나요?',Q63:'30일 후 어떤 상태가 되고 싶은지 목표가 있나요?'
+};
+
+const QS_OPTS = {
+  Q4:['⬜ 해당없음','AI 도구가 뭔지 잘 모른다','이름은 들어봤지만 써본 적 없다','가끔 써보긴 했지만 잘 모른다','ChatGPT 등 몇 가지 도구를 목적에 맞게 사용','AI 도구를 업무 전반에 체계적으로 활용'],
+  Q5:['⬜ 해당없음','전혀 활용해본 적 없다','한두 번 써봤지만 마음에 들지 않았다','가끔 활용하지만 수정이 많이 필요하다','자주 활용하고 시간이 절약된다','프롬프트를 다듬어 원하는 결과를 바로 얻는다'],
+  Q6:['⬜ 해당없음','전혀 활용해본 적 없다','캔바(Canva) 정도만 사용해봤다','AI 이미지 생성 도구를 써본 적 있다','상품 이미지·썸네일 제작에 AI를 정기적으로 활용','이미지·영상 전반을 AI로 제작하고 있다'],
+  Q7:['⬜ 해당없음','자동화 개념 자체가 생소하다','필요성은 알지만 어떻게 시작할지 모른다','엑셀·구글시트 정도의 자동화는 해봤다','Zapier·Make 등 자동화 툴을 사용해본 적 있다','핵심 업무를 자동화해서 시간을 크게 줄이고 있다'],
+  Q8:['⬜ 해당없음','어떤 도구가 있는지 잘 모른다','도구는 알지만 어떻게 활용할지 모른다','써봤지만 내 상황에 맞게 응용이 안 된다','도구는 쓰지만 체계적으로 정리가 안 되어 있다','특별한 어려움이 없다'],
+  Q9:['⬜ 아직 결정하지 못했다','스마트스토어·쇼핑윈도·브랜드스토어(네이버 계열)','쿠팡','11번가/G마켓/옥션','자사몰 (카페24, 아임웹 등)','임베디드 커머스 (틱톡샵·인스타그램·유튜브쇼핑)'],
+  Q10:['⬜ 해당없음','세 채널이 모두 같은 것인 줄 알았다','이름은 들어봤지만 차이를 잘 모른다','스마트스토어와 쇼핑윈도의 차이 정도는 안다','세 채널의 입점 기준·노출 구조·수수료 차이를 안다','채널별 특성에 맞게 상품·콘텐츠 전략을 달리 운영 중'],
+  Q11:['⬜ 해당없음','노출 구조가 뭔지 전혀 모른다','들어본 적은 있지만 잘 모른다','기본적인 알고리즘 개념은 알고 있다','채널별 노출 기준을 파악하고 상품등록에 반영','노출 최적화 전략을 세우고 지속적으로 개선 중'],
+  Q12:['⬜ 해당없음','무엇부터 시작해야 할지 전혀 모른다','들어봤지만 직접 해본 적은 없다','한 번 해봤지만 시간이 오래 걸렸다','기본 세팅은 할 수 있지만 최적화가 부족하다','채널별 세팅을 빠르고 효율적으로 진행할 수 있다'],
+  Q13:['⬜ 해당없음','그런 판매 방식이 있는지 몰랐다','들어봤지만 내 상품에 맞는지 모르겠다','관심은 있지만 아직 시작하지 못했다','1개 이상 채널에서 운영 중이다','채널 특성에 맞게 구분해 전략적으로 운영 중'],
+  Q14:['⬜ 해당없음','아직 계산해본 적 없다','대략적인 감으로만 알고 있다','원가와 판매가는 알지만 순이익 계산이 불확실하다','원가·수수료·배송비·광고비까지 포함해 계산','상품별 손익분기점과 목표 마진율을 설정해 관리'],
+  Q15:['⬜ 해당없음','수수료가 있다는 것만 안다','판매 수수료 정도만 알고 있다','판매·결제·정산 수수료를 대략 알고 있다','채널별 수수료를 정확히 파악하고 가격에 반영','수수료 변동까지 모니터링하며 수익 구조를 최적화'],
+  Q16:['⬜ 해당없음','생각해본 적 없다','경쟁사를 참고해서 설정할 것 같다','원가를 고려해 기본 설정은 알지만 전략이 없다','객단가·마진을 고려해 배송비 정책을 설정했다','배송비 정책이 구매전환율에 미치는 영향을 분석해 운영 중'],
+  Q17:['⬜ 해당없음','목표 매출 자체가 없다','막연하게 "많이 팔면 좋겠다" 수준이다','월 목표 매출은 있지만 역산 계획은 없다','목표 매출→필요 주문 수→일 판매량을 역산해봤다','월·주·일 단위 매출 목표와 실적을 비교하며 관리'],
+  Q18:['⬜ 해당없음','프로모션 효과를 계산해본 적 없다','할인하면 매출이 오르는 줄만 알고 있었다','프로모션 전 대략적인 손익은 계산해본다','프로모션별 예상 수익을 계산하고 진행 여부를 결정','프로모션 ROI를 측정하고 다음 전략에 반영'],
+  Q19:['⬜ 해당없음','그냥 상품 이름만 쓴다','경쟁사 상품명을 참고해서 쓴다','검색량이 높은 키워드를 넣으려고 노력한다','키워드 도구로 검색량·경쟁강도를 분석해 작성','메인·서브·롱테일 키워드를 조합해 최적화하고 있다'],
+  Q20:['⬜ 해당없음','그런 항목이 있는지 몰랐다','기본 정보만 입력하면 된다고 생각한다','필수 항목은 모두 채우고 있다','검색 노출을 고려해 태그·속성을 최적화','채널별 상품정보 가이드에 맞게 완벽하게 작성'],
+  Q21:['⬜ 해당없음','검색 노출이 어떻게 되는지 모른다','키워드가 중요하다는 건 알지만 구체적으로 모른다','SEO 개념은 알고 있지만 실제로 적용해본 적 없다','SEO를 이해하고 상품 페이지에 일부 적용','SEO·GEO 전략을 세우고 지속적으로 최적화'],
+  Q22:['⬜ 해당없음','AI 검색이 쇼핑에 영향을 미친다는 걸 몰랐다','들어본 적은 있지만 어떻게 대응해야 할지 모른다','중요성은 알지만 아직 준비하지 못했다','블로그·콘텐츠 등으로 AI 검색 노출을 준비 중','GEO 전략을 세우고 AI 검색 최적화를 실행 중'],
+  Q23:['⬜ 해당없음','리뷰가 알아서 쌓이겠거니 생각한다','부정 리뷰가 오면 대응하는 정도만 할 것 같다','리뷰 요청 메시지를 발송하고 있다','리뷰 수집·관리 프로세스가 있다','리뷰 데이터를 분석해 상품·서비스 개선에 활용'],
+  Q24:['⬜ 해당없음','상세페이지가 뭔지 잘 모른다','텍스트 위주로 기본만 만들 수 있다','이미지·텍스트를 조합해 만들 수 있지만 퀄리티가 아쉽다','구매 흐름을 고려한 상세페이지를 만들 수 있다','전환율을 고려한 상세페이지를 기획·제작할 수 있다'],
+  Q25:['⬜ 해당없음','잘 모른다','상품 사진과 설명 정도만 넣으면 된다고 생각한다','상품 특징·사용법·후기 정도는 넣어야 한다고 안다','후킹·문제제기·솔루션·신뢰요소·CTA 구조를 알고 있다','업종·상품별로 최적화된 구성을 기획해서 제작'],
+  Q26:['⬜ 해당없음','어떻게 써야 할지 전혀 모른다','상품 스펙 위주로 설명하는 편이다','고객 관점으로 쓰려고 노력하지만 어색하다','고객의 문제·욕구를 자극하는 카피를 쓸 수 있다','AI를 활용해 다양한 카피를 테스트하고 최적화'],
+  Q27:['⬜ 해당없음','신뢰 요소가 중요하다는 생각을 해본 적 없다','중요한 건 알지만 어떻게 활용할지 모른다','리뷰·구매 수 등 기본 신뢰 요소는 활용','인증·수상·언론 노출 등 다양한 신뢰 요소를 활용','신뢰 요소를 전략적으로 배치해 전환율을 높이고 있다'],
+  Q28:['⬜ 해당없음','써본 적 없다','써봤지만 결과물이 마음에 들지 않았다','기본 문구 작성에는 활용하고 있다','프롬프트를 다듬어 원하는 수준의 카피를 뽑아내고 있다','AI로 여러 버전을 만들고 A/B 테스트까지 하고 있다'],
+  Q29:['⬜ 해당없음','유료 광고가 어떻게 작동하는지 모른다','한두 번 해봤지만 효과를 잘 모르겠다','정기적으로 운영하지만 성과 분석이 부족하다','채널별 광고를 운영하며 성과를 비교하고 있다','광고비 대비 ROAS를 관리하며 예산을 최적화'],
+  Q30:['⬜ 해당없음','SNS 마케팅을 생각해본 적 없다','개인 SNS만 있고 마케팅용으로 운영하지 않는다','SNS 계정을 만들어 비정기적으로 올리고 있다','콘텐츠 전략을 세우고 꾸준히 운영하고 있다','SNS 유입 고객의 구매전환율을 추적하고 있다'],
+  Q31:['⬜ 해당없음','두 가지를 구분해본 적 없다','신규 유입에만 집중하면 된다고 생각한다','재구매 중요성은 알지만 어떻게 해야 할지 모른다','신규·재구매 고객을 구분해 다른 접근을 하고 있다','고객 생애가치(LTV)를 고려한 마케팅 전략을 운영'],
+  Q32:['⬜ 해당없음','경쟁사를 분석해본 적 없다','가끔 경쟁사 가격 정도만 확인한다','경쟁사 상품·리뷰·채널을 주기적으로 살펴본다','경쟁사 광고·콘텐츠·프로모션을 분석해 전략에 반영','AI 도구로 경쟁사 동향을 체계적으로 모니터링'],
+  Q33:['⬜ 해당없음','마케팅 계획을 세워야 한다는 생각을 해본 적 없다','큰 시즌(설·추석·블랙프라이데이)만 대응할 것 같다','월별 프로모션 계획은 있지만 체계적이지 않다','분기별 마케팅 캘린더를 만들어 운영하고 있다','연간 마케팅 캘린더를 AI로 기획하고 실행'],
+  Q34:['⬜ 해당없음','어떤 지표를 봐야 하는지 모른다','매출 숫자 정도만 중요하다고 생각한다','매출·방문자 정도는 확인해야 한다고 안다','전환율·객단가·재구매율까지 주기적으로 확인','지표 대시보드를 만들어 일·주·월 단위로 관리'],
+  Q35:['⬜ 해당없음','ROAS가 무엇인지 모른다','들어본 적은 있지만 계산해본 적 없다','개념은 알지만 실제로 계산하거나 관리해본 적 없다','채널별 ROAS를 계산하고 광고 예산 배분에 반영','목표 ROAS를 설정하고 지속적으로 최적화'],
+  Q36:['⬜ 해당없음','분석해본 적 없다','잘 팔리는 상품이 뭔지 감으로 예상하는 정도다','판매량 순위나 마진 정도는 비교해본다','상품별 매출·마진·반품률을 비교 분석한다','AI로 상품 포트폴리오를 분석하고 전략적으로 구성'],
+  Q37:['⬜ 해당없음','타깃 고객을 생각해본 적 없다','누가 살지 막연하게만 생각하고 있다','기본적인 타깃 고객 프로필을 생각해봤다','고객 데이터를 분석해 타깃 마케팅에 활용','AI로 고객 세그먼트를 나눠 맞춤 전략을 운영'],
+  Q38:['⬜ 해당없음','데이터보다 감과 경험이 더 중요하다고 생각한다','데이터 기반 결정이 좋다는 건 알지만 어떻게 해야 할지 모른다','주요 결정은 데이터를 참고해서 내리려고 한다','데이터 기반으로 광고·상품·가격 등을 조정하고 있다','데이터→가설→실행→검증 사이클로 운영'],
+  Q39:['⬜ 해당없음','생각해본 적 없다','막연하게 생각은 해봤지만 구체적이지 않다','대략적인 순서는 있지만 정리가 안 되어 있다','단계별 처리 절차를 문서화해두고 있다','SOP가 있고 누가 해도 동일한 품질로 처리'],
+  Q40:['⬜ 해당없음','재고 관리가 왜 필요한지 모르겠다','눈으로 확인하거나 기억으로 관리하면 될 것 같다','엑셀·메모로 기록할 계획이다','재고 관리 툴이나 시스템을 사용하고 있다','재고 소진 예측·자동 발주 등 자동화가 되어 있다'],
+  Q41:['⬜ 해당없음','모든 업무를 수작업으로 처리해야 한다고 생각한다','자동화가 필요하다는 건 알지만 어떻게 해야 할지 모른다','엑셀 수식·매크로로 일부 자동화해본 적 있다','Zapier·Make 등 자동화 툴을 활용하고 있다','AI 에이전트·자동화 시스템으로 핵심 업무가 자동화'],
+  Q42:['⬜ 해당없음','하루 종일 매달려야 한다고 생각한다','6~8시간은 써야 할 것 같다','4~6시간 정도면 될 것 같다','자동화를 활용해 2~4시간으로 줄이고 싶다','대부분 자동화해 2시간 이하로 운영하고 있다'],
+  Q43:['⬜ 해당없음','1인으로는 한계가 있다고 생각한다','무엇이 필요한지 잘 모르겠다','시간 관리와 우선순위 설정이 중요하다고 안다','자동화·툴 활용이 핵심이라고 생각하고 준비 중','1인 운영 최적화 시스템이 이미 구축되어 있다'],
+  Q44:['⬜ 해당없음','생각날 때 답변해도 된다고 생각한다','당일 내로 답변하면 충분하다고 생각한다','몇 시간 내로 답변하는 것이 중요하다고 생각한다','1시간 내로 답변 기준을 세우고 실천하고 있다','자동 응답·템플릿으로 즉시 1차 답변이 나간다'],
+  Q45:['⬜ 해당없음','매번 새로 작성하면 된다고 생각한다','필요한 건 알지만 어떻게 만들지 모른다','자주 쓰는 문구를 메모해두고 있다','유형별 답변 템플릿을 만들어 활용하고 있다','AI로 상황별 최적 답변을 생성해 활용'],
+  Q46:['⬜ 해당없음','그때그때 대응하면 된다고 생각한다','플랫폼 정책대로만 처리하면 된다고 생각한다','기본 절차는 알아야 한다고 생각한다','교환·환불 SOP를 만들어 일관되게 처리하고 있다','SOP + 자동화로 처리 시간과 실수를 최소화'],
+  Q47:['⬜ 해당없음','생각해본 적 없다','당황해서 즉흥적으로 대응할 것 같다','비슷한 사례를 참고해 대응할 것 같다','유형별 대응 가이드라인을 만들어두고 있다','대응 매뉴얼 + 에스컬레이션 기준까지 갖추고 있다'],
+  Q48:['⬜ 해당없음','처리하고 나면 끝이라고 생각한다','큰 이슈만 기억해두면 된다고 생각한다','기록하는 것이 중요하다는 건 알지만 아직 못 하고 있다','CS 로그를 기록하고 반복 문의를 줄이는 데 활용','CS 데이터를 분석해 상품·운영 개선에 반영'],
+  Q49:['⬜ 해당없음','숏폼이 판매에 도움이 된다는 걸 몰랐다','관심은 있지만 어떻게 시작해야 할지 모른다','한두 번 만들어봤지만 반응이 없었다','정기적으로 올리고 있고 어느 정도 반응이 있다','숏폼으로 실제 매출 유입이 발생하고 있다'],
+  Q50:['⬜ 해당없음','영상 제작 자체가 처음이라 막막하다','상품을 단순히 보여주는 정도는 찍을 수 있다','기본적인 스토리라인을 잡아서 찍을 수 있다','후킹·문제제기·솔루션 구조를 반영해 기획할 수 있다','조회수·전환율·알고리즘을 고려한 콘텐츠를 기획·제작'],
+  Q51:['⬜ 해당없음','영상 편집 도구를 써본 적 없다','CapCut·Vrew 등 편집 앱을 써본 적 있다','AI 자막·편집 기능을 활용해 영상을 제작하고 있다','AI 스크립트 생성 + 편집 자동화로 제작 시간을 줄이고 있다','AI로 기획·스크립트·편집·썸네일까지 전 과정을 처리'],
+  Q52:['⬜ 해당없음','꾸준히 올려야 한다는 걸 몰랐다','중요한 건 알지만 어떻게 유지할지 모른다','월 2~3회라도 올리려고 노력 중이다','주 1~2회 정기적으로 올리고 있다','콘텐츠 캘린더로 계획하고 주 3회 이상 꾸준히 올린다'],
+  Q53:['⬜ 해당없음','올리고 나서 확인하지 않을 것 같다','조회수·좋아요 정도만 볼 것 같다','어떤 콘텐츠가 잘 되는지 파악하려고 노력한다','성과 지표를 분석해 잘 되는 콘텐츠 유형을 파악하고 있다','데이터 기반으로 콘텐츠 전략을 지속적으로 개선'],
+  Q54:['⬜ 해당없음','법규가 있다는 것도 잘 몰랐다','들어본 적은 있지만 구체적으로 모른다','기본적인 내용은 알지만 적용이 불확실하다','주요 법규를 파악하고 상세페이지·약관에 반영','법규 변경사항을 모니터링하고 즉시 대응'],
+  Q55:['⬜ 해당없음','그런 리스크가 있다는 것을 몰랐다','과장 표현 정도만 주의하면 된다고 생각한다','허위·과장 표현과 폰트 저작권은 기본적으로 체크한다','상표 분쟁·계정 도용 예방까지 관리하고 있다','법적 리스크 전반 체크리스트를 운영하고 있다'],
+  Q56:['⬜ 해당없음','법적 기준이 있다는 걸 몰랐다','플랫폼 기본 정책을 따르면 된다고 생각한다','기본 정책은 알지만 법적 기준에 맞는지 모른다','소비자보호법 기준에 맞게 정책을 설정하고 안내','정기적으로 검토하고 분쟁 예방 장치를 갖추고 있다'],
+  Q57:['⬜ 해당없음','개인정보 관련 법규를 생각해본 적 없다','플랫폼에서 알아서 처리해준다고 생각한다','개인정보보호법이 있다는 건 알지만 구체적으로 모른다','수집·보관·파기 기준을 알고 준수하고 있다','법적 요건을 갖추고 정기적으로 점검하고 있다'],
+  Q58:['⬜ 해당없음','사업자 등록이 왜 필요한지도 잘 모른다','사업자 등록은 해야 한다는 건 알지만 방법을 모른다','사업자 등록 절차는 알고 준비 중이다','사업자 등록 후 기본적인 세금 신고를 하고 있다','세무사와 협업하거나 자동화 툴로 세무·정산을 관리'],
+  Q59:['⬜ 해당없음','막연하게 "해야지" 수준이다','하고 싶은 건 있지만 무엇부터 할지 모른다','할 일 목록은 있지만 일정이 없다','주별 실행 계획이 있고 진행 중이다','30일 단위 실행 계획을 세우고 매일 점검'],
+  Q60:['⬜ 해당없음','아직 생각해본 적 없다','언젠가는 하겠지만 기한이 없다','한 달 안에는 하고 싶다','2주 안에 등록할 구체적인 계획이 있다','이미 준비 중이고 일주일 안에 등록 예정'],
+  Q61:['⬜ 해당없음','무엇이 문제인지도 모르겠다','문제는 알지만 해결 방법을 모른다','문제와 해결 방향은 알지만 실행이 안 된다','시급한 과제 TOP 3를 알고 순서대로 해결 중','과제별 우선순위·기한이 정해져 있다'],
+  Q62:['⬜ 해당없음','딱히 배워야 할 것을 생각해본 적 없다','필요성은 느끼지만 어디서 배워야 할지 모른다','유튜브·블로그로 독학하고 있다','체계적인 강의나 과정을 수강할 계획이 있다','학습 계획을 세우고 실행하며 바로 적용하고 있다'],
+  Q63:['⬜ 해당없음','생각해본 적 없다','일단 시작만 해도 성공이라고 생각한다','첫 주문이 들어오면 좋겠다','월 목표 매출과 주문 수가 구체적으로 있다','30일 후 목표와 주별 마일스톤이 있다']
+};
+
+// ══════════════════════════════════════
+// 유틸
+// ══════════════════════════════════════
+function getParam(n) { return new URLSearchParams(location.search).get(n); }
+function fmtDate(ms) {
+  if (!ms) return '–';
+  const d = new Date(Number(ms));
+  return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+function fmtDateTime(ms) {
+  if (!ms) return '–';
+  const d = new Date(Number(ms));
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function levelColor(lv) {
+  if (!lv) return '#9CA3AF';
+  if (lv.includes('전문가')) return '#6D28D9';
+  if (lv.includes('운영')) return '#2563EB';
+  if (lv.includes('성장')) return '#059669';
+  if (lv.includes('준비')) return '#D97706';
+  return '#EF4444';
+}
+function levelDesc(lv) {
+  if (!lv) return '';
+  if (lv.includes('전문가')) return '탁월한 역량을 갖추고 있습니다. 지도사 과정으로 전문성을 더 높여보세요.';
+  if (lv.includes('운영')) return '상당한 역량을 갖추고 있습니다. 약점 영역을 집중 보완하면 전문가 수준으로 도약할 수 있습니다.';
+  if (lv.includes('성장')) return '기초가 잘 갖춰져 있습니다. 취약 영역에 집중 투자하면 빠른 성장이 가능합니다.';
+  if (lv.includes('준비')) return '기본기가 형성되고 있습니다. 체계적인 학습과 실습으로 역량을 쌓아가세요.';
+  return '이제 시작 단계입니다. 기초부터 차근차근 학습하면 빠르게 성장할 수 있습니다.';
+}
+
+// ══════════════════════════════════════
+// 메인
+// ══════════════════════════════════════
+async function init() {
+  const diagId = getParam('diag_id');
+  const mode   = getParam('mode');
+
+  // ── mode=temp : 세션 스토리지의 임시 결과 사용 (비로그인 포함)
+  if (!diagId && mode === 'temp') {
+    try {
+      const raw = sessionStorage.getItem('sc_temp_result');
+      if (!raw) { showError(); return; }
+      const tempDiag = JSON.parse(raw);
+      // 임시 결과엔 id가 없으므로 더미 추가
+      tempDiag.id = 'TEMP-' + Date.now();
+      document.getElementById('loadingBlock').style.display = 'none';
+      document.getElementById('reportWrap').style.display = 'block';
+      buildReport(tempDiag);
+    } catch(e) {
+      showError();
+    }
+    return;
+  }
+
+  if (!diagId) { showError(); return; }
+
+  try {
+    const diag = await fetch(`tables/diagnoses/${diagId}`).then(r => { if(!r.ok) throw new Error(); return r.json(); });
+    if (!diag || !diag.id) { showError(); return; }
+
+    document.getElementById('loadingBlock').style.display = 'none';
+    document.getElementById('reportWrap').style.display = 'block';
+    buildReport(diag);
+    // 같은 회원의 진단 기록 목록 링크 (로그인 기능 제거 — member_id 기반)
+    if (diag.member_id) {
+      const listBtn = document.getElementById('listBtn');
+      if (listBtn) {
+        listBtn.href = `my-report.html?member_id=${diag.member_id}`;
+        listBtn.style.display = '';
+      }
+    }
+  } catch(e) {
+    showError();
+  }
+}
+
+function showError() {
+  document.getElementById('loadingBlock').style.display = 'none';
+  document.getElementById('errorBlock').style.display = 'block';
+}
+
+function buildReport(d) {
+  let secScores = {};
+  let answers = {};
+  try { secScores = JSON.parse(d.sec_scores || '{}'); } catch(e) {}
+  try { answers = JSON.parse(d.answers || '{}'); } catch(e) {}
+
+  const total = d.total_score || 0;
+  const maxTotal = d.total_max || 298;
+  const pct = d.total_pct || Math.round(total/maxTotal*100);
+  const lv = d.level || '–';
+  const lc = levelColor(lv);
+
+  // 강점 / 약점 분류
+  const sorted = Object.entries(SMAP)
+    .map(([k, info]) => ({k, ...info, pct: secScores[k]?.pct || 0, score: secScores[k]?.score || 0}))
+    .sort((a,b) => b.pct - a.pct);
+  const strengths = sorted.slice(0, 3);
+  const weaknesses = sorted.slice(-3).reverse();
+
+  const html = `
+    <!-- 표지 -->
+    <div class="cover">
+      <div class="cover-badge">셀러체크 · 개인 진단 리포트</div>
+      <h1>📊 셀러 역량 진단 리포트</h1>
+      <div class="cover-meta">
+        <div class="cover-meta-item"><label>수강자 이름</label><value>${d.member_name || '–'}</value></div>
+        <div class="cover-meta-item"><label>연락처</label><value>${d.member_phone || '–'}</value></div>
+        <div class="cover-meta-item"><label>소속 기관</label><value>${d.member_org || '–'}</value></div>
+        <div class="cover-meta-item"><label>진단 일시</label><value>${fmtDateTime(d.diagnosed_at)}</value></div>
+      </div>
+    </div>
+
+    <!-- 종합 점수 -->
+    <div class="score-hero">
+      <div class="score-card">
+        <div class="sc-label">📊 종합 점수</div>
+        <div class="sc-value">${total}<span>/${maxTotal}</span></div>
+        <div class="sc-sub">전체 점수</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-label">📈 준비도 퍼센트</div>
+        <div class="sc-value" style="color:${lc}">${pct}<span>%</span></div>
+        <div class="sc-sub">최고 대비 비율</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-label">🏆 역량 단계</div>
+        <div class="sc-value" style="font-size:22px;padding-top:6px">${lv}</div>
+        <div class="sc-sub">현재 준비도 수준</div>
+      </div>
+    </div>
+
+    <!-- 단계 설명 -->
+    <div class="section-card" style="background:linear-gradient(135deg,${lc}18,${lc}08);border-color:${lc}40">
+      <h3 style="color:${lc}">💬 진단 결과 해석</h3>
+      <p style="font-size:15px;line-height:1.7;color:var(--gray-700)">${levelDesc(lv)}</p>
+    </div>
+
+    <!-- 레이더 차트 -->
+    <div class="section-card">
+      <h3>🕸️ 12개 영역 역량 레이더</h3>
+      <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+    </div>
+
+    <!-- 영역별 점수 -->
+    <div class="section-card">
+      <h3>📈 영역별 준비도 상세</h3>
+      ${sorted.map(item => {
+        const cls = item.pct >= 71 ? 'bar-g' : item.pct >= 41 ? 'bar-y' : 'bar-r';
+        const color = item.pct >= 71 ? '#10B981' : item.pct >= 41 ? '#F59E0B' : '#EF4444';
+        return `<div class="score-row">
+          <div class="score-lbl">${item.icon} ${item.name}</div>
+          <div class="score-track"><div class="score-bar ${cls}" style="width:${item.pct}%"></div></div>
+          <div class="score-pct" style="color:${color}">${item.pct}%</div>
+          <div class="score-pts">${item.score}/${item.max}점</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- 강점 / 보완 영역 -->
+    <div class="section-card">
+      <h3>⚖️ 강점 & 보완 영역 분석</h3>
+      <div class="strength-grid">
+        <div class="str-card good">
+          <h4 class="good">💪 강점 영역 TOP 3</h4>
+          ${strengths.map(item => `<div class="str-item">
+            <span>${item.icon}</span>
+            <span style="flex:1;font-weight:600">${item.name}</span>
+            <span style="color:#059669;font-weight:700">${item.pct}%</span>
+          </div>`).join('')}
+        </div>
+        <div class="str-card weak">
+          <h4 class="weak">⚠️ 집중 보완 영역 TOP 3</h4>
+          ${weaknesses.map(item => `<div class="str-item">
+            <span>${item.icon}</span>
+            <span style="flex:1;font-weight:600">${item.name}</span>
+            <span style="color:#DC2626;font-weight:700">${item.pct}%</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- 추천 과정 -->
+    <div class="section-card">
+      <h3>🎯 추천 수강 과정</h3>
+      ${weaknesses.map((item, i) => `<div class="rec-item">
+        <div class="rec-num">${i+1}</div>
+        <div class="rec-info">
+          <h4>${item.course}</h4>
+          <p>${item.icon} ${item.name} 영역(${item.pct}%)을 보완하기 위한 추천 과정입니다.</p>
+        </div>
+      </div>`).join('')}
+      <div style="margin-top:12px;padding:14px;background:#eff6ff;border-radius:10px;font-size:13px;color:#1d4ed8">
+        💡 추천 과정 신청: <a href="https://hkspmh.liveklass.com/classes" target="_blank" style="color:#1d4ed8;font-weight:700">hkspmh.liveklass.com/classes</a>
+      </div>
+    </div>
+
+    <!-- 상세 Q&A -->
+    <div class="section-card">
+      <h3>📝 문항별 답변 상세</h3>
+      ${Object.entries(SMAP).map(([k, info]) => {
+        const qas = info.qs.map(qid => {
+          const ans = answers[qid];
+          const opts = QS_OPTS[qid] || [];
+          let ansText = '미응답';
+          let ansScore = 0;
+          if (Array.isArray(ans)) {
+            ansText = ans.map(i => opts[i] || `선택${i+1}`).join(', ');
+          } else if (ans !== undefined && ans !== null) {
+            ansText = opts[ans] || `선택${ans+1}`;
+            ansScore = ans + 1;
+          }
+          return `<div class="qa-item">
+            <div class="qa-q">${QS_TEXT[qid] || qid}</div>
+            <div class="qa-a"><strong>→ ${ansText}</strong></div>
+          </div>`;
+        }).join('');
+        return `<div class="qa-section">
+          <h4>${info.icon} ${info.name} — ${secScores[k]?.pct || 0}% (${secScores[k]?.score || 0}/${info.max}점)</h4>
+          ${qas}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- 서명란 -->
+    <div class="sign-area">
+      <h3>✍️ 확인 서명</h3>
+      <div class="sign-row">
+        <div class="sign-field">
+          <label>수강자 서명</label>
+          <value>${d.member_name || '–'}</value>
+        </div>
+        <div class="sign-field">
+          <label>진단 일자</label>
+          <value>${fmtDate(d.diagnosed_at)}</value>
+        </div>
+        <div class="sign-field">
+          <label>소속 기관</label>
+          <value>${d.member_org || '–'}</value>
+        </div>
+      </div>
+      <div style="margin-top:24px;padding:14px;background:#f8fafc;border-radius:10px;font-size:13px;color:#64748b;line-height:1.6">
+        본 리포트는 셀러체크(SellerCheck) 플랫폼에서 생성된 개인 역량 진단 결과입니다.<br>
+        ${d.id && !d.id.startsWith('TEMP-') ? `진단 ID: ${d.id} · ` : ''}생성 일시: ${fmtDateTime(d.diagnosed_at)}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('reportBody').innerHTML = html;
+
+  // 차트 그리기
+  setTimeout(() => drawCharts(secScores), 200);
+}
+
+function drawCharts(secScores) {
+  const labels = Object.values(SMAP).map(info => info.name);
+  const data   = Object.keys(SMAP).map(k => secScores[k]?.pct || 0);
+
+  const rCtx = document.getElementById('radarChart');
+  if (!rCtx) return;
+
+  new Chart(rCtx, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: '준비도(%)',
+        data,
+        backgroundColor: 'rgba(79,70,229,.15)',
+        borderColor: '#4F46E5',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#4F46E5',
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { r: { min:0, max:100, ticks:{stepSize:25,font:{size:10}}, pointLabels:{font:{size:11}} } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>

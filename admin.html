@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>셀러체크 — 관리자 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',sans-serif;background:#f0f4ff;color:#1e293b;min-height:100vh}
+.top-bar{background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:16px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.top-bar .logo{color:#fff;font-size:20px;font-weight:800}
+.top-bar .badge{background:rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px}
+.top-bar .spacer{flex:1}
+.login-wrap{max-width:400px;margin:80px auto;padding:0 20px}
+.login-card{background:#fff;border-radius:20px;padding:36px;box-shadow:0 8px 32px rgba(0,0,0,.08)}
+.login-title{font-size:22px;font-weight:800;margin-bottom:6px}
+.login-sub{font-size:14px;color:#64748b;margin-bottom:24px}
+.form-group{margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:#475569;margin-bottom:6px;display:block}
+.form-input{width:100%;padding:12px 16px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:15px;font-family:inherit;outline:none;transition:.2s}
+.form-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.3)}
+.dash-wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.stat-icon{font-size:28px;margin-bottom:8px}
+.stat-val{font-size:32px;font-weight:900;color:#1e293b;line-height:1}
+.stat-label{font-size:12px;color:#64748b;margin-top:4px;font-weight:600}
+.stat-sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.dash-tabs{display:flex;gap:0;border-bottom:2px solid #f1f5f9;margin-bottom:24px}
+.dash-tab{padding:12px 20px;font-size:14px;font-weight:600;color:#64748b;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:.2s}
+.dash-tab.active{color:#2563eb;border-bottom-color:#2563eb}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.filter-bar{background:#fff;border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.filter-bar label{font-size:13px;font-weight:600;color:#475569;white-space:nowrap}
+.filter-select,.filter-input{padding:8px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;background:#fff;outline:none;cursor:pointer}
+.filter-select:focus,.filter-input:focus{border-color:#2563eb}
+.filter-input{width:180px;cursor:text}
+.filter-btn{padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.table-wrap{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.05);overflow:hidden;margin-bottom:20px}
+table{width:100%;border-collapse:collapse}
+thead th{background:#f8fafc;padding:12px 14px;text-align:left;font-size:12px;font-weight:700;color:#64748b;white-space:nowrap;border-bottom:1px solid #f1f5f9}
+tbody tr{border-bottom:1px solid #f8fafc;transition:.15s}
+tbody tr:hover{background:#f8faff}
+tbody td{padding:13px 14px;font-size:13px;color:#374151;vertical-align:middle}
+.name-cell{font-weight:700;color:#1e293b}
+.sub-cell{font-size:11px;color:#94a3b8;margin-top:2px}
+.badge-phase{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-pre{background:#dbeafe;color:#1d4ed8}
+.badge-both{background:#dcfce7;color:#166534}
+.badge-lv{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.mini-bar{height:6px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:4px;width:70px}
+.mini-bar-fill{height:100%;border-radius:99px}
+.diff-up{color:#16a34a;font-weight:700}
+.diff-down{color:#dc2626;font-weight:700}
+.diff-same{color:#94a3b8}
+.rpt-link{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:.2s;white-space:nowrap}
+.rpt-link:hover{background:#dbeafe}
+.pagination{display:flex;align-items:center;gap:6px;justify-content:center;padding:14px}
+.page-btn{padding:7px 13px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.page-btn:hover{border-color:#2563eb;color:#2563eb}
+.page-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.chart-card-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:16px}
+.empty-state{text-align:center;padding:48px;color:#94a3b8}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.loading{display:flex;align-items:center;gap:10px;padding:32px;justify-content:center;color:#64748b;font-size:14px}
+.spinner{width:20px;height:20px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){.stat-grid{grid-template-columns:1fr 1fr}.chart-grid{grid-template-columns:1fr}thead th,tbody td{padding:9px 9px;font-size:12px}}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr}.filter-bar{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">📊 셀러체크</div>
+  <div class="badge">관리자 대시보드</div>
+  <div class="spacer"></div>
+</div>
+
+<!-- 대시보드 -->
+<div id="scr-dash">
+  <div class="dash-wrap">
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-val" id="st-total">—</div><div class="stat-label">전체 수강생</div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" id="st-both">—</div><div class="stat-label">사전·사후 완료</div><div class="stat-sub">보고서 생성 가능</div></div>
+      <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-val" id="st-avgdiff">—</div><div class="stat-label">평균 성장 점수</div><div class="stat-sub">완료 수강생 기준</div></div>
+      <div class="stat-card"><div class="stat-icon">🏆</div><div class="stat-val" id="st-high">—</div><div class="stat-label">안정·전문가 등급</div><div class="stat-sub">사후 기준</div></div>
+    </div>
+
+    <div style="display:flex;align-items:center;border-bottom:2px solid #f1f5f9;margin-bottom:24px;flex-wrap:wrap;gap:8px">
+      <div class="dash-tabs" style="border-bottom:none;margin-bottom:0;flex:1;min-width:280px">
+        <div class="dash-tab active" data-tab="list" onclick="switchDashTab(this)">📋 수강생 목록</div>
+        <div class="dash-tab" data-tab="diagnoses" onclick="switchDashTab(this)">🗂️ 진단 기록</div>
+        <div class="dash-tab" data-tab="stats" onclick="switchDashTab(this)">📊 통계 분석</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="exportCSV()" style="padding:8px 14px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px"><i class="fa fa-download"></i> CSV 내보내기</button>
+      </div>
+    </div>
+
+    <!-- 목록 탭 -->
+    <div id="tab-list" class="tab-panel active">
+      <div class="filter-bar">
+        <label><i class="fa fa-search"></i></label>
+        <input class="filter-input" id="f-search" type="text" placeholder="이름 또는 연락처" oninput="applyFilter()">
+        <label>과정</label>
+        <select class="filter-select" id="f-course" onchange="applyFilter()">
+          <option value="">전체 과정</option>
+          <option>AI를 활용한 쇼핑몰 창업 과정</option>
+          <option>소상공인을 위한 AI 활용법</option>
+          <option>소상공인을 위한 AI 마케팅 과정</option>
+          <option>소상공인을 위한 SEO & GEO 과정</option>
+          <option>AI 숏폼 만들기 과정</option>
+          <option>AI 업무 자동화 과정</option>
+          <option>AI 소비자 데이터 분석 과정</option>
+          <option>쇼핑몰 창업 지도사 과정</option>
+        </select>
+        <label>상태</label>
+        <select class="filter-select" id="f-phase" onchange="applyFilter()">
+          <option value="">전체</option>
+          <option value="both">사전·사후 완료</option>
+          <option value="pre">사전만 완료</option>
+          <option value="none">미진행</option>
+        </select>
+        <button class="filter-btn" onclick="loadData()"><i class="fa fa-sync-alt"></i> 새로고침</button>
+      </div>
+
+      <div class="table-wrap">
+        <div id="tbl-loading" class="loading"><div class="spinner"></div>데이터 로딩 중…</div>
+        <table id="main-table" style="display:none">
+          <thead><tr>
+            <th>#</th><th>수강생</th><th>과정</th><th>교육일</th>
+            <th>상태</th><th>사전 점수</th><th>사후 점수</th>
+            <th>성장 변화</th><th>사후 등급</th><th>보고서</th>
+          </tr></thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+        <div id="empty-state" class="empty-state" style="display:none">
+          <div class="icon">📭</div><div>조건에 맞는 수강생이 없습니다</div>
+        </div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- 진단 기록 탭 -->
+    <div id="tab-diagnoses" class="tab-panel">
+      <div class="filter-bar">
+        <label><i class="fa fa-search"></i></label>
+        <input class="filter-input" id="dg-search" type="text" placeholder="이름 또는 연락처" oninput="applyDiagFilter()">
+        <label>기관</label>
+        <input class="filter-input" id="dg-org" type="text" placeholder="기관명" oninput="applyDiagFilter()" style="width:130px">
+        <label>날짜</label>
+        <input type="date" id="dg-from" onchange="applyDiagFilter()" style="padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px">
+        <span>~</span>
+        <input type="date" id="dg-to" onchange="applyDiagFilter()" style="padding:8px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:13px">
+        <button class="filter-btn" onclick="loadDiagnoses()"><i class="fa fa-sync-alt"></i> 새로고침</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span id="dg-count" style="font-size:13px;color:#6B7280;font-weight:500"></span>
+      </div>
+
+      <div class="table-wrap">
+        <div id="dg-loading" class="loading"><div class="spinner"></div>데이터 로딩 중…</div>
+        <table id="dg-table" style="display:none">
+          <thead><tr>
+            <th>#</th><th>이름</th><th>연락처</th><th>기관</th>
+            <th>진단 일시</th><th>점수</th><th>준비도</th><th>역량 단계</th><th>리포트</th>
+          </tr></thead>
+          <tbody id="dg-body"></tbody>
+        </table>
+        <div id="dg-empty" class="empty-state" style="display:none">
+          <div class="icon">📭</div><div>조건에 맞는 진단 기록이 없습니다</div>
+        </div>
+      </div>
+      <div class="pagination" id="dg-pagination"></div>
+    </div>
+
+    <!-- 통계 탭 -->
+    <div id="tab-stats" class="tab-panel">
+      <div class="chart-grid">
+        <div class="chart-card"><div class="chart-card-title">📊 영역별 평균 점수 비교</div><div style="height:300px"><canvas id="avgBarChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-card-title">🥧 사후 등급 분포</div><div style="height:300px;display:flex;align-items:center;justify-content:center"><canvas id="levelPieChart" style="max-width:260px"></canvas></div></div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card"><div class="chart-card-title">📈 영역별 평균 성장 점수</div><div style="height:300px"><canvas id="growthChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-card-title">📋 과정별 수강생 수</div><div style="height:300px"><canvas id="courseChart"></canvas></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ══ 대시보드 초기화 (관리자 로그인 기능 제거됨) ══
+window.addEventListener('DOMContentLoaded',()=>{
+  loadData();
+});
+
+// ══ 탭 ══
+function switchDashTab(btn){
+  document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#scr-dash .tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  if(btn.dataset.tab==='stats') buildStats();
+  if(btn.dataset.tab==='diagnoses') loadDiagnoses();
+}
+
+// ══ 데이터 ══
+let allTrainees=[], allAssessments=[], filteredList=[];
+const PAGE_SIZE=15;
+let curPage=1;
+
+const SMAP_NAMES={
+  1:'AI 도구 활용',2:'채널 전략',3:'수익 구조 설계',4:'상품정보 & SEO',
+  5:'상세페이지 & 카피',6:'마케팅 & 광고',7:'성과분석 & ROAS',8:'운영 SOP & 자동화',
+  9:'CS 대응 체계',10:'숏폼 & 콘텐츠',11:'리스크 & 법규',12:'30일 실행 계획',
+};
+
+async function fetchAll(table){
+  let page=1, all=[];
+  while(true){
+    const r=await fetch(`tables/${table}?page=${page}&limit=100`).then(r=>r.json());
+    if(!r.data||r.data.length===0) break;
+    all=all.concat(r.data);
+    if(all.length>=r.total) break;
+    page++;
+  }
+  return all;
+}
+
+async function loadData(){
+  document.getElementById('tbl-loading').style.display='flex';
+  document.getElementById('main-table').style.display='none';
+  document.getElementById('empty-state').style.display='none';
+  try{
+    const [tRes,aRes]=await Promise.all([fetchAll('trainees'),fetchAll('assessments')]);
+    allTrainees=tRes; allAssessments=aRes;
+    buildTable();
+    buildStatCards();
+  }catch(e){
+    document.getElementById('tbl-loading').innerHTML='<div style="color:#ef4444;text-align:center">데이터 로드 실패. 새로고침 해주세요.</div>';
+  }
+}
+
+function buildTable(){
+  const search=document.getElementById('f-search').value.trim().toLowerCase();
+  const course=document.getElementById('f-course').value;
+  const phase=document.getElementById('f-phase').value;
+
+  // assessment key → pre/post 매핑
+  const aMap={};
+  allAssessments.forEach(a=>{
+    const k=`${a.trainee_name}__${a.phone}`;
+    if(!aMap[k]) aMap[k]={pre:null,post:null};
+    if(a.phase==='pre'&&!aMap[k].pre) aMap[k].pre=a;
+    if(a.phase==='post'&&!aMap[k].post) aMap[k].post=a;
+  });
+
+  // 행 목록 생성
+  const seen=new Set();
+  let rows=[];
+  allAssessments.forEach(a=>{
+    const k=`${a.trainee_name}__${a.phone}`;
+    if(seen.has(k)) return; seen.add(k);
+    const t=allTrainees.find(t=>t.name===a.trainee_name&&t.phone===a.phone)||{};
+    rows.push({name:a.trainee_name,phone:a.phone,course:a.course||t.course||'—',
+      session_date:a.session_date||t.session_date||'',pre:aMap[k].pre,post:aMap[k].post});
+  });
+  allTrainees.forEach(t=>{
+    const k=`${t.name}__${t.phone}`;
+    if(seen.has(k)) return; seen.add(k);
+    rows.push({name:t.name,phone:t.phone,course:t.course||'—',
+      session_date:t.session_date||'',pre:null,post:null});
+  });
+
+  // 필터
+  filteredList=rows.filter(r=>{
+    if(search&&!r.name.toLowerCase().includes(search)&&!(r.phone||'').includes(search)) return false;
+    if(course&&r.course!==course) return false;
+    if(phase==='both'&&!(r.pre&&r.post)) return false;
+    if(phase==='pre'&&!(r.pre&&!r.post)) return false;
+    if(phase==='none'&&(r.pre||r.post)) return false;
+    return true;
+  });
+
+  curPage=1;
+  renderPage();
+}
+
+function applyFilter(){ buildTable(); }
+
+function renderPage(){
+  const tbody=document.getElementById('tbl-body');
+  tbody.innerHTML='';
+  const start=(curPage-1)*PAGE_SIZE;
+  const page=filteredList.slice(start,start+PAGE_SIZE);
+
+  if(!filteredList.length){
+    document.getElementById('tbl-loading').style.display='none';
+    document.getElementById('main-table').style.display='none';
+    document.getElementById('empty-state').style.display='block';
+    document.getElementById('pagination').innerHTML='';
+    return;
+  }
+
+  document.getElementById('tbl-loading').style.display='none';
+  document.getElementById('main-table').style.display='table';
+  document.getElementById('empty-state').style.display='none';
+
+  page.forEach((r,i)=>{
+    const idx=start+i+1;
+    const hasPost=!!(r.pre&&r.post);
+    const hasPre=!!(r.pre&&!r.post);
+
+    const phaseBadge=hasPre
+      ?`<span class="badge-phase badge-pre">📘 사전만</span>`
+      :hasPost
+        ?`<span class="badge-phase badge-both">✅ 완료</span>`
+        :`<span class="badge-phase" style="background:#f1f5f9;color:#94a3b8">미진행</span>`;
+
+    const preScore=r.pre?`${r.pre.total_score}점`:'—';
+    const postScore=r.post?`${r.post.total_score}점`:'—';
+    const preBarPct=r.pre?Math.round(r.pre.total_score/r.pre.total_max*100):0;
+    const postPct=r.post?Math.round(r.post.total_score/r.post.total_max*100):0;
+    const preBar=r.pre?`<div class="mini-bar"><div class="mini-bar-fill" style="width:${preBarPct}%;background:#2563eb"></div></div>`:'';
+    const postBar=r.post?`<div class="mini-bar"><div class="mini-bar-fill" style="width:${postPct}%;background:#22c55e"></div></div>`:'';
+
+    let diffHTML='—';
+    if(hasPost){
+      const d=r.post.total_score-r.pre.total_score;
+      diffHTML=`<span class="${d>0?'diff-up':d<0?'diff-down':'diff-same'}">${d>=0?'+':''}${d}점</span>`;
+    }
+
+    let lvBadge='—';
+    if(r.post){
+      const lv=getLevel(postPct);
+      lvBadge=`<span class="badge-lv" style="background:${lv.bg};color:${lv.color};border:1px solid ${lv.border}">${lv.emoji} ${lv.label}</span>`;
+    }
+
+    const rptLink=hasPost
+      ?`<a class="rpt-link" href="report-view.html?pre=${r.pre.id}&post=${r.post.id}" target="_blank"><i class="fa fa-external-link-alt"></i>보기</a>`
+      :'—';
+
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:#94a3b8;font-size:12px">${idx}</td>
+      <td><div class="name-cell">${r.name}</div><div class="sub-cell">${r.phone||''}</div></td>
+      <td><div style="font-size:12px;color:#374151;max-width:140px;word-break:keep-all;line-height:1.4">${r.course}</div></td>
+      <td style="font-size:12px;color:#64748b;white-space:nowrap">${(r.session_date||'').slice(0,10)||'—'}</td>
+      <td>${phaseBadge}</td>
+      <td><div style="font-weight:600">${preScore}</div>${preBar}</td>
+      <td><div style="font-weight:600">${postScore}</div>${postBar}</td>
+      <td>${diffHTML}</td>
+      <td>${lvBadge}</td>
+      <td>${rptLink}</td>`;
+    tbody.appendChild(tr);
+  });
+  renderPagination();
+}
+
+function renderPagination(){
+  const total=Math.ceil(filteredList.length/PAGE_SIZE);
+  const el=document.getElementById('pagination');
+  if(total<=1){el.innerHTML='';return;}
+  let html='';
+  if(curPage>1) html+=`<button class="page-btn" onclick="goPage(${curPage-1})">‹</button>`;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||Math.abs(i-curPage)<=2)
+      html+=`<button class="page-btn${i===curPage?' active':''}" onclick="goPage(${i})">${i}</button>`;
+    else if(Math.abs(i-curPage)===3) html+=`<span style="color:#94a3b8;padding:0 4px">…</span>`;
+  }
+  if(curPage<total) html+=`<button class="page-btn" onclick="goPage(${curPage+1})">›</button>`;
+  el.innerHTML=html;
+}
+function goPage(p){curPage=p;renderPage();window.scrollTo({top:0,behavior:'smooth'});}
+
+// ══ 통계 카드 ══
+function buildStatCards(){
+  const seen=new Set();
+  allAssessments.forEach(a=>seen.add(`${a.trainee_name}__${a.phone}`));
+  allTrainees.forEach(t=>seen.add(`${t.name}__${t.phone}`));
+
+  const preMap={}, postMap={};
+  allAssessments.forEach(a=>{
+    const k=`${a.trainee_name}__${a.phone}`;
+    if(a.phase==='pre'&&!preMap[k]) preMap[k]=a;
+    if(a.phase==='post'&&!postMap[k]) postMap[k]=a;
+  });
+  const bothKeys=Object.keys(postMap).filter(k=>preMap[k]);
+  const diffs=bothKeys.map(k=>postMap[k].total_score-preMap[k].total_score);
+  const avgDiff=diffs.length?Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length):0;
+  const highCount=Object.values(postMap).filter(a=>Math.round(a.total_score/a.total_max*100)>=60).length;
+
+  document.getElementById('st-total').textContent=seen.size;
+  document.getElementById('st-both').textContent=bothKeys.length+'명';
+  document.getElementById('st-avgdiff').textContent=(avgDiff>=0?'+':'')+avgDiff+'점';
+  document.getElementById('st-high').textContent=highCount+'명';
+}
+
+// ══ 통계 차트 ══
+const charts={};
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function buildStats(){
+  const preMap={}, postMap={};
+  allAssessments.forEach(a=>{
+    const k=`${a.trainee_name}__${a.phone}`;
+    if(a.phase==='pre'&&!preMap[k]) preMap[k]=a;
+    if(a.phase==='post'&&!postMap[k]) postMap[k]=a;
+  });
+  const bothKeys=Object.keys(postMap).filter(k=>preMap[k]);
+  if(!bothKeys.length){
+    document.getElementById('tab-stats').innerHTML='<div class="empty-state"><div class="icon">📊</div><div>사전·사후 완료 수강생이 없어 통계를 생성할 수 없습니다.</div></div>';
+    return;
+  }
+
+  const secIds=[1,2,3,4,5,6,7,8,9,10,11,12];
+  const preAvg={}, postAvg={};
+  secIds.forEach(s=>{preAvg[s]=0;postAvg[s]=0;});
+  bothKeys.forEach(k=>{
+    const pr=JSON.parse(preMap[k].scores||'{}');
+    const po=JSON.parse(postMap[k].scores||'{}');
+    secIds.forEach(s=>{
+      preAvg[s]+=(pr[s]||{score:0}).score;
+      postAvg[s]+=(po[s]||{score:0}).score;
+    });
+  });
+  secIds.forEach(s=>{preAvg[s]=+(preAvg[s]/bothKeys.length).toFixed(1);postAvg[s]=+(postAvg[s]/bothKeys.length).toFixed(1);});
+
+  const labels=secIds.map(s=>SMAP_NAMES[s]);
+  const preData=secIds.map(s=>preAvg[s]);
+  const postData=secIds.map(s=>postAvg[s]);
+  const growthData=secIds.map(s=>+(postAvg[s]-preAvg[s]).toFixed(1));
+
+  // ① 평균 막대
+  destroyChart('avgBarChart');
+  charts['avgBarChart']=new Chart(document.getElementById('avgBarChart'),{type:'bar',
+    data:{labels,datasets:[
+      {label:'사전 평균',data:preData,backgroundColor:'rgba(37,99,235,.65)',borderRadius:5},
+      {label:'사후 평균',data:postData,backgroundColor:'rgba(22,163,74,.8)',borderRadius:5},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},
+      scales:{y:{min:0,ticks:{stepSize:5},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:10}}}}}
+  });
+
+  // ② 등급 파이
+  const lvCounts={입문:0,성장:0,안정:0,전문가:0};
+  Object.values(postMap).forEach(a=>{const lv=getLevel(Math.round(a.total_score/a.total_max*100));lvCounts[lv.label]++;});
+  destroyChart('levelPieChart');
+  charts['levelPieChart']=new Chart(document.getElementById('levelPieChart'),{type:'doughnut',
+    data:{labels:Object.keys(lvCounts),datasets:[{data:Object.values(lvCounts),
+      backgroundColor:['#fca5a5','#fde68a','#86efac','#fcd34d'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:12}}}}}
+  });
+
+  // ③ 성장 가로
+  destroyChart('growthChart');
+  charts['growthChart']=new Chart(document.getElementById('growthChart'),{type:'bar',
+    data:{labels,datasets:[{label:'평균 성장',data:growthData,
+      backgroundColor:growthData.map(v=>v>=0?'rgba(22,163,74,.8)':'rgba(239,68,68,.7)'),borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},scales:{x:{},y:{ticks:{font:{size:10}}}}}
+  });
+
+  // ④ 과정별
+  const cc={};
+  allAssessments.forEach(a=>{if(a.course)cc[a.course]=(cc[a.course]||0)+1;});
+  destroyChart('courseChart');
+  charts['courseChart']=new Chart(document.getElementById('courseChart'),{type:'bar',
+    data:{labels:Object.keys(cc),datasets:[{label:'수강생',data:Object.values(cc),
+      backgroundColor:'rgba(124,58,237,.7)',borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false}},scales:{x:{ticks:{stepSize:1}},y:{ticks:{font:{size:10}}}}}
+  });
+}
+
+function getLevel(pct){
+  if(pct>=80)return{label:'전문가',emoji:'🏆',color:'#f59e0b',bg:'#fffbeb',border:'#fde68a'};
+  if(pct>=60)return{label:'안정',  emoji:'🌟',color:'#22c55e',bg:'#f0fdf4',border:'#bbf7d0'};
+  if(pct>=40)return{label:'성장',  emoji:'📈',color:'#eab308',bg:'#fefce8',border:'#fde68a'};
+  return           {label:'입문',  emoji:'🌱',color:'#ef4444',bg:'#fef2f2',border:'#fecaca'};
+}
+
+// ══ CSV 내보내기 ══
+function exportCSV(){
+  if(!allAssessments.length && !allTrainees.length){
+    alert('내보낼 데이터가 없습니다.');
+    return;
+  }
+  const aMap={};
+  allAssessments.forEach(a=>{
+    const k=`${a.trainee_name}__${a.phone}`;
+    if(!aMap[k]) aMap[k]={pre:null,post:null};
+    if(a.phase==='pre'&&!aMap[k].pre) aMap[k].pre=a;
+    if(a.phase==='post'&&!aMap[k].post) aMap[k].post=a;
+  });
+  const seen=new Set();
+  const rows=[];
+  allAssessments.forEach(a=>{
+    const k=`${a.trainee_name}__${a.phone}`;
+    if(seen.has(k)) return; seen.add(k);
+    const t=allTrainees.find(t=>t.name===a.trainee_name&&t.phone===a.phone)||{};
+    rows.push({name:a.trainee_name,phone:a.phone,
+      course:a.course||t.course||'',
+      session_date:(a.session_date||t.session_date||'').slice(0,10),
+      pre:aMap[k].pre, post:aMap[k].post});
+  });
+  allTrainees.forEach(t=>{
+    const k=`${t.name}__${t.phone}`;
+    if(seen.has(k)) return; seen.add(k);
+    rows.push({name:t.name,phone:t.phone,course:t.course||'',session_date:(t.session_date||'').slice(0,10),pre:null,post:null});
+  });
+
+  const SMAP_NAMES_ARR=['AI 도구 활용','채널 전략','수익 구조 설계','상품정보 & SEO',
+    '상세페이지 & 카피','마케팅 & 광고','성과분석 & ROAS','운영 SOP & 자동화',
+    'CS 대응 체계','숏폼 & 콘텐츠','리스크 & 법규','30일 실행 계획'];
+
+  let csv='\uFEFF'; // BOM for Excel
+  const secHeaders=SMAP_NAMES_ARR.flatMap(n=>[`사전_${n}`,`사후_${n}`]);
+  csv+=['번호','이름','연락처','수강과정','교육일','상태',
+    '사전점수','사전최대','사전%','사전등급',
+    '사후점수','사후최대','사후%','사후등급',
+    '성장점수','성장%p',...secHeaders].join(',')+'\n';
+
+  rows.forEach((r,i)=>{
+    const preS=r.pre?r.pre.total_score:'';
+    const preM=r.pre?r.pre.total_max:'';
+    const prePct=r.pre?Math.round(r.pre.total_score/r.pre.total_max*100):'';
+    const preLv=r.pre?getLevel(prePct).label:'';
+    const postS=r.post?r.post.total_score:'';
+    const postM=r.post?r.post.total_max:'';
+    const postPct=r.post?Math.round(r.post.total_score/r.post.total_max*100):'';
+    const postLv=r.post?getLevel(postPct).label:'';
+    const diff=r.pre&&r.post?r.post.total_score-r.pre.total_score:'';
+    const diffPct=r.pre&&r.post?postPct-prePct:'';
+    const status=r.pre&&r.post?'완료':r.pre?'사전만':'미진행';
+
+    const preScores=r.pre?JSON.parse(r.pre.scores||'{}'):{};
+    const postScores=r.post?JSON.parse(r.post.scores||'{}'):{};
+    const secData=[];
+    for(let s=1;s<=12;s++){
+      secData.push((preScores[s]||{score:''}).score);
+      secData.push((postScores[s]||{score:''}).score);
+    }
+
+    const row=[i+1,`"${r.name}"`,r.phone,`"${r.course}"`,r.session_date,status,
+      preS,preM,prePct,preLv,postS,postM,postPct,postLv,diff,diffPct,...secData];
+    csv+=row.join(',')+'\n';
+  });
+
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const today=new Date().toISOString().slice(0,10);
+  a.download=`셀러체크_수강생보고서_${today}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════
+// ══ 진단 기록 탭
+// ══════════════════════════════════════
+let allDiagnoses=[], filteredDiag=[], dgPage=1;
+const DG_PAGE_SIZE=20;
+
+async function loadDiagnoses(){
+  document.getElementById('dg-loading').style.display='block';
+  document.getElementById('dg-table').style.display='none';
+  document.getElementById('dg-empty').style.display='none';
+
+  try {
+    let page=1, all=[];
+    while(true){
+      const r=await fetch(`tables/diagnoses?page=${page}&limit=100`).then(r=>r.json());
+      if(!r.data||r.data.length===0) break;
+      all=all.concat(r.data);
+      if(all.length>=r.total) break;
+      page++;
+    }
+    allDiagnoses=all.sort((a,b)=>(b.diagnosed_at||0)-(a.diagnosed_at||0));
+    applyDiagFilter();
+  } catch(e) {
+    document.getElementById('dg-loading').innerHTML='<span style="color:#EF4444">데이터를 불러오지 못했습니다.</span>';
+  }
+}
+
+function applyDiagFilter(){
+  const search=(document.getElementById('dg-search')||{value:''}).value.trim().toLowerCase();
+  const org=(document.getElementById('dg-org')||{value:''}).value.trim().toLowerCase();
+  const from=document.getElementById('dg-from')?new Date(document.getElementById('dg-from').value).getTime():0;
+  const to=document.getElementById('dg-to')?new Date(document.getElementById('dg-to').value).getTime()+86400000:Infinity;
+
+  filteredDiag=allDiagnoses.filter(d=>{
+    if(search && !(d.member_name||'').toLowerCase().includes(search) && !(d.member_phone||'').includes(search)) return false;
+    if(org && !(d.member_org||'').toLowerCase().includes(org)) return false;
+    if(from && !isNaN(from) && (d.diagnosed_at||0)<from) return false;
+    if(to && !isNaN(to) && (d.diagnosed_at||0)>to) return false;
+    return true;
+  });
+  dgPage=1;
+  renderDiagPage();
+}
+
+function fmtDT(ms){
+  if(!ms) return '–';
+  const d=new Date(Number(ms));
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function dgLevelColor(lv){
+  if(!lv) return '#9CA3AF';
+  if(lv.includes('전문가')) return '#6D28D9';
+  if(lv.includes('운영')) return '#2563EB';
+  if(lv.includes('성장')) return '#059669';
+  if(lv.includes('준비')) return '#D97706';
+  return '#EF4444';
+}
+function dgLevelPill(lv){
+  if(!lv) return '';
+  let cls='';
+  if(lv.includes('전문가')) cls='background:#EDE9FE;color:#5B21B6';
+  else if(lv.includes('운영')) cls='background:#DBEAFE;color:#1D4ED8';
+  else if(lv.includes('성장')) cls='background:#D1FAE5;color:#065F46';
+  else if(lv.includes('준비')) cls='background:#FEF3C7;color:#92400E';
+  else cls='background:#FEE2E2;color:#991B1B';
+  return `<span style="display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;${cls};white-space:nowrap">${lv}</span>`;
+}
+
+function renderDiagPage(){
+  const tbody=document.getElementById('dg-body');
+  const tbl=document.getElementById('dg-table');
+  const empty=document.getElementById('dg-empty');
+  const loading=document.getElementById('dg-loading');
+  loading.style.display='none';
+
+  document.getElementById('dg-count').textContent=`총 ${filteredDiag.length}건`;
+
+  if(filteredDiag.length===0){
+    tbl.style.display='none'; empty.style.display='block'; return;
+  }
+  tbl.style.display='table'; empty.style.display='none';
+
+  const start=(dgPage-1)*DG_PAGE_SIZE;
+  const slice=filteredDiag.slice(start,start+DG_PAGE_SIZE);
+
+  tbody.innerHTML=slice.map((d,i)=>{
+    const lc=dgLevelColor(d.level);
+    const pill=dgLevelPill(d.level);
+    return `<tr>
+      <td style="color:#9CA3AF;font-weight:500">${start+i+1}</td>
+      <td style="font-weight:700">${d.member_name||'–'}</td>
+      <td>${d.member_phone||'–'}</td>
+      <td>${d.member_org||'–'}</td>
+      <td style="font-size:12px">${fmtDT(d.diagnosed_at)}</td>
+      <td style="font-weight:700;color:#4F46E5">${d.total_score||0}/${d.total_max||298}</td>
+      <td style="font-weight:700;color:${lc}">${d.total_pct||0}%</td>
+      <td>${pill}</td>
+      <td style="white-space:nowrap">
+        <a href="seller-report.html?diag_id=${d.id}" target="_blank" style="color:#4F46E5;font-size:12px;font-weight:600;text-decoration:none">셀러</a>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // 페이지네이션
+  const totalPages=Math.ceil(filteredDiag.length/DG_PAGE_SIZE);
+  const pag=document.getElementById('dg-pagination');
+  if(totalPages<=1){pag.innerHTML='';return;}
+  let pgHtml='';
+  for(let p=1;p<=totalPages;p++){
+    pgHtml+=`<button onclick="dgChangePage(${p})" style="padding:6px 12px;border:1.5px solid ${p===dgPage?'#4F46E5':'#e5e7eb'};border-radius:8px;background:${p===dgPage?'#4F46E5':'#fff'};color:${p===dgPage?'#fff':'#374151'};cursor:pointer;font-size:13px;font-weight:600;margin:0 2px;font-family:inherit">${p}</button>`;
+  }
+  pag.innerHTML=pgHtml;
+}
+
+function dgChangePage(p){dgPage=p;renderDiagPage();}
+</script>
+</body>
+</html>

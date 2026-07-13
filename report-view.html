@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>셀러체크 — 성장 변화 보고서</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',sans-serif;background:#f0f4ff;color:#1e293b;min-height:100vh}
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none!important;border:1px solid #e2e8f0;break-inside:avoid}
+  .page-break{page-break-before:always}
+  .tab-panel{display:block!important}
+  .rpt-tabs{display:none!important}
+  .rpt-header{background:#1e3a5f!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .chart-wrap{height:280px!important}
+}
+.rpt-header{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);color:#fff;padding:32px 0 0}
+.rpt-header-inner{max-width:860px;margin:0 auto;padding:0 24px}
+.rpt-logo{font-size:13px;font-weight:600;opacity:.8;margin-bottom:6px;letter-spacing:1px}
+.rpt-name{font-size:32px;font-weight:900;margin-bottom:4px}
+.rpt-meta{font-size:14px;opacity:.75;margin-bottom:24px}
+.rpt-tabs{display:flex;gap:0;border-bottom:none;margin-top:8px}
+.rpt-tab{padding:12px 24px;font-size:14px;font-weight:600;color:rgba(255,255,255,.65);cursor:pointer;border-bottom:3px solid transparent;transition:.2s}
+.rpt-tab.active{color:#fff;border-bottom-color:#fff}
+.rpt-body{max-width:860px;margin:0 auto;padding:28px 24px 80px}
+.card{background:#fff;border-radius:20px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.06);margin-bottom:20px}
+.card-title{font-size:17px;font-weight:800;color:#1e293b;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.card-sub{font-size:13px;color:#64748b;margin-bottom:20px}
+.divider{height:1px;background:#f1f5f9;margin:18px 0}
+.score-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+.score-box{border-radius:16px;padding:20px;text-align:center}
+.score-box.pre{background:#eff6ff;border:2px solid #bfdbfe}
+.score-box.post{background:#f0fdf4;border:2px solid #bbf7d0}
+.score-box.diff{background:#fdf4ff;border:2px solid #e9d5ff}
+.score-box .lbl{font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px}
+.score-box .val{font-size:36px;font-weight:900;line-height:1}
+.score-box .sub{font-size:12px;color:#94a3b8;margin-top:4px}
+.score-box.pre .val{color:#2563eb}
+.score-box.post .val{color:#16a34a}
+.score-box.diff .val{color:#7c3aed}
+.level-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.lvl-chip{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:99px;font-size:14px;font-weight:700}
+.lvl-arrow{font-size:20px;color:#94a3b8}
+.growth-chip{background:#eff6ff;color:#1d4ed8;border:2px solid #bfdbfe;padding:10px 18px;border-radius:99px;font-size:14px;font-weight:700}
+.chart-wrap{position:relative;height:360px;max-width:500px;margin:0 auto}
+.sec-compare-list{display:flex;flex-direction:column;gap:14px}
+.sec-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sec-item-name{font-size:14px;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:6px}
+.sec-item-scores{display:flex;gap:8px;align-items:center;font-size:13px}
+.sec-score-pre{color:#2563eb;font-weight:600}
+.sec-score-post{color:#16a34a;font-weight:700}
+.sec-score-diff{font-weight:700;font-size:12px;padding:2px 8px;border-radius:99px}
+.sec-score-diff.up{background:#dcfce7;color:#166534}
+.sec-score-diff.down{background:#fef2f2;color:#991b1b}
+.sec-score-diff.same{background:#f1f5f9;color:#64748b}
+.bar-track{height:10px;background:#f1f5f9;border-radius:99px;overflow:hidden;position:relative;margin-bottom:3px}
+.bar-pre{height:10px;border-radius:99px;position:absolute;top:0;left:0;opacity:.4;transition:.6s}
+.bar-post{height:10px;border-radius:99px;position:absolute;top:0;left:0;transition:.8s}
+.rec-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rec-item{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px 16px}
+.rec-item .r-sec{font-size:11px;color:#64748b;font-weight:600;margin-bottom:3px}
+.rec-item .r-course{font-size:13px;font-weight:700;color:#1e293b}
+.rec-item .r-score{font-size:12px;color:#ef4444;font-weight:600;margin-top:4px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.sec-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.sec-filter-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#475569;transition:.2s;font-family:inherit}
+.sec-filter-btn.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.q-compare-list{display:flex;flex-direction:column;gap:12px}
+.q-compare-item{background:#f8fafc;border-radius:14px;padding:16px 18px}
+.q-id-badge{display:inline-block;background:#e0e7ff;color:#3730a3;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-bottom:6px}
+.q-text-sm{font-size:13px;font-weight:600;color:#374151;margin-bottom:10px;line-height:1.5}
+.ans-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.ans-phase{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.ans-phase.pre{background:#dbeafe;color:#1d4ed8}
+.ans-phase.post{background:#dcfce7;color:#166534}
+.ans-text{font-size:13px;color:#374151;line-height:1.5}
+.ans-changed{background:#fffbeb;border-left:3px solid #f59e0b;padding:8px 12px;border-radius:0 8px 8px 0;margin-top:4px;font-size:12px;color:#92400e;font-weight:600}
+.ans-same{border-left:3px solid #e2e8f0;padding:6px 12px;margin-top:4px;font-size:12px;color:#94a3b8}
+.insight-list{display:flex;flex-direction:column;gap:10px}
+.insight-item{border-radius:12px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start}
+.insight-item.top{background:#f0fdf4;border:1px solid #bbf7d0}
+.insight-item.low{background:#fef2f2;border:1px solid #fecaca}
+.insight-item.mid{background:#fffbeb;border:1px solid #fde68a}
+.insight-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+.insight-content .t1{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:3px}
+.insight-content .t2{font-size:13px;color:#475569;line-height:1.55}
+.print-btn{position:fixed;bottom:24px;right:24px;background:#1e3a5f;color:#fff;border:none;border-radius:14px;padding:14px 20px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-family:inherit;transition:.2s;z-index:100}
+.print-btn:hover{background:#2563eb;transform:translateY(-2px)}
+.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;color:#64748b}
+.spinner{width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:600px){
+  .score-summary{grid-template-columns:1fr;gap:10px}
+  .rec-list{grid-template-columns:1fr}
+  .rpt-name{font-size:22px}
+  .rpt-tab{padding:10px 12px;font-size:12px}
+  .chart-wrap{height:260px}
+}
+</style>
+</head>
+<body>
+
+<div class="rpt-header">
+  <div class="rpt-header-inner">
+    <div class="rpt-logo">📊 셀러체크 &nbsp;·&nbsp; 사전·사후 성장 보고서</div>
+    <div class="rpt-name" id="hdr-name">보고서 로딩 중…</div>
+    <div class="rpt-meta" id="hdr-meta"></div>
+    <div class="rpt-tabs no-print">
+      <div class="rpt-tab active" data-tab="summary" onclick="switchTab(this)">📈 종합 요약</div>
+      <div class="rpt-tab" data-tab="section" onclick="switchTab(this)">📋 영역별 비교</div>
+      <div class="rpt-tab" data-tab="detail" onclick="switchTab(this)">🔍 문항별 상세</div>
+      <div class="rpt-tab" data-tab="insight" onclick="switchTab(this)">💡 성장 분석</div>
+    </div>
+  </div>
+</div>
+
+<div id="loading-wrap" class="rpt-body">
+  <div class="loading-screen">
+    <div class="spinner"></div>
+    <div>보고서 데이터를 불러오는 중입니다…</div>
+  </div>
+</div>
+
+<div id="rpt-main" style="display:none">
+  <div class="rpt-body">
+
+    <!-- TAB 1: 종합 요약 -->
+    <div id="tab-summary" class="tab-panel active">
+      <div class="score-summary" id="score-summary-box"></div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-medal"></i> 등급 변화</div>
+        <div class="level-row" id="level-row"></div>
+        <div class="divider"></div>
+        <div id="level-comment" style="font-size:14px;line-height:1.9;color:#374151"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-chart-line"></i> 영역별 역량 변화 (레이더)</div>
+        <div class="card-sub">파란 영역 = 사전 &nbsp;|&nbsp; 초록 영역 = 사후</div>
+        <div class="chart-wrap"><canvas id="radarChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-chart-bar"></i> 영역별 점수 비교</div>
+        <div class="card-sub">파란 막대 = 사전 &nbsp;|&nbsp; 초록 막대 = 사후</div>
+        <div style="height:340px"><canvas id="barChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB 2: 영역별 비교 -->
+    <div id="tab-section" class="tab-panel">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-layer-group"></i> 12개 영역 상세 비교</div>
+        <div class="card-sub">각 영역의 사전·사후 점수와 변화량을 확인하세요</div>
+        <div class="sec-compare-list" id="sec-compare-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-graduation-cap"></i> 취약 영역 추천 과정</div>
+        <div class="card-sub">사후 진단 기준 60% 미만 영역에 대한 추천 교육입니다</div>
+        <div class="rec-list" id="rec-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: 문항별 상세 -->
+    <div id="tab-detail" class="tab-panel">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-list-check"></i> 문항별 답변 비교</div>
+        <div class="card-sub">⚡ 표시는 교육 전후 답변이 변경된 문항입니다</div>
+        <div class="sec-filter" id="sec-filter"></div>
+        <div class="q-compare-list" id="q-compare-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 성장 분석 -->
+    <div id="tab-insight" class="tab-panel">
+      <div class="card">
+        <div class="card-title"><i class="fa fa-lightbulb"></i> 성장 분석 리포트</div>
+        <div class="card-sub">교육 전·후 답변 패턴을 분석해 자동 생성된 인사이트입니다</div>
+        <div class="insight-list" id="insight-list"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fa fa-rocket"></i> 30일 실행 제안</div>
+        <div class="card-sub">취약 영역별로 지금 당장 시작할 수 있는 실행 과제입니다</div>
+        <div id="action-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="no-print" style="position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:100">
+  <button onclick="window.print()" style="background:#1e3a5f;color:#fff;border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-family:inherit;transition:.2s" onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#1e3a5f'">
+    <i class="fa fa-print"></i> 인쇄 / PDF 저장
+  </button>
+  <button onclick="copyShareLink()" style="background:#7c3aed;color:#fff;border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);font-family:inherit;transition:.2s" onmouseover="this.style.background='#6d28d9'" onmouseout="this.style.background='#7c3aed'">
+    <i class="fa fa-link"></i> 링크 복사
+  </button>
+</div>
+
+<script>
+// ══ 데이터 정의 ══
+const SMAP={
+  1:{name:'AI 도구 활용',     icon:'🤖',qs:['Q4','Q5','Q6','Q7','Q8'],       max:25,course:'소상공인을 위한 AI 활용법'},
+  2:{name:'채널 전략',         icon:'🏪',qs:['Q9','Q10','Q11','Q12','Q13'],   max:23,course:'AI를 활용한 쇼핑몰 창업 과정'},
+  3:{name:'수익 구조 설계',    icon:'💰',qs:['Q14','Q15','Q16','Q17','Q18'],  max:25,course:'AI를 활용한 쇼핑몰 창업 과정'},
+  4:{name:'상품정보 & SEO',    icon:'🔍',qs:['Q19','Q20','Q21','Q22','Q23'],  max:25,course:'소상공인을 위한 SEO & GEO 과정'},
+  5:{name:'상세페이지 & 카피', icon:'📝',qs:['Q24','Q25','Q26','Q27','Q28'],  max:25,course:'소상공인을 위한 AI 마케팅 과정'},
+  6:{name:'마케팅 & 광고',     icon:'📣',qs:['Q29','Q30','Q31','Q32','Q33'],  max:25,course:'소상공인을 위한 AI 마케팅 과정'},
+  7:{name:'성과분석 & ROAS',   icon:'📊',qs:['Q34','Q35','Q36','Q37','Q38'],  max:25,course:'AI 소비자 데이터 분석 과정'},
+  8:{name:'운영 SOP & 자동화', icon:'⚙️',qs:['Q39','Q40','Q41','Q42','Q43'],  max:25,course:'AI 업무 자동화 과정'},
+  9:{name:'CS 대응 체계',      icon:'💬',qs:['Q44','Q45','Q46','Q47','Q48'],  max:25,course:'AI 업무 자동화 과정'},
+ 10:{name:'숏폼 & 콘텐츠',    icon:'🎬',qs:['Q49','Q50','Q51','Q52','Q53'],  max:25,course:'AI 숏폼 만들기 과정'},
+ 11:{name:'리스크 & 법규',     icon:'🛡️',qs:['Q54','Q55','Q56','Q57','Q58'],  max:25,course:'업종 특화 과정'},
+ 12:{name:'30일 실행 계획',    icon:'📅',qs:['Q59','Q60','Q61','Q62','Q63'],  max:25,course:'AI를 활용한 쇼핑몰 창업 과정'},
+};
+const MULTI_Q=['Q9'];
+
+const QS_TEXT={
+  Q4:'현재 업무에 AI 도구를 사용하고 있나요?',Q5:'AI 도구로 상품 카피를 작성해본 적 있나요?',
+  Q6:'AI 이미지 생성 도구를 써본 적 있나요?',Q7:'AI 챗봇·자동화 도구를 사용하나요?',
+  Q8:'AI 도구 활용의 가장 큰 어려움은?',Q9:'현재 운영 중이거나 창업 예정인 판매 채널은?',
+  Q10:'스마트스토어·쇼핑윈도·브랜드스토어의 차이를 알고 있나요?',Q11:'채널의 노출 구조를 이해하고 있나요?',
+  Q12:'신규 채널 초기 세팅 속도는?',Q13:'임베디드 커머스 활용 계획이 있나요?',
+  Q14:'원가·마진·판매가를 계산해본 적 있나요?',Q15:'플랫폼 수수료 구조를 정확히 알고 있나요?',
+  Q16:'배송비 정책을 전략적으로 설정했나요?',Q17:'할인·쿠폰·번들 전략을 사용하고 있나요?',
+  Q18:'광고비 대비 수익(ROAS)을 계산하고 있나요?',Q19:'상품 키워드 리서치를 하고 있나요?',
+  Q20:'상품명·태그·카테고리를 SEO에 맞게 설정하나요?',Q21:'경쟁 상품 분석은 얼마나 자주 하나요?',
+  Q22:'상품 리뷰 관리 전략이 있나요?',Q23:'상품 이미지·썸네일 전략이 있나요?',
+  Q24:'상세페이지를 직접 제작할 수 있나요?',Q25:'카피라이팅에 자신 있나요?',
+  Q26:'상세페이지에 신뢰 요소를 넣고 있나요?',Q27:'모바일 최적화 상세페이지를 만들고 있나요?',
+  Q28:'상세페이지 성과(클릭률·전환율)를 측정하나요?',Q29:'현재 유료 광고를 운영하고 있나요?',
+  Q30:'SNS 마케팅을 하고 있나요?',Q31:'이메일·SMS·카카오 메시지 마케팅을 하나요?',
+  Q32:'경쟁사 마케팅 전략을 주기적으로 분석하고 있나요?',Q33:'인플루언서·크리에이터 마케팅을 활용하고 있나요?',
+  Q34:'판매 데이터를 주기적으로 분석하고 있나요?',Q35:'구매 전환율(CVR)을 알고 있나요?',
+  Q36:'재구매율·고객생애가치(LTV)를 관리하나요?',Q37:'유입 경로별 성과를 분석하나요?',
+  Q38:'계절성·트렌드에 맞춰 상품·광고를 조정하나요?',Q39:'주문 처리 프로세스가 표준화되어 있나요?',
+  Q40:'재고 관리를 어떻게 하고 있나요?',Q41:'반품·교환 프로세스가 체계화되어 있나요?',
+  Q42:'멀티채널 주문을 통합 관리하고 있나요?',Q43:'업무 자동화를 얼마나 구현했나요?',
+  Q44:'고객 문의 평균 응답 시간은?',Q45:'자주 묻는 질문(FAQ)을 정리해 두었나요?',
+  Q46:'CS 응대 스크립트가 있나요?',Q47:'부정 리뷰·클레임에 어떻게 대응하나요?',
+  Q48:'고객 데이터를 활용하나요?',Q49:'숏폼 영상을 직접 제작해본 적 있나요?',
+  Q50:'영상 콘텐츠 기획을 할 수 있나요?',Q51:'AI 도구를 활용해 영상 콘텐츠를 제작해본 적 있나요?',
+  Q52:'소셜 커머스와 콘텐츠를 연결하나요?',Q53:'인플루언서·크리에이터 협업 경험이 있나요?',
+  Q54:'사업자등록·통신판매업 신고를 완료했나요?',Q55:'디지털 리스크를 관리하고 있나요?',
+  Q56:'플랫폼 판매 정책을 숙지하고 있나요?',Q57:'개인정보 보호·전자상거래법을 준수하고 있나요?',
+  Q58:'세금 신고·세무 관리를 하고 있나요?',Q59:'30일 실행 계획을 세워본 적 있나요?',
+  Q60:'목표 매출·주문 건수를 설정하고 있나요?',Q61:'학습·개선 루틴이 있나요?',
+  Q62:'외부 도움(멘토·커뮤니티)을 받고 있나요?',Q63:'이번 교육 후 가장 먼저 실행할 것은?',
+};
+
+const QS_OPTS={
+  Q4:['전혀 사용하지 않는다','가끔 써보긴 했지만 잘 모른다','ChatGPT 등 몇 가지 도구를 사용하고 있다','여러 AI 도구를 목적에 맞게 구분해서 사용한다','AI 도구를 업무 전반에 체계적으로 활용하고 있다'],
+  Q5:['해본 적 없다','시도해봤지만 결과가 마음에 들지 않았다','가끔 초안 작성에 활용하고 있다','정기적으로 카피·설명글 작성에 활용하고 있다','AI 결과를 검수·편집해 실제 판매에 적용하고 있다'],
+  Q6:['전혀 없다','들어본 적은 있다','써봤지만 실무에 적용하지는 못했다','썸네일·배너 등 일부 실무에 활용 중이다','상품 이미지·상세페이지에 체계적으로 활용 중이다'],
+  Q7:['들어본 적 없다','이름만 알고 있다','써본 적은 있지만 실무 연결이 안 됐다','일부 반복 업무에 자동화를 적용하고 있다','여러 업무 흐름에 자동화를 구축해 운영 중이다'],
+  Q8:['어떤 도구가 있는지 잘 모른다','도구는 알지만 어떻게 활용할지 모른다','써봤지만 내 업종·상황에 맞게 응용이 안 된다','도구는 잘 쓰지만 체계적으로 정리가 안 되어 있다','특별한 어려움이 없다'],
+  Q9:['스마트스토어·쇼핑윈도·브랜드스토어(네이버 계열)','쿠팡','11번가/G마켓/옥션','자사몰 (카페24, 아임웹 등)','임베디드 커머스 (틱톡샵·인스타그램·유튜브쇼핑)','아직 결정하지 못했다'],
+  Q10:['세 채널이 모두 같은 것인 줄 알았다','이름은 들어봤지만 차이를 잘 모른다','스마트스토어와 쇼핑윈도의 차이 정도는 안다','세 채널의 입점 기준·노출 구조·수수료 차이를 안다','채널별 특성에 맞게 상품·콘텐츠 전략을 달리 운영 중이다'],
+  Q11:['전혀 모른다','들어본 적은 있지만 잘 모른다','기본적인 알고리즘 개념은 알고 있다','채널별 노출 기준을 파악하고 상품등록에 반영하고 있다','노출 최적화 전략을 세우고 지속적으로 개선하고 있다'],
+  Q12:['무엇부터 시작해야 할지 모른다','시간이 오래 걸리고 실수가 많다','기본 세팅은 할 수 있지만 최적화가 부족하다','빠르게 세팅하고 어느 정도 최적화까지 한다','채널별 세팅 SOP가 있어 효율적으로 진행한다'],
+  Q13:['임베디드 커머스가 무엇인지 모른다','들어봤지만 내 상품에 맞는지 모르겠다','관심은 있지만 아직 시작하지 못했다','1개 이상 채널에서 소셜커머스를 운영 중이다','TikTok·인스타·유튜브를 채널 특성에 맞게 구분해 전략적으로 운영 중이다'],
+  Q14:['아직 계산해본 적 없다','대략적인 감으로만 알고 있다','원가와 판매가는 알지만 순이익 계산이 불확실하다','원가·플랫폼 수수료·배송비·광고비까지 포함해 계산한다','상품별 손익분기점과 목표 마진율을 설정해 관리하고 있다'],
+  Q15:['수수료가 있다는 것만 안다','판매 수수료 정도만 알고 있다','판매·결제·정산 수수료를 대략 알고 있다','채널별 수수료를 정확히 파악하고 가격에 반영하고 있다','수수료 변동까지 모니터링하며 수익 구조를 최적화하고 있다'],
+  Q16:['생각해본 적 없다','경쟁사 따라서 설정했다','원가를 고려해 기본 설정은 했지만 전략은 없다','객단가·마진을 고려해 배송비 정책을 설정했다','배송비 정책이 구매전환율에 미치는 영향을 분석해 운영 중이다'],
+  Q17:['전혀 없다','가끔 할인만 한다','기본적인 할인 이벤트를 진행한다','마진을 계산해 쿠폰·번들을 전략적으로 운영한다','A/B 테스트로 최적 프로모션 구조를 찾아가고 있다'],
+  Q18:['광고를 전혀 안 한다','광고는 하지만 수익은 계산 안 했다','매출만 보고 있다','광고비·매출·마진을 같이 계산하고 있다','채널별 ROAS를 추적해 광고 예산을 최적화하고 있다'],
+  Q19:['한 번도 해본 적 없다','상품명 정도만 고려한다','네이버 자동완성·연관검색어를 확인한다','키워드 분석 도구로 검색량·경쟁강도를 조사한다','롱테일 키워드 전략으로 상품별 최적 키워드를 세팅한다'],
+  Q20:['기본적인 것만 입력한다','키워드를 포함하려 하지만 체계적이지 않다','주요 키워드를 상품명에 넣고 있다','키워드 우선순위에 따라 상품명·태그를 최적화한다','A/B 테스트로 클릭률·전환율을 개선하고 있다'],
+  Q21:['거의 안 한다','가끔 상위 상품을 살펴본다','정기적으로 경쟁 상품의 가격·키워드를 확인한다','경쟁사 리뷰·Q&A까지 분석해 상품 개선에 반영한다','AI 도구로 경쟁 분석을 자동화하고 있다'],
+  Q22:['별도 관리 없이 자연 발생에 맡긴다','부정 리뷰가 생기면 대응한다','리뷰 독려 메시지를 발송한다','리뷰 키워드를 분석해 상품 개선과 마케팅에 활용한다','리뷰 전략으로 검색 노출과 전환율을 동시에 높이고 있다'],
+  Q23:['그냥 찍어서 올린다','기본 배경 제거 정도는 한다','대표 이미지에 텍스트·USP를 넣는다','A/B 테스트로 CTR 높은 이미지를 찾는다','AI 도구로 이미지를 최적화·자동 생성한다'],
+  Q24:['만들어본 적 없다','텍스트 위주로만 만들 수 있다','기본 이미지+텍스트 구성은 가능하다','고객 Pain Point·USP 중심으로 기획해서 만든다','전환율을 고려한 스토리텔링 상세페이지를 제작한다'],
+  Q25:['자신 없다','상품 특징 나열 정도만 가능하다','혜택 중심으로 쓰려고 노력한다','고객 감정·욕구에 맞춰 설득력 있게 쓸 수 있다','AI 도구와 결합해 고전환 카피를 체계적으로 만든다'],
+  Q26:['없다','상품 정보만 있다','기본 후기 이미지 정도는 넣는다','리뷰·인증·미디어 노출 등 신뢰 요소를 전략적으로 배치한다','신뢰 요소가 전환율에 미치는 영향을 A/B 테스트로 검증한다'],
+  Q27:['신경 쓰지 않는다','PC 위주로 제작한다','모바일도 보이는 건 확인한다','모바일 UX를 우선으로 기획·제작한다','모바일 체류시간·스크롤 깊이를 분석해 개선한다'],
+  Q28:['측정하지 않는다','매출만 본다','채널 기본 통계만 확인한다','전환율·이탈률을 분석해 상세페이지를 개선한다','히트맵·A/B 테스트로 지속적으로 최적화한다'],
+  Q29:['전혀 없다','한 번 해봤지만 효과를 모르겠다','네이버·쿠팡 기본 광고를 운영 중이다','목표 ROAS를 설정해 채널별로 광고를 운영한다','자동화 도구로 광고 효율을 지속 최적화하고 있다'],
+  Q30:['하지 않는다','가끔 올리는 수준이다','일정한 주기로 콘텐츠를 올린다','콘텐츠 전략을 세워 팔로워·트래픽을 늘리고 있다','콘텐츠 → 구매 전환 흐름을 체계적으로 운영 중이다'],
+  Q31:['전혀 하지 않는다','공지 발송 정도만 한다','이벤트·프로모션 안내를 보낸다','고객 세그먼트별로 메시지를 다르게 보낸다','자동화 CRM으로 개인화 메시지를 발송한다'],
+  Q32:['경쟁사를 분석해본 적 없다','가끔 경쟁사 가격 정도만 확인한다','경쟁사 상품·리뷰·채널을 주기적으로 살펴본다','경쟁사 광고·콘텐츠·프로모션을 분석해 전략에 반영한다','AI 도구를 활용해 경쟁사 동향을 체계적으로 모니터링한다'],
+  Q33:['전혀 없다','관심은 있지만 어떻게 해야 할지 모른다','체험단이나 협찬을 간헐적으로 진행한다','크리에이터 선정 기준을 갖고 협업을 진행한다','성과 기반(CPS·하이브리드) 계약으로 운영한다'],
+  Q34:['분석하지 않는다','매출액 정도만 본다','상품별 판매량·매출을 정기적으로 확인한다','채널별 매출·마진·재구매율을 분석한다','데이터 기반으로 재고·광고·상품을 의사결정한다'],
+  Q35:['무엇인지 모른다','개념은 알지만 내 수치는 모른다','채널 기본 통계에서 확인은 한다','CVR을 분석해 상품페이지·광고를 개선한다','CVR 개선 실험을 지속적으로 운영하고 있다'],
+  Q36:['개념 모름','개념은 알지만 관리 안 한다','재구매율 정도는 확인한다','재구매율을 높이기 위한 CRM 전략을 운영한다','LTV 기반으로 광고비·고객 유지 예산을 배분한다'],
+  Q37:['어떻게 분석하는지 모른다','채널 기본 유입만 본다','네이버·쿠팡 등 채널별 유입을 파악한다','유입 경로별 전환율·ROAS를 비교 분석한다','GA·픽셀 등 트래킹 도구로 정밀하게 분석한다'],
+  Q38:['조정하지 않는다','큰 시즌 이벤트 정도만 챙긴다','시즌별 프로모션 계획을 세운다','데이터 기반으로 시즌 수요를 예측해 재고·광고를 조정한다','키워드 트렌드 분석으로 선제적으로 움직인다'],
+  Q39:['매번 다르게 처리한다','기본 흐름은 있지만 문서화 안 됨','간단한 체크리스트로 운영한다','SOP 문서가 있어 누구나 처리 가능하다','자동화 도구로 오발송·누락 없이 운영한다'],
+  Q40:['눈으로 대충 파악한다','엑셀로 수동 관리한다','채널별 재고를 주기적으로 맞춘다','재고 관리 시스템을 사용한다','자동 발주·재고 동기화까지 구축돼 있다'],
+  Q41:['케이스마다 다르게 대응한다','기본 가이드라인은 있다','반품 SOP가 있어 일관되게 처리한다','반품 데이터를 분석해 원인을 개선한다','AI·자동화로 반품 접수·처리를 자동화한다'],
+  Q42:['각 채널에서 따로 확인한다','2개 채널까지는 수동으로 관리한다','스프레드시트로 통합해서 본다','통합 솔루션(사방넷·넥스트엔진 등)을 사용한다','자동화로 채널 간 재고·주문 동기화가 됩니다'],
+  Q43:['수작업이 대부분이다','일부 엑셀 매크로를 쓴다','Zapier·Make 등으로 일부 자동화했다','주요 업무 흐름 70% 이상 자동화했다','풀 자동화 파이프라인이 구축되어 있다'],
+  Q44:['12시간 이상','6~12시간','3~6시간','1~3시간','1시간 이내 (자동 대응 포함)'],
+  Q45:['전혀 없다','머릿속에만 있다','문서로 정리해뒀다','FAQ를 채널 상품페이지에 등록해뒀다','FAQ 기반 챗봇·자동 응답을 구축했다'],
+  Q46:['없다','어느 정도 패턴은 있다','주요 케이스별 스크립트가 있다','스크립트를 팀원과 공유해 일관되게 대응한다','AI·챗봇으로 일부 자동 대응 중이다'],
+  Q47:['무시하거나 방치한다','당황해서 즉흥 대응한다','정중히 사과 후 해결책을 제시한다','매뉴얼에 따라 일관되게 대응하고 후속 조치를 한다','부정 경험을 긍정 전환하는 CS 전략을 운영한다'],
+  Q48:['수집도 안 한다','쌓이긴 하지만 활용 안 한다','재구매 고객을 파악하는 정도다','고객 세그먼트별로 마케팅에 활용한다','CRM으로 개인화 대응·마케팅을 자동화한다'],
+  Q49:['전혀 없다','한두 번 찍어봤다','정기적으로 올리고 있다','조회수·팔로워 성장을 목표로 전략적으로 운영한다','숏폼이 매출에 직결되는 채널로 운영되고 있다'],
+  Q50:['무엇을 찍어야 할지 모른다','상품을 단순히 보여주는 영상만 찍을 수 있다','기본적인 스토리라인을 잡아서 찍을 수 있다','후킹·문제제기·솔루션 구조 또는 10초 감정곡선·USP를 반영해 기획한다','조회수·전환율·플랫폼 알고리즘을 모두 고려한 콘텐츠를 기획·제작할 수 있다'],
+  Q51:['써본 적 없다','CapCut·Vrew 등 편집 앱을 써본 적 있다','AI 자막·편집 기능을 활용해 영상을 제작하고 있다','AI 스크립트 생성 + 편집 자동화로 제작 시간을 줄이고 있다','AI로 기획·스크립트·편집·썸네일까지 전 과정을 처리한다'],
+  Q52:['전혀 모른다','들어봤지만 연결 안 함','한 채널에서 시도해봤다','콘텐츠에서 상품 링크로 자연스럽게 유도한다','콘텐츠 → 구매 전환 퍼널을 체계적으로 운영한다'],
+  Q53:['없다','관심만 있다','1~2회 체험단을 진행해봤다','정기적으로 크리에이터 협업을 진행한다','성과 기반 협업 구조(CPS 등)로 운영 중이다'],
+  Q54:['아직 안 했다','준비 중이다','사업자등록만 했다','통신판매업 신고까지 완료했다','모든 법적 요건을 갖추고 정기적으로 확인한다'],
+  Q55:['해당 리스크들이 있다는 것을 몰랐다','과장 표현 정도만 주의하고 나머지는 신경 못 씀','허위·과장 표현과 저작권(폰트 등)은 기본적으로 체크한다','상표 분쟁·계정 도용(피싱·스미싱) 예방까지 관리하고 있다','법적 리스크 전반(표현·폰트·상표·계정보안) 체크리스트를 운영 중이다'],
+  Q56:['잘 모른다','대략적으로만 안다','주요 금지 사항은 알고 있다','채널별 정책을 주기적으로 확인한다','정책 위반 방지 체크리스트를 운영한다'],
+  Q57:['잘 모른다','대략적으로만 안다','기본 항목은 준수한다','개인정보처리방침·필수 고지사항을 갖추고 있다','정기적으로 법령 변경사항을 체크하고 업데이트한다'],
+  Q58:['전혀 안 한다','신고 기간에만 챙긴다','기장 대리를 맡기고 있다','세무사와 정기적으로 소통하며 관리한다','세금 최적화 전략을 세우고 있다'],
+  Q59:['전혀 없다','머릿속에만 있다','대략적인 월간 계획이 있다','주차별 세부 실행 과제가 있다','일별 KPI와 체크리스트가 있다'],
+  Q60:['없다','막연하게 "많이 팔자"는 수준','월 목표 매출 정도는 있다','채널별 목표 매출·주문을 설정한다','주 단위로 목표를 체크하고 전략을 수정한다'],
+  Q61:['없다','필요할 때만 검색한다','주 1회 이상 관련 콘텐츠를 본다','매일 데이터를 보며 개선점을 찾는다','학습→실행→측정 사이클이 체계적으로 돌아간다'],
+  Q62:['혼자 한다','인터넷 검색만 한다','유료 강의를 듣고 있다','커뮤니티·멘토에게 주기적으로 피드백 받는다','코치·컨설턴트와 정기적으로 협력한다'],
+  Q63:['아직 모르겠다','일단 상품 등록부터 해볼 것이다','배운 내용 중 한 가지를 이번 주 안에 실행한다','우선순위를 정해 2~3가지를 이번 달 안에 실행한다','30일 실행 계획서를 작성하고 즉시 시작한다'],
+};
+
+function getLevel(pct){
+  if(pct>=80)return{label:'전문가',emoji:'🏆',color:'#f59e0b',bg:'#fffbeb',border:'#fde68a'};
+  if(pct>=60)return{label:'안정',  emoji:'🌟',color:'#22c55e',bg:'#f0fdf4',border:'#bbf7d0'};
+  if(pct>=40)return{label:'성장',  emoji:'📈',color:'#eab308',bg:'#fefce8',border:'#fde68a'};
+  return           {label:'입문',  emoji:'🌱',color:'#ef4444',bg:'#fef2f2',border:'#fecaca'};
+}
+
+function getParam(k){return new URLSearchParams(location.search).get(k);}
+
+// ══ 메인 로드 ══
+window.addEventListener('DOMContentLoaded',async()=>{
+  const preId=getParam('pre'), postId=getParam('post');
+  if(!preId||!postId){
+    document.getElementById('loading-wrap').innerHTML=
+      '<div class="loading-screen"><div style="font-size:48px">⚠️</div><div style="text-align:center">올바르지 않은 접근입니다.<br><a href="report.html" style="color:#2563eb">진단 페이지로 돌아가기</a></div></div>';
+    return;
+  }
+  try{
+    const [pre,post]=await Promise.all([
+      fetch(`tables/assessments/${preId}`).then(r=>r.json()),
+      fetch(`tables/assessments/${postId}`).then(r=>r.json()),
+    ]);
+    document.getElementById('loading-wrap').style.display='none';
+    document.getElementById('rpt-main').style.display='block';
+    buildReport(pre,post);
+  }catch(e){
+    document.getElementById('loading-wrap').innerHTML=
+      '<div class="loading-screen"><div style="font-size:48px">❌</div><div>데이터를 불러오지 못했습니다.</div></div>';
+  }
+});
+
+function switchTab(btn){
+  const t=btn.dataset.tab;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.rpt-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══ 보고서 빌드 ══
+function buildReport(pre,post){
+  const preAns=JSON.parse(pre.answers||'{}');
+  const postAns=JSON.parse(post.answers||'{}');
+  const preScores=JSON.parse(pre.scores||'{}');
+  const postScores=JSON.parse(post.scores||'{}');
+  const preTotal=pre.total_score||0, postTotal=post.total_score||0;
+  const preMax=pre.total_max||300, postMax=post.total_max||300;
+  const prePct=Math.round(preTotal/preMax*100);
+  const postPct=Math.round(postTotal/postMax*100);
+  const diff=postTotal-preTotal;
+  const diffPct=postPct-prePct;
+  const preLv=getLevel(prePct), postLv=getLevel(postPct);
+  const name=pre.trainee_name||'수강생';
+  const course=pre.course||'—';
+  const sDate=(pre.session_date||'').slice(0,10)||'—';
+  const doneDate=post.completed_at?new Date(post.completed_at).toLocaleDateString('ko-KR'):'—';
+
+  // 헤더
+  document.getElementById('hdr-name').textContent=`${name}님의 성장 보고서`;
+  document.getElementById('hdr-meta').textContent=`📚 ${course}  ·  📅 ${sDate}  ·  완료일: ${doneDate}`;
+
+  // 총점 박스
+  document.getElementById('score-summary-box').innerHTML=`
+    <div class="score-box pre"><div class="lbl">📘 사전 진단</div><div class="val">${preTotal}</div><div class="sub">${prePct}% · ${preLv.emoji} ${preLv.label}</div></div>
+    <div class="score-box post"><div class="lbl">📗 사후 진단</div><div class="val">${postTotal}</div><div class="sub">${postPct}% · ${postLv.emoji} ${postLv.label}</div></div>
+    <div class="score-box diff"><div class="lbl">⚡ 성장 변화</div><div class="val" style="color:${diff>=0?'#7c3aed':'#ef4444'}">${diff>=0?'+':''}${diff}</div><div class="sub">${diffPct>=0?'+':''}${diffPct}%p</div></div>`;
+
+  // 등급 변화
+  document.getElementById('level-row').innerHTML=`
+    <div class="lvl-chip" style="background:${preLv.bg};color:${preLv.color};border:2px solid ${preLv.border}">${preLv.emoji} 사전: ${preLv.label}</div>
+    <div class="lvl-arrow">→</div>
+    <div class="lvl-chip" style="background:${postLv.bg};color:${postLv.color};border:2px solid ${postLv.border}">${postLv.emoji} 사후: ${postLv.label}</div>
+    ${preLv.label!==postLv.label?`<div class="growth-chip">🎉 등급 상승!</div>`:''}`;
+
+  // 코멘트
+  const secArr=Object.entries(SMAP).map(([sid,info])=>{
+    const ps=preScores[sid]||{score:0,max:info.max};
+    const qs=postScores[sid]||{score:0,max:info.max};
+    return{sid,info,diff:qs.score-ps.score,prePct:Math.round(ps.score/ps.max*100),postPct:Math.round(qs.score/qs.max*100)};
+  }).sort((a,b)=>b.diff-a.diff);
+  const top=secArr[0];
+  let comment=`<strong>${name}</strong>님은 이번 교육을 통해 총 <strong style="color:#7c3aed">${diff>=0?'+':''}${diff}점(${diffPct>=0?'+':''}${diffPct}%p)</strong>의 성장을 이루었습니다.<br>`;
+  if(diff>20)comment+='📈 매우 큰 폭의 성장입니다! 교육 내용을 깊이 있게 흡수하셨습니다.';
+  else if(diff>10)comment+='👍 의미 있는 성장입니다. 꾸준한 실행으로 이어가면 더 큰 변화가 기대됩니다.';
+  else if(diff>0)comment+='🌱 작지만 확실한 변화가 생겼습니다. 오늘 배운 내용을 하나씩 적용해 보세요.';
+  else comment+='💬 점수 변화는 작지만 인식의 변화는 이미 시작되었습니다. 오늘 배운 것 하나를 실행해 보세요.';
+  if(top&&top.diff>0)comment+=`<br>특히 <strong>${top.info.icon} ${top.info.name}</strong> 영역에서 <strong>+${top.diff}점</strong>으로 가장 큰 성장을 보였습니다.`;
+  document.getElementById('level-comment').innerHTML=comment;
+
+  // 차트
+  buildRadarChart(preScores,postScores);
+  buildBarChart(preScores,postScores);
+
+  // TAB2
+  buildSectionCompare(preScores,postScores);
+  buildRecommend(postScores);
+
+  // TAB3
+  buildDetail(preAns,postAns);
+
+  // TAB4
+  buildInsight(name,secArr,preAns,postAns);
+}
+
+function buildRadarChart(preScores,postScores){
+  const labels=Object.values(SMAP).map(s=>s.name);
+  const pre=Object.keys(SMAP).map(sid=>{const s=preScores[sid]||{score:0,max:SMAP[sid].max};return Math.round(s.score/s.max*100);});
+  const post=Object.keys(SMAP).map(sid=>{const s=postScores[sid]||{score:0,max:SMAP[sid].max};return Math.round(s.score/s.max*100);});
+  new Chart(document.getElementById('radarChart'),{type:'radar',
+    data:{labels,datasets:[
+      {label:'사전',data:pre,borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.15)',pointBackgroundColor:'#2563eb',borderWidth:2},
+      {label:'사후',data:post,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.18)',pointBackgroundColor:'#16a34a',borderWidth:2.5},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{r:{min:0,max:100,ticks:{stepSize:25,font:{size:10}},pointLabels:{font:{size:11,weight:'600'}}}},
+      plugins:{legend:{position:'bottom',labels:{font:{size:12},padding:16}}}}
+  });
+}
+
+function buildBarChart(preScores,postScores){
+  const labels=Object.values(SMAP).map(s=>s.name);
+  const pre=Object.keys(SMAP).map(sid=>(preScores[sid]||{score:0}).score);
+  const post=Object.keys(SMAP).map(sid=>(postScores[sid]||{score:0}).score);
+  new Chart(document.getElementById('barChart'),{type:'bar',
+    data:{labels,datasets:[
+      {label:'사전',data:pre,backgroundColor:'rgba(37,99,235,.65)',borderRadius:6},
+      {label:'사후',data:post,backgroundColor:'rgba(22,163,74,.8)',borderRadius:6},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:12},padding:16}}},
+      scales:{y:{min:0,ticks:{stepSize:5},grid:{color:'rgba(0,0,0,.04)'}},x:{ticks:{font:{size:10}}}}}
+  });
+}
+
+function buildSectionCompare(preScores,postScores){
+  const el=document.getElementById('sec-compare-list');
+  el.innerHTML='';
+  Object.entries(SMAP).forEach(([sid,info])=>{
+    const ps=preScores[sid]||{score:0,max:info.max};
+    const qs=postScores[sid]||{score:0,max:info.max};
+    const d=qs.score-ps.score;
+    const pct=Math.round(qs.score/qs.max*100);
+    const barColor=pct>=60?'#22c55e':pct>=40?'#eab308':'#ef4444';
+    const dc=d>0?'up':d<0?'down':'same';
+    const div=document.createElement('div');
+    div.className='sec-item';
+    div.innerHTML=`
+      <div class="sec-item-header">
+        <div class="sec-item-name">${info.icon} ${info.name}</div>
+        <div class="sec-item-scores">
+          <span class="sec-score-pre">${ps.score}점</span><span style="color:#94a3b8">→</span>
+          <span class="sec-score-post">${qs.score}점</span>
+          <span class="sec-score-diff ${dc}">${d>0?'+':''}${d===0?'동일':d}</span>
+        </div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-pre" style="width:${Math.round(ps.score/ps.max*100)}%;background:#2563eb"></div>
+        <div class="bar-post" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;text-align:right">${qs.score}/${qs.max}점 (${pct}%)</div>`;
+    el.appendChild(div);
+  });
+}
+
+function buildRecommend(postScores){
+  const weak=Object.entries(SMAP).map(([sid,info])=>{
+    const s=postScores[sid]||{score:0,max:info.max};
+    return{...info,pct:Math.round(s.score/s.max*100)};
+  }).filter(w=>w.pct<60).sort((a,b)=>a.pct-b.pct);
+  const el=document.getElementById('rec-list');
+  el.innerHTML=weak.length===0
+    ?'<div style="color:#16a34a;font-weight:600;padding:16px">🎉 모든 영역이 60% 이상입니다! 균형 잡힌 역량을 갖추고 있어요.</div>'
+    :weak.slice(0,6).map(w=>`<div class="rec-item"><div class="r-sec">${w.icon} ${w.name}</div><div class="r-course">${w.course}</div><div class="r-score">현재 ${w.pct}% — 집중 보완 필요</div></div>`).join('');
+}
+
+let _preAns={},_postAns={};
+function buildDetail(preAns,postAns){
+  _preAns=preAns; _postAns=postAns;
+  const filterEl=document.getElementById('sec-filter');
+  filterEl.innerHTML=`<button class="sec-filter-btn active" onclick="applyFilter('all',this)">전체</button>`
+    +Object.entries(SMAP).map(([sid,info])=>`<button class="sec-filter-btn" onclick="applyFilter('${sid}',this)">${info.icon} ${info.name}</button>`).join('');
+  renderDetail('all');
+}
+
+function applyFilter(sid,btn){
+  document.querySelectorAll('.sec-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderDetail(sid);
+}
+
+function renderDetail(sid){
+  const el=document.getElementById('q-compare-list');
+  el.innerHTML='';
+  const sids=sid==='all'?Object.keys(SMAP):[sid];
+  sids.forEach(s=>{
+    const info=SMAP[s];
+    info.qs.forEach(qid=>{
+      const opts=QS_OPTS[qid]||[];
+      const isMulti=MULTI_Q.includes(qid);
+      const pv=_preAns[qid], qv=_postAns[qid];
+      let preText,postText,changed;
+      if(isMulti){
+        const pa=Array.isArray(pv)?pv:[];const qa=Array.isArray(qv)?qv:[];
+        preText=pa.map(i=>opts[i]||i).join(', ')||'선택 없음';
+        postText=qa.map(i=>opts[i]||i).join(', ')||'선택 없음';
+        changed=JSON.stringify([...pa].sort())!==JSON.stringify([...qa].sort());
+      }else{
+        preText=opts[pv]!==undefined?opts[pv]:'미응답';
+        postText=opts[qv]!==undefined?opts[qv]:'미응답';
+        changed=pv!==qv;
+      }
+      const div=document.createElement('div');
+      div.className='q-compare-item';
+      div.innerHTML=`
+        <div class="q-id-badge">${info.icon} ${info.name} · ${qid}</div>
+        <div class="q-text-sm">${QS_TEXT[qid]||qid}</div>
+        <div class="ans-row"><div class="ans-phase pre">사전</div><div class="ans-text">${preText}</div></div>
+        <div class="ans-row"><div class="ans-phase post">사후</div><div class="ans-text">${postText}</div></div>
+        ${changed?`<div class="ans-changed">⚡ 답변 변화 — 교육을 통해 인식이 개선되었습니다</div>`:`<div class="ans-same">변화 없음</div>`}`;
+      el.appendChild(div);
+    });
+  });
+}
+
+function buildInsight(name,secArr,preAns,postAns){
+  const insights=[], actions=[];
+
+  // 성장 TOP
+  secArr.filter(s=>s.diff>0).slice(0,3).forEach(s=>{
+    insights.push({type:'top',icon:s.info.icon,
+      title:`${s.info.name} — 가장 큰 성장 (+${s.diff}점)`,
+      desc:`교육 전 ${s.prePct}% → 교육 후 ${s.postPct}%로 향상되었습니다. ${getDesc(s.sid,'top')}`});
+  });
+
+  // 취약 LOW
+  const lowArr=secArr.filter(s=>s.postPct<50).sort((a,b)=>a.postPct-b.postPct);
+  lowArr.slice(0,3).forEach(s=>{
+    insights.push({type:'low',icon:s.info.icon,
+      title:`${s.info.name} — 집중 보완 필요 (${s.postPct}%)`,
+      desc:getDesc(s.sid,'low')});
+    actions.push({icon:s.info.icon,name:s.info.name,action:getAction(s.sid)});
+  });
+
+  // 중간 MID
+  secArr.filter(s=>s.postPct>=50&&s.postPct<60).slice(0,2).forEach(s=>{
+    insights.push({type:'mid',icon:s.info.icon,
+      title:`${s.info.name} — 조금만 더! (${s.postPct}%)`,
+      desc:`안정 단계(60%)까지 ${60-s.postPct}%p 남았습니다. ${getDesc(s.sid,'mid')}`});
+  });
+
+  if(!insights.length)insights.push({type:'top',icon:'🏆',title:'전 영역 안정권 달성!',desc:`${name}님은 모든 영역에서 고르게 높은 수준입니다. 이제 실전 적용과 지속적 최적화가 핵심입니다.`});
+  if(!actions.length)actions.push({icon:'🚀',name:'실행',action:'오늘 배운 내용 중 1가지를 이번 주 안에 반드시 실행에 옮겨 보세요.'});
+
+  document.getElementById('insight-list').innerHTML=insights.map(it=>`
+    <div class="insight-item ${it.type}">
+      <div class="insight-icon">${it.icon}</div>
+      <div class="insight-content"><div class="t1">${it.title}</div><div class="t2">${it.desc}</div></div>
+    </div>`).join('');
+
+  document.getElementById('action-list').innerHTML=actions.map((a,i)=>`
+    <div style="background:#f8fafc;border-radius:12px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start">
+      <div style="background:#eff6ff;color:#2563eb;font-weight:800;font-size:13px;padding:4px 10px;border-radius:99px;flex-shrink:0">${i+1}주차</div>
+      <div><div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">${a.icon} ${a.name}</div>
+      <div style="font-size:13px;color:#475569;line-height:1.55">${a.action}</div></div>
+    </div>`).join('');
+}
+
+function getDesc(sid,type){
+  const m={
+    1:{top:'AI 도구를 이제 실무에 적극 적용할 단계입니다.',low:'ChatGPT 무료 버전부터 시작해 상품 카피 1개를 작성해 보세요.',mid:'도구 사용은 시작했으니 업무에 체계적으로 연결하는 것이 다음 과제입니다.'},
+    2:{top:'채널 이해도가 높아졌습니다. 채널별 차별화 전략을 실행에 옮길 시점입니다.',low:'스마트스토어 1개 채널부터 완전히 익히는 것을 목표로 삼으세요.',mid:'운영 채널을 늘리기 전, 현재 채널 최적화를 먼저 완성하세요.'},
+    3:{top:'수익 구조 이해가 깊어졌습니다. 상품별 손익을 엑셀로 정리해 보세요.',low:'원가 계산부터 시작하세요. 셀러툴로 마진을 계산해 보세요.',mid:'플랫폼별 수수료 차이를 파악해 가장 유리한 채널을 선택하세요.'},
+    4:{top:'SEO 역량이 향상되었습니다. 블랙키위로 키워드 분석을 더 정밀하게 해보세요.',low:'네이버 쇼핑 검색창 자동완성어부터 확인하며 상품명을 수정해 보세요.',mid:'아이템스카우트로 경쟁 상위 상품의 키워드 패턴을 분석해 보세요.'},
+    5:{top:'상세페이지 역량이 높아졌습니다. AI 카피라이팅 도구와 결합해 더 빠르게 제작해 보세요.',low:'고객이 가장 궁금해할 3가지 질문에 답하는 구조부터 만들어 보세요.',mid:'경쟁 상품 상세페이지 3개를 벤치마킹해 차이점을 리스트업하세요.'},
+    6:{top:'마케팅 역량이 향상되었습니다. 네이버 쇼핑 검색광고 소액 테스트부터 시작해 보세요.',low:'광고 전에 SNS 계정 프로필 최적화와 콘텐츠 3개 업로드부터 하세요.',mid:'네이버 모먼트 DA로 브랜드 인지도를 높이는 소액 광고를 테스트하세요.'},
+    7:{top:'데이터 분석력이 강화되었습니다. 채널별 전환율을 주간 단위로 추적해 보세요.',low:'판매 채널의 기본 통계(조회수·구매전환율)를 매주 캡처해 기록하세요.',mid:'가장 많이 팔린 상품 TOP3와 가장 안 팔린 상품을 비교 분석해 보세요.'},
+    8:{top:'운영 자동화 이해가 높아졌습니다. 반복 업무 1가지를 Zapier로 자동화해 보세요.',low:'주문 처리 과정을 메모장에 순서대로 적는 것부터 SOP를 시작하세요.',mid:'사방넷·샵링커 무료 체험판으로 멀티채널 통합 관리를 경험해 보세요.'},
+    9:{top:'CS 역량이 향상되었습니다. 자주 오는 질문 5개를 FAQ로 만들어 등록하세요.',low:'고객 문의 유형을 3가지로 분류하고 각각의 답변 템플릿을 만들어 보세요.',mid:'네이버 톡톡 자동 응답 기능을 설정해 빠른 초기 대응 시스템을 구축하세요.'},
+    10:{top:'콘텐츠 역량이 성장했습니다. 이번 주 숏폼 1개를 실제로 제작·업로드해 보세요.',low:'스마트폰으로 상품 언박싱 영상 1개를 찍어 릴스에 올려보세요.',mid:'CapCut으로 30초 제품 소개 영상을 만들어 보세요.'},
+    11:{top:'리스크 관리 인식이 높아졌습니다. 현재 상품의 과장 표현 여부를 점검하세요.',low:'사업자등록과 통신판매업 신고 여부를 오늘 바로 확인하세요.',mid:'사용 중인 폰트의 상업적 사용 가능 여부를 확인하고 무료 상업용 폰트로 교체하세요.'},
+    12:{top:'실행 계획 역량이 향상되었습니다. 오늘 배운 내용을 30일 계획표에 바로 적어보세요.',low:'오늘 배운 내용 중 딱 1가지를 이번 주 안에 실행하기로 결심하세요.',mid:'다음 주까지 할 3가지 과제를 지금 메모해 두세요.'},
+  };
+  return (m[sid]||{})[type]||'';
+}
+function getAction(sid){
+  const a={
+    1:'ChatGPT로 내 상품의 판매 문구 3개 버전을 작성해 보세요. 무료로 시작할 수 있습니다.',
+    2:'스마트스토어 판매자 센터에서 쇼핑윈도·브랜드스토어 입점 조건을 오늘 확인하세요.',
+    3:'엑셀이나 셀러툴로 주력 상품 1개의 원가·수수료·순이익을 정확히 계산해 보세요.',
+    4:'블랙키위에서 내 주력 상품 키워드의 검색량과 경쟁 수준을 분석해 보세요.',
+    5:'경쟁 상위 상품 상세페이지 2개를 분석해 내 상품과 차이점 5가지를 리스트업하세요.',
+    6:'네이버 쇼핑 검색광고를 일 예산 3,000원으로 1주일 테스트해 보세요.',
+    7:'판매 현황 대시보드를 매주 월요일 아침에 캡처해 기록하는 루틴을 만드세요.',
+    8:'가장 반복적으로 하는 업무 1가지를 Zapier 또는 Make로 자동화해 보세요.',
+    9:'고객 문의 TOP5를 정리해 자동 응답 FAQ로 만들어 네이버 톡톡에 등록하세요.',
+    10:'스마트폰으로 30초 제품 소개 영상 1개를 촬영해 인스타 릴스에 업로드해 보세요.',
+    11:'현재 판매 중인 상품의 과장·허위 표현과 폰트 저작권을 오늘 바로 점검하세요.',
+    12:'교육에서 배운 내용을 바탕으로 향후 30일 실행 계획표를 작성하세요.',
+  };
+  return a[sid]||'오늘 배운 내용을 실무에 바로 적용해 보세요.';
+}
+
+// ══ 링크 복사 ══
+function copyShareLink(){
+  const url=window.location.href;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>{
+      showToast('📋 보고서 링크가 복사되었습니다!');
+    }).catch(()=>fallbackCopy(url));
+  } else { fallbackCopy(url); }
+}
+function fallbackCopy(url){
+  const ta=document.createElement('textarea');
+  ta.value=url; document.body.appendChild(ta);
+  ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
+  showToast('📋 보고서 링크가 복사되었습니다!');
+}
+function showToast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:120px;right:24px;background:#1e293b;color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;z-index:200;opacity:0;transition:opacity .3s;font-family:inherit';
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>t.style.opacity='1');
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2000);
+}
+</script>
+</body>
+</html>

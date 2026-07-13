@@ -1,214 +1,182 @@
-# 자격증 시험 관리 시스템
+# 셀러체크 (SellerCheck) — AI 쇼핑몰 창업 준비도 진단
 
-> 시험 신청 → 입금 확인 → 시험 응시 → 결과 발표 → 자격증 발급까지 End-to-End로 처리하는 웹 서비스
+## 프로젝트 개요
+이커머스 창업·운영자를 위한 무료 자가진단 도구입니다.  
+12개 영역 100문항(+업종별 특화)으로 준비 수준을 점수화하고,  
+영역별 맞춤 강의·도구·도매사이트를 결과 페이지에 자동 추천합니다.
+
+> ℹ️ **기능 제거 안내 (2026-07-13)** — 다음 4개 기능이 제거되었습니다.
+> - **회원가입** — `index.html`의 회원가입/로그인 모달 제거, 로그인 없이 바로 진단 시작
+> - **관리자 로그인** — `admin.html` 비밀번호 잠금 화면 제거, 대시보드 바로 접근 (`index.html` 관리자 로그인 버튼도 제거)
+> - **기관담당자 리포트** — `manager-report.html` 파일 및 관련 링크·버튼 전체 삭제
+> - **내 진단 기록 로그인** — `my-report.html`의 로그인 요구 제거, `?member_id=` 파라미터 기반 접근
 
 ---
 
-## 📌 프로젝트 개요
-
-| 항목 | 내용 |
+## 진입 URI
+| 경로 | 설명 |
 |------|------|
-| 프레임워크 | Next.js 16 (App Router) |
-| 인증 / DB | Supabase (Auth + PostgreSQL) |
-| 스타일 | Tailwind CSS |
-| 언어 | TypeScript |
-| 배포 | Vercel (권장) |
+| `/index.html` | 메인 진단 페이지 (100문항, 회원가입/로그인 없이 바로 진단) |
+| `/index.html` → 진단 후 | 결과 페이지 + "리포트 출력" 버튼 노출 |
+| `/my-report.html?member_id={ID}` | 내 진단 기록 목록 + 개별 상세 리포트 (member_id 기반, 로그인 불필요) |
+| `/seller-report.html?diag_id={ID}` | 셀러 제출용 개인 리포트 (출력/PDF 가능) |
+| `/sellercheck.html` | 구 버전 진단 페이지 |
+| `/report.html` | 수강생 사전·사후 진단 페이지 (로그인 → 사전 → 사후 → 보고서) |
+| `/report-view.html?pre={ID}&post={ID}` | 수강생 개인 성장 보고서 (레이더 차트·문항별 비교·추천 학습) |
+| `/admin.html` | 관리자 대시보드 (로그인 없이 접근, 수강생 목록 / 진단기록 탭 / 통계 분석 / CSV 내보내기) |
 
 ---
 
-## 🔄 서비스 흐름 및 상태값
+## 현재 구현 기능
 
-```
-[사용자 신청]
-     │
-     ▼
-waiting_payment  ─── 입금 대기 중 (관리자가 입금 확인 후 변경)
-     │
-     ▼ (관리자: 입금 확인)
-approved         ─── 응시 가능 상태
-     │
-     ▼ (사용자: 시험 응시 완료)
-exam_completed   ─── 채점 대기
-     │
-     ├─▶ passed          ─── 합격 (점수 >= 기준)
-     │        │
-     │        ▼ (관리자: 자격증 발급)
-     │   certificate_ready ─── 자격증 발급 완료
-     │
-     └─▶ failed          ─── 불합격 (재응시 가능)
-```
+### 🆕 5차 업데이트 (2026-03-26) — 진단 기록 저장 & 리포트 시스템
+- ✅ **진단 결과 자동 DB 저장** — 진단 완료 시 `diagnoses` 테이블에 자동 저장 (answers·sec_scores·level 포함)
+- ✅ **내 진단 기록 (my-report.html)** — `?member_id=` 기반 진단 기록 목록·상세 리포트 (탭 UI: 요약/차트/상세 답변), 로그인 불필요
+- ✅ **셀러 제출용 리포트 (seller-report.html)** — 개인 리포트 (표지·점수 히어로·레이더·강약점·추천 과정·서명란·출력 가능)
+- ~~기관담당자 제출용 리포트 (manager-report.html)~~ — **제거됨 (2026-07-13)**
+- ✅ **admin.html 진단기록 탭** — 전체 진단 기록 조회, 이름/기관/날짜 필터, 셀러 리포트 링크
+
+### 기존 기능
+- ✅ **랜딩** — 배지·헤드라인·통계 카드·12개 진단 영역 카드·CTA 버튼
+- ✅ **퀴즈** — 100문항, 조건 분기(업종·채널 응답에 따라 문항 변동), 복수선택·단일선택 혼용
+- ✅ **결과 페이지** — 레벨 배지·총점·영역별 준비도 바 차트·맞춤 강의 추천·도구 추천·도매사이트 추천
+- ✅ **도구 추천 맵(TOOLS)** — 12개 영역별 실전 도구 링크 제공
+- ✅ **도매사이트 추천(DOMA_SITES)** — 업종 7종(종합/패션/뷰티/식품/반려동물/핸드메이드/농산물) × 카테고리별 사이트
+- ✅ **수강생 사전·사후 진단 시스템 (report.html)** — 이름+연락처 로그인, 사전 진단 저장, 교육 대기, 사후 진단, 보고서 연결
+  - 플로우 안내 UI (사전→교육→사후 3단계 시각화)
+  - 재방문 시 자동 단계 감지 (사전 완료 → 사후, 사후 완료 → 보고서)
+  - 완료 후 안내 메시지 (재방문 안내)
+- ✅ **성장 변화 보고서 (report-view.html)** — 레이더 차트, 영역별 이중 바, 문항별 응답 비교(탭), 강점/취약 영역, 추천 학습, 종합 코멘트, 인쇄/PDF 저장
+  - 링크 복사 버튼 (공유 기능)
+  - 인쇄 시 전체 탭 내용 출력
+- ✅ **관리자 대시보드 (admin.html)** — 로그인 없이 접근, 수강생/진단기록/통계 3탭, 4종 통계 카드, 도넛·바 차트, 필터링, 페이지네이션
+  - **진단 기록 탭** — 회원 진단 전체 내역, 기관·날짜 필터, 셀러 리포트 바로가기
+  - **CSV 내보내기** — 수강생 전체 데이터(사전·사후·영역별 점수) BOM 포함 엑셀 호환 CSV
 
 ---
 
-## 📁 폴더 구조
+## 수강생 진단 플로우
 
 ```
-exam-certification/
-├── src/
-│   ├── app/
-│   │   ├── (auth)/                  # 인증 레이아웃 그룹
-│   │   │   ├── layout.tsx           # 인증 공통 레이아웃 (중앙 카드 UI)
-│   │   │   ├── login/page.tsx       # 로그인 페이지
-│   │   │   └── signup/page.tsx      # 회원가입 페이지
-│   │   │
-│   │   ├── (user)/                  # 일반 사용자 레이아웃 그룹
-│   │   │   ├── layout.tsx           # 사용자 공통 레이아웃 (Navbar 포함)
-│   │   │   ├── dashboard/page.tsx   # 내 현황 대시보드
-│   │   │   ├── exam/
-│   │   │   │   ├── apply/page.tsx   # 시험 신청 페이지
-│   │   │   │   ├── take/page.tsx    # 시험 응시 페이지
-│   │   │   │   └── result/page.tsx  # 결과 조회 페이지
-│   │   │   └── certificate/
-│   │   │       └── page.tsx         # 자격증 다운로드 페이지
-│   │   │
-│   │   ├── admin/                   # 관리자 영역 (role=admin 만 접근)
-│   │   │   ├── layout.tsx           # 관리자 레이아웃
-│   │   │   ├── page.tsx             # 관리자 대시보드 (통계)
-│   │   │   ├── applications/page.tsx # 신청 관리 (상태 변경)
-│   │   │   ├── exams/page.tsx       # 시험 회차 관리
-│   │   │   ├── users/page.tsx       # 회원 관리
-│   │   │   └── certificates/page.tsx # 자격증 발급 현황
-│   │   │
-│   │   ├── layout.tsx               # 루트 레이아웃
-│   │   └── page.tsx                 # 루트 (역할별 리다이렉트)
-│   │
-│   ├── components/
-│   │   ├── ui/
-│   │   │   ├── Navbar.tsx           # 공통 네비게이션 바
-│   │   │   ├── StatusBadge.tsx      # 상태값 뱃지 컴포넌트
-│   │   │   └── StatusStepper.tsx    # 진행 단계 시각화 컴포넌트
-│   │   ├── auth/
-│   │   │   └── LoginForm.tsx        # 로그인 폼 (useSearchParams 분리)
-│   │   ├── exam/
-│   │   │   ├── ExamApplyForm.tsx    # 시험 신청 버튼/폼
-│   │   │   └── ExamTakeClient.tsx   # 시험 응시 클라이언트 컴포넌트 (타이머/답안)
-│   │   ├── admin/
-│   │   │   └── AdminApplicationActions.tsx  # 관리자 신청 상태 변경 버튼
-│   │   └── certificate/             # (자격증 PDF 생성 등 추후 구현)
-│   │
-│   ├── lib/
-│   │   ├── supabase/
-│   │   │   ├── client.ts            # 브라우저용 Supabase 클라이언트
-│   │   │   ├── server.ts            # 서버용 Supabase 클라이언트
-│   │   │   └── middleware.ts        # 미들웨어용 세션 갱신 + 라우팅 보호
-│   │   └── utils/
-│   │       ├── cn.ts                # Tailwind 클래스 병합 유틸
-│   │       └── format.ts            # 날짜/금액/자격증번호 포맷 유틸
-│   │
-│   ├── hooks/
-│   │   └── useExamApplication.ts   # 내 최신 시험 신청 조회 훅
-│   │
-│   ├── middleware.ts                # Next.js 미들웨어 진입점
-│   └── types/
-│       └── index.ts                # 모든 타입 정의 (ExamStatus, Profile, Exam 등)
-│
-├── supabase/
-│   └── schema.sql                  # DB 스키마 전체 (RLS 포함)
-│
-├── public/
-│   └── certificates/               # 발급된 자격증 PDF 저장 (또는 Supabase Storage)
-│
-├── .env.local                      # 환경변수 (git 제외)
-├── .env.example                    # 환경변수 예시 (git 포함)
-└── README.md
+[report.html 접속]
+       ↓
+[정보 입력] → 이름 + 연락처 + 수강과정 + 교육일자
+       ↓
+[사전 진단] → 12개 영역 × 5문항 = 60문항 섹션별 진행
+       ↓
+[교육 대기 화면] → 사전 점수 표시, 교육 수강 후 재접속 안내
+       ↓
+[교육 수강] (강의 진행)
+       ↓
+[사후 진단] → 동일한 이름·연락처로 재로그인 → 자동 사후 단계 진입
+       ↓
+[보고서 요약] → 변화 점수, 영역별 비교 미리보기
+       ↓
+[상세 보고서] → report-view.html (레이더·바 차트, 문항별 비교, 성장 분석)
 ```
 
 ---
 
-## 🗃️ 데이터 모델
+## TOOLS 맵 — 영역별 추천 도구 목록 (2026-03-25 최종 업데이트)
 
-### 테이블 관계
-```
-auth.users (Supabase)
-    │
-    └──▶ profiles          (id = auth.users.id)
-              │
-              └──▶ exam_applications ──▶ exams
-                        │
-                        ├──▶ exam_answers ──▶ exam_questions
-                        │
-                        └──▶ certificates
-```
+| 영역 | 추가된 주요 도구 |
+|------|----------------|
+| AI 도구 활용 | ChatGPT, CLOVA Studio, **AI BonB** |
+| 채널 전략 | 스토어링크, 빅셀, 네이버 데이터랩, 도매차트, **네이버 브랜드 커넥트** |
+| 상품정보 & SEO | 블랙키위, 엠디몽, 아이템스카우트, 네이버 데이터랩 |
+| 수익 구조 설계 | 장사왕, 셀러툴, 계산이지, 스피드고 |
+| 마케팅 & 광고 | 이프두, 플레어레인, 인센토, **네이버 모먼트 DA** (moment.naver.com) |
+| 성과분석 & ROAS | 블랙키위, 장사왕, 네이버 데이터랩 |
+| 운영 SOP & 자동화 | 넥스트엔진, 사방넷, 샵링커, **플레이오토** |
+| CS 대응 체계 | 네이버 톡톡, CLOVA Chatbot |
 
-### 핵심 테이블
-
-| 테이블 | 설명 |
-|--------|------|
-| `profiles` | 사용자 프로필 (role: user/admin) |
-| `exams` | 시험 회차 정보 (시험일, 응시료, 합격기준) |
-| `exam_applications` | 시험 신청 + **상태값 관리** |
-| `exam_questions` | 시험 문제 (선택지 JSONB, 정답 인덱스) |
-| `exam_answers` | 응시자 답안 저장 |
-| `certificates` | 발급된 자격증 (자격증 번호, PDF URL) |
-
----
-
-## 🔐 접근 권한 매트릭스
-
-| 경로 | 비로그인 | 일반 사용자 | 관리자 |
-|------|---------|------------|--------|
-| `/login`, `/signup` | ✅ | 리다이렉트 | 리다이렉트 |
-| `/dashboard` | 리다이렉트 | ✅ | ✅ |
-| `/exam/apply` | 리다이렉트 | ✅ | ✅ |
-| `/exam/take` | 리다이렉트 | ✅ (approved만) | ✅ |
-| `/exam/result` | 리다이렉트 | ✅ | ✅ |
-| `/certificate` | 리다이렉트 | ✅ | ✅ |
-| `/admin/*` | 리다이렉트 | 리다이렉트 | ✅ |
+> **2차 업데이트(2026-03-24)** — 한국쇼핑몰협회 공식 블로그(RSS 31개 포스트) 분석 결과 반영:
+> - **AI BonB** 추가 (AI 도구 활용) — 블로그 자동화·쇼핑커넥트 연동
+> - **네이버 브랜드 커넥트** 추가 (채널 전략) — 공동구매·크리에이터 연계 플랫폼
+> - **네이버 모먼트 DA** 명칭 수정 (마케팅 & 광고) — 구 '성과형 디스플레이' 리브랜딩 반영
+>
+> **3차 업데이트(2026-03-24)** — 추가 권장 사항 반영:
+> - **플레이오토** 추가 (운영 SOP & 자동화) — 도매매 API 자동 연동·위탁판매 특화 멀티채널 관리
+> - **Q10 문항 교체** — "채널 선택 기준" → "스마트스토어·쇼핑윈도·브랜드스토어 차이 인지" 진단으로 변경 (네이버 3채널 차별점 반영)
+>
+> **4차 업데이트(2026-03-25)** — 수강생 추적 시스템 완성:
+> - **CSV 내보내기** 기능 추가 (admin.html) — 엑셀 호환, 영역별 점수 포함
+> - **report.html 플로우 UI 개선** — 3단계 시각화 배너, 완료 후 재방문 안내
+> - **report-view.html 인쇄/공유 개선** — 전체 탭 인쇄, 링크 복사 버튼
+> - **admin.html form 구조 개선** — 비밀번호 필드 form 래핑, 브라우저 자동완성 지원
 
 ---
 
-## ⚙️ 환경 설정
+## 데이터 구조
+- **문항**: 12개 섹션 × 약 5~8문항 = 총 100문항 (업종별 최대 +35문항)
+- **응답 유형**: 단일선택(s) / 복수선택(m)
+- **점수**: 섹션별 최고 25점, 총 300점 만점
+- **등급**: 🔴 입문(0~39%) / 🟡 성장(40~59%) / 🟢 안정(60~79%) / 🏆 전문가(80%↑)
 
-### 1. Supabase 프로젝트 생성
-1. [supabase.com](https://supabase.com) 에서 새 프로젝트 생성
-2. `supabase/schema.sql` 파일을 **SQL Editor**에서 전체 실행
-3. Project Settings → API에서 URL과 키 복사
+## RESTful 테이블 구조
 
-### 2. 환경변수 설정
-```bash
-cp .env.example .env.local
-# .env.local 파일 편집
-```
+| 테이블 | 용도 | 주요 필드 |
+|--------|------|-----------|
+| `members` | 회원 정보 | id, name, phone, email, org, auth_provider, password_hash |
+| `diagnoses` | 진단 기록 (index.html) | id, member_id, member_name, answers, sec_scores, total_score, total_pct, level, diagnosed_at |
+| `trainees` | 수강생 정보 (report.html) | id, name, phone, course, session_date |
+| `assessments` | 사전·사후 진단 (report.html) | id, trainee_id, phase, answers, scores, total_score, level |
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-```
+## 리포트 시스템 접근 권한
 
-### 3. 개발 서버 실행
-```bash
-npm install
-npm run dev
-# http://localhost:3000 접속
-```
-
-### 4. 관리자 계정 설정
-Supabase Dashboard → Table Editor → `profiles` 테이블에서
-원하는 사용자의 `role` 값을 `admin`으로 변경
+| 리포트 | 접근 대상 | 출력 권한 |
+|--------|-----------|-----------|
+| `my-report.html` | URL에 member_id 보유자 (로그인 불필요) | 누구나 출력 가능 |
+| `seller-report.html` | URL에 diag_id 보유자 | 누구나 출력 가능 |
 
 ---
 
-## 🚀 배포 (Vercel)
+## 주요 문항 변경 이력 (2026-03-24 2차 업데이트)
 
-```bash
-# Vercel CLI
-vercel
-vercel env add NEXT_PUBLIC_SUPABASE_URL
-vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
-vercel env add SUPABASE_SERVICE_ROLE_KEY
-vercel --prod
-```
+| 문항 ID | 변경 내용 |
+|---------|-----------|
+| Q9 | 옵션 1 → '스마트스토어·쇼핑윈도·브랜드스토어(네이버 계열)', 옵션 5 → '임베디드 커머스(틱톡샵·인스타·유튜브쇼핑)' |
+| Q10 | 질문 교체 — "채널 선택 기준" → **스마트스토어·쇼핑윈도·브랜드스토어 3채널 차이 인지 수준** 진단 (3차 업데이트) |
+| Q13 | 질문 전체 교체 — 멀티채널 → **임베디드 커머스** 활용 계획 진단으로 변경 |
+| Q50 | 4번 선택지에 '10초 감정곡선·USP 반영 기획' 개념 추가 |
+| Q55 | 질문·선택지 전체 교체 — 법적 표현만 → **디지털 리스크 전반(폰트·상표·계정보안)** 포괄 |
 
 ---
 
-## 🛣️ 향후 개발 예정 기능
+## 데이터 모델 (RESTful Table API)
+| 테이블 | 주요 필드 | 설명 |
+|--------|-----------|------|
+| `trainees` | id, name, phone, course, session_date | 수강생 기본 정보 (로그인 키: name+phone) |
+| `assessments` | trainee_id, phase(pre/post), answers(JSON), scores(JSON), total_score, total_max, level, completed_at | 사전·사후 진단 결과 |
 
-- [ ] 시험 문제 관리 UI (관리자 - 문제 등록/수정/삭제)
-- [ ] 자격증 PDF 자동 생성 (puppeteer 또는 react-pdf)
-- [ ] 이메일 알림 (입금 확인, 결과 발표 시 Supabase Edge Function)
-- [ ] 모바일 네비게이션 (햄버거 메뉴)
-- [ ] 시험 응시 이탈 방지 (beforeunload 이벤트)
-- [ ] 재응시 제한 설정
-- [ ] 결제 연동 (토스페이먼츠, 카카오페이)
-- [ ] 다중 자격증 종류 지원
+---
+
+## 관리자 대시보드 사용법
+- **URL**: `/admin.html` (관리자 로그인 없이 바로 접근)
+- **주요 기능**:
+  - 수강생 전체 목록 (이름/연락처/과정/상태/점수/등급)
+  - 필터링: 이름·연락처 검색, 과정별, 상태별(완료/사전만/미진행)
+  - 통계 탭: 영역별 평균 점수, 등급 분포, 영역별 성장, 과정별 수강생
+  - **CSV 내보내기**: 영역별 사전·사후 점수 포함 전체 데이터 (Excel 한글 호환)
+  - 개별 수강생 상세 보고서 링크 (`report-view.html`)
+
+---
+
+## 회원 인증 시스템 (제거됨)
+> 회원가입·로그인 및 관리자 로그인 기능은 2026-07-13 제거되었습니다.  
+> 진단은 로그인 없이 익명으로 진행되며, `admin.html`은 별도 인증 없이 접근합니다.
+
+---
+
+## 미구현 / 권장 다음 단계
+- [ ] 결과 PDF 다운로드 (현재 브라우저 인쇄 → PDF로 대체 가능)
+- [ ] 영역별 상세 가이드 페이지 연결
+- [ ] 강의 신청 폼 연동 (https://hkspmh.liveklass.com/classes)
+- [ ] 임베디드 커머스 채널별(TikTok/인스타/유튜브) 세부 진단 문항 추가
+- [ ] 플레이오토·도매매 연동 가이드 콘텐츠 결과 페이지에 추가 (위탁판매 섹션 Q64~Q68 연결)
+- [ ] 크리에이터 보상 모델(고정비·CPS·하이브리드) 관련 문항 마케팅 섹션에 추가
+- [ ] 레몬마켓·정보비대칭 용어 설명 툴팁/팝업 추가
+- [ ] 관리자 비밀번호 환경변수/설정 파일로 분리 (현재 소스코드 내 하드코딩)
+- [ ] **실제 OAuth 연동** — 구글/네이버/카카오 실제 소셜 로그인 SDK 연결 (백엔드 서버 필요)
+- [ ] 진단 결과를 회원 ID와 연결해 저장 (익명 → 회원 연동)
+- [ ] 마이페이지 — 이전 진단 결과 목록 및 재조회
