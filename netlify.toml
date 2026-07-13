@@ -1,0 +1,12 @@
+# Netlify 배포 설정 — 빌드 과정 없는 순수 정적 사이트
+[build]
+  # 저장소 루트를 그대로 게시 (index.html 이 진입점)
+  publish = "."
+
+# 보안 헤더 (선택 사항)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
