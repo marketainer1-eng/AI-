@@ -187,7 +187,12 @@ export default function TrendHomePage() {
           </a>
           <div className="flex shrink-0 items-center gap-4 text-sm text-white/80">
             {CHANNELS.map((c) => (
-              <a key={c.id} href={`#${c.id}`} className="hidden hover:text-white md:inline">
+              <a
+                key={c.id}
+                href={c.href}
+                {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className="hidden hover:text-white md:inline"
+              >
                 {c.label}
               </a>
             ))}
@@ -480,28 +485,6 @@ export default function TrendHomePage() {
           </p>
           <div className="mt-8">
             <ExternalButton href={CURRENT.bookUrl}>책 구매하러 가기</ExternalButton>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3. 포럼 ── */}
-      <section id="forum" className="scroll-mt-16 px-4 py-20" style={{ backgroundColor: NAVY }}>
-        <div className="mx-auto max-w-4xl text-center text-white">
-          <p className="text-sm font-bold tracking-[0.4em]">
-            <GradientText>FORUM</GradientText>
-          </p>
-          <h2 className="mt-2 text-2xl font-black sm:text-4xl">
-            {SERIES_NAME} {CURRENT.year} 포럼
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl leading-8 text-white/80" style={{ fontFamily: SERIF }}>
-            책에 담은 트렌드를 저자와 전문가가 직접 나누는 자리입니다.
-            <br />
-            포럼 일정과 프로그램, 참가 신청은 포럼 페이지에서 확인하세요.
-          </p>
-          <div className="mt-8">
-            <ExternalButton href={CURRENT.forumUrl} dark>
-              {CURRENT.year} 포럼 바로가기
-            </ExternalButton>
           </div>
         </div>
       </section>
