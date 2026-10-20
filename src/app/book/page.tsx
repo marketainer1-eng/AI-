@@ -22,8 +22,8 @@ const SERIES_NAME = 'AI 미디어 커머스 트렌드'
 const HOST = { name: '명지대학교 AI 이커머스학과', href: 'https://aiecommerce.re.kr/' }
 /** 주관 기관. href 가 비어 있으면 바로가기 버튼을 표시하지 않습니다. */
 const ORGANIZERS = [
-  { name: 'AI에이전트협회', href: '' },
-  { name: '한국쇼핑몰협회', href: '' },
+  { name: 'AI에이전트협회', href: 'https://aiagent.io.kr/' },
+  { name: '한국쇼핑몰협회', href: 'https://hkspmh.or.kr/' },
 ]
 const PUBLISHER = '나비의활주로'
 
@@ -260,7 +260,16 @@ export default function TrendHomePage() {
           </div>
           <div className="flex gap-2">
             <dt className="text-white/45">주관</dt>
-            <dd>{ORGANIZERS.map((o) => o.name).join(' · ')}</dd>
+            <dd>
+              {ORGANIZERS.map((o, i) => (
+                <span key={o.name}>
+                  {i > 0 && ' · '}
+                  <a href={o.href} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:text-white hover:underline">
+                    {o.name}
+                  </a>
+                </span>
+              ))}
+            </dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-white/45">출판</dt>
