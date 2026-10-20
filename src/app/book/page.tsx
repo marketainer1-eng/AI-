@@ -32,7 +32,7 @@ const EDITIONS = [
     year: 2027,
     vol: 1,
     title: 'AI 미디어 커머스 트렌드 2027',
-    authors: ['고아라', '김창준', '장도균', '정유진', '백종우', '배정진'],
+    authors: ['고아라', '김한준', '장도균', '정유진', '백종우', '배현진'],
     pages: 520,
     price: '28,000원',
     bookUrl: 'https://product.kyobobook.co.kr/detail/S000221698428',
@@ -276,8 +276,8 @@ export default function TrendHomePage() {
             <img
               src="/book/cover.png"
               alt={`${CURRENT.title} 표지`}
-              width={206}
-              height={296}
+              width={720}
+              height={1042}
               className="w-64 drop-shadow-2xl transition duration-500 hover:-translate-y-2 sm:w-80"
             />
           </div>
