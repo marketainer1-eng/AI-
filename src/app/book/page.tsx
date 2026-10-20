@@ -1,18 +1,56 @@
 import type { Metadata } from 'next'
+import {
+  ArrowUpRight,
+  BookOpen,
+  Building2,
+  Clapperboard,
+  Headphones,
+  Presentation,
+  UserPlus,
+} from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'AI 미디어 커머스 트렌드 2027 | 책 소개',
+  title: 'AI 미디어 커머스 트렌드 | 매년 발표하는 AI 커머스 트렌드',
   description:
-    'AI가 먼저 읽고 판단하는 시대에, 내 브랜드는 어떻게 선택받을 것인가? 2027년을 읽는 10개 키워드, AI PARADIGM.',
+    'AI가 먼저 읽고 판단하는 시대에, 내 브랜드는 어떻게 선택받을 것인가? 명지대학교 AI 이커머스학과가 매년 발표하는 AI 미디어 커머스 트렌드. 책 · 포럼 · 오디오북 · 숏폼.',
 }
 
-// ── 책 정보 ──────────────────────────────────────────────────
-const BOOK_TITLE = 'AI 미디어 커머스 트렌드 2027'
-const AUTHORS = ['고아라', '김창준', '장도균', '정유진', '백종우', '배정진']
+// ── 시리즈 정보 ──────────────────────────────────────────────
+const SERIES_NAME = 'AI 미디어 커머스 트렌드'
+
+const HOST = { name: '명지대학교 AI 이커머스학과', href: 'https://aiecommerce.re.kr/' }
+const ORGANIZERS = ['AI에이전트협회', '한국쇼핑몰협회']
 const PUBLISHER = '나비의활주로'
 
-const BUY_URL = 'https://product.kyobobook.co.kr/detail/S000221698428'
+/**
+ * 연도별 발간 정보.
+ * 매년 새 책이 나오면 맨 앞에 항목을 추가하면 됩니다. (첫 항목이 메인으로 노출)
+ */
+const EDITIONS = [
+  {
+    year: 2027,
+    vol: 1,
+    title: 'AI 미디어 커머스 트렌드 2027',
+    authors: ['고아라', '김창준', '장도균', '정유진', '백종우', '배정진'],
+    pages: 520,
+    price: '28,000원',
+    bookUrl: 'https://product.kyobobook.co.kr/detail/S000221698428',
+    forumUrl: 'https://ai-trend-2027.netlify.app/',
+  },
+]
+const CURRENT = EDITIONS[0]
 
+const AUDIOBOOK_URL = 'https://talk.podbbang.com/channels/1794192'
+const SHORTS_URL = 'https://www.youtube.com/@AI%EC%9D%B4%EC%BB%A4%EB%A8%B8%EC%8A%A4%ED%95%99%EA%B3%BC/shorts'
+
+const CHANNELS = [
+  { id: 'book', label: '책', en: 'BOOK', icon: BookOpen, desc: `『${CURRENT.title}』` },
+  { id: 'forum', label: '포럼', en: 'FORUM', icon: Presentation, desc: `${CURRENT.year} 트렌드 포럼` },
+  { id: 'audiobook', label: '오디오북', en: 'AUDIOBOOK', icon: Headphones, desc: '팟빵에서 듣기' },
+  { id: 'shorts', label: '숏폼', en: 'SHORTS', icon: Clapperboard, desc: '유튜브 숏폼으로 보기' },
+]
+
+// ── 책 내용 ──────────────────────────────────────────────────
 const HIGHLIGHTS = [
   '고객의 클릭이 줄어드는 환경에서 기업의 수익을 보장하는 법',
   'AI가 신뢰하고 답변에 포함하는 정보와 브랜드의 특징',
@@ -39,6 +77,22 @@ const KEYWORDS = [
 ]
 
 const READERS = ['소상공인', '1인 사업가', '지원기관 실무자', '전문직']
+
+// ── 참여 모집 ────────────────────────────────────────────────
+const RECRUIT_TARGETS = [
+  {
+    icon: Building2,
+    title: '참여 기관',
+    items: ['기업 · 브랜드 · 플랫폼', '협회 · 단체 · 창업/소상공인 지원기관', '대학 · 연구기관'],
+  },
+  {
+    icon: UserPlus,
+    title: '참여 전문가',
+    items: ['커머스 · 마케팅 · 미디어 실무자', 'AI · 데이터 분야 연구자와 개발자', '현장 사례를 가진 창업가 · 셀러'],
+  },
+]
+
+const RECRUIT_ROLES = ['트렌드 공동 조사', '집필 · 사례 제공', '포럼 발표 · 토론', '확산 · 홍보 협력']
 
 // ── 스타일 상수 (원본 상세페이지 색상) ──────────────────────
 const NAVY = '#1b2b69'
@@ -67,10 +121,18 @@ function Stars() {
   )
 }
 
-function BuyButton({ dark = false }: { dark?: boolean }) {
+function ExternalButton({
+  href,
+  children,
+  dark = false,
+}: {
+  href: string
+  children: React.ReactNode
+  dark?: boolean
+}) {
   return (
     <a
-      href={BUY_URL}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-base font-bold shadow-md transition hover:-translate-y-0.5 hover:shadow-lg ${
@@ -78,13 +140,31 @@ function BuyButton({ dark = false }: { dark?: boolean }) {
       }`}
       style={dark ? { color: NAVY } : { backgroundColor: NAVY }}
     >
-      책 구매하러 가기
-      <span aria-hidden>→</span>
+      {children}
+      <ArrowUpRight className="h-4 w-4" aria-hidden />
     </a>
   )
 }
 
-export default function BookPage() {
+function SectionTitle({ en, title, desc }: { en: string; title: string; desc?: React.ReactNode }) {
+  return (
+    <div className="text-center">
+      <p className="text-sm font-bold tracking-[0.4em]">
+        <GradientText>{en}</GradientText>
+      </p>
+      <h2 className="mt-2 text-2xl font-black sm:text-3xl" style={{ color: NAVY }}>
+        {title}
+      </h2>
+      {desc && (
+        <p className="mt-4 leading-8 text-slate-700" style={{ fontFamily: SERIF }}>
+          {desc}
+        </p>
+      )}
+    </div>
+  )
+}
+
+export default function TrendHomePage() {
   return (
     <main className="min-h-screen break-keep bg-white text-slate-800" style={{ colorScheme: 'light' }}>
       {/* ── 상단 고정 바 ── */}
@@ -93,43 +173,94 @@ export default function BookPage() {
         style={{ backgroundColor: 'rgba(27, 43, 105, 0.92)' }}
       >
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-          <span className="truncate text-sm font-bold text-white">{BOOK_TITLE}</span>
+          <a href="#top" className="truncate text-sm font-bold text-white">
+            {SERIES_NAME}
+          </a>
           <div className="flex shrink-0 items-center gap-4 text-sm text-white/80">
-            <a href="#intro" className="hidden hover:text-white sm:inline">책 소개</a>
-            <a href="#keywords" className="hidden hover:text-white sm:inline">10개 키워드</a>
+            {CHANNELS.map((c) => (
+              <a key={c.id} href={`#${c.id}`} className="hidden hover:text-white md:inline">
+                {c.label}
+              </a>
+            ))}
+            <a href="#join" className="hidden hover:text-white md:inline">참여 모집</a>
             <a
-              href={BUY_URL}
+              href={CURRENT.bookUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-full bg-white px-4 py-1.5 font-bold"
               style={{ color: NAVY }}
             >
-              구매하기
+              책 구매
             </a>
           </div>
         </div>
       </nav>
 
-      {/* ── 1. 헤더 ── */}
-      <header className="px-4 pb-12 pt-14 text-center sm:pt-20" style={{ backgroundColor: NAVY }}>
-        <p className="text-lg leading-relaxed text-white/90 sm:text-2xl" style={{ fontFamily: SERIF }}>
+      {/* ── 1. 시리즈 히어로 ── */}
+      <header id="top" className="px-4 pb-16 pt-14 text-center sm:pt-20" style={{ backgroundColor: NAVY }}>
+        <p className="inline-block rounded-full border border-white/25 px-4 py-1 text-xs font-semibold tracking-widest text-white/80">
+          매년 발표하는 AI 커머스 트렌드 리포트
+        </p>
+        <p className="mt-6 text-lg leading-relaxed text-white/90 sm:text-2xl" style={{ fontFamily: SERIF }}>
           AI가 먼저 읽고 판단하는 시대에,
           <br />
           내 브랜드는 어떻게 선택받을 것인가?
         </p>
         <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-6xl">
-          <GradientText>{BOOK_TITLE}</GradientText>
+          <GradientText>{SERIES_NAME}</GradientText>
         </h1>
+        <p className="mt-4 text-white/80">
+          <span className="font-bold text-white">{CURRENT.year}</span> · 첫 번째 트렌드 발표{' '}
+          <span className="text-white/50">(Vol.{CURRENT.vol})</span>
+        </p>
+
+        <ul className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
+          {CHANNELS.map((c) => (
+            <li key={c.id}>
+              <a
+                href={`#${c.id}`}
+                className="flex h-full flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-4 py-6 text-white transition hover:-translate-y-1 hover:bg-white/10"
+              >
+                <c.icon className="h-7 w-7 text-[#7cc4ef]" aria-hidden />
+                <span className="text-[10px] font-bold tracking-[0.3em] text-white/50">{c.en}</span>
+                <span className="text-lg font-black">{c.label}</span>
+                <span className="text-xs text-white/70">{c.desc}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <dl className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-white/70">
+          <div className="flex gap-2">
+            <dt className="text-white/45">주최</dt>
+            <dd>
+              <a href={HOST.href} target="_blank" rel="noopener noreferrer" className="underline-offset-4 hover:text-white hover:underline">
+                {HOST.name}
+              </a>
+            </dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-white/45">주관</dt>
+            <dd>{ORGANIZERS.join(' · ')}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-white/45">출판</dt>
+            <dd>{PUBLISHER}</dd>
+          </div>
+        </dl>
       </header>
 
-      {/* ── 2. 표지 + 핵심 포인트 ── */}
-      <section className="px-4 pb-16 pt-14" style={{ backgroundColor: '#91c7df' }}>
-        <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[1fr_1.1fr]">
+      {/* ── 2. 책 ── */}
+      <section id="book" className="scroll-mt-16 px-4 pb-16 pt-16" style={{ backgroundColor: '#91c7df' }}>
+        <div className="mx-auto max-w-5xl">
+          <SectionTitle en="BOOK" title={`${CURRENT.year} 트렌드 북`} />
+        </div>
+        <div className="mx-auto mt-10 grid max-w-5xl items-center gap-10 md:grid-cols-[1fr_1.1fr]">
           <div className="flex justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/book/cover.png"
-              alt={`${BOOK_TITLE} 표지`}
+              alt={`${CURRENT.title} 표지`}
               width={206}
               height={296}
               className="w-64 drop-shadow-2xl transition duration-500 hover:-translate-y-2 sm:w-80"
@@ -138,20 +269,18 @@ export default function BookPage() {
 
           <div className="text-center md:text-left">
             <p className="text-sm font-semibold text-[#1b2b69]/70">{PUBLISHER}</p>
-            <h2 className="mt-1 text-3xl font-black" style={{ color: NAVY }}>
-              {BOOK_TITLE}
-            </h2>
-            <p className="mt-3 text-sm text-slate-700">
-              {AUTHORS.join(' · ')} 지음
-            </p>
+            <h3 className="mt-1 text-3xl font-black" style={{ color: NAVY }}>
+              {CURRENT.title}
+            </h3>
+            <p className="mt-3 text-sm text-slate-700">{CURRENT.authors.join(' · ')} 지음</p>
             <dl className="mt-5 inline-grid grid-cols-2 gap-x-8 gap-y-1 rounded-2xl bg-white/50 px-6 py-4 text-left text-sm">
               <dt className="text-slate-500">쪽수</dt>
-              <dd className="font-semibold">520쪽</dd>
+              <dd className="font-semibold">{CURRENT.pages}쪽</dd>
               <dt className="text-slate-500">정가</dt>
-              <dd className="font-semibold">28,000원</dd>
+              <dd className="font-semibold">{CURRENT.price}</dd>
             </dl>
             <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
-              <BuyButton />
+              <ExternalButton href={CURRENT.bookUrl}>책 구매하러 가기</ExternalButton>
               <a
                 href="#intro"
                 className="inline-flex items-center rounded-full bg-white px-8 py-3.5 text-base font-bold shadow-md transition hover:-translate-y-0.5"
@@ -176,7 +305,7 @@ export default function BookPage() {
         </ul>
       </section>
 
-      {/* ── 3. 다리오 아모데이 인용 + 소개글 ── */}
+      {/* ── 2-1. 다리오 아모데이 인용 + 소개글 ── */}
       <section id="intro" className="scroll-mt-16 px-4 py-20" style={{ backgroundColor: '#dff0f7' }}>
         <div className="mx-auto max-w-2xl">
           <blockquote className="text-center">
@@ -205,7 +334,7 @@ export default function BookPage() {
               AI 발전에 있어 가장 커다란 포인트로 지목하고 있다.
             </p>
             <p>
-              바로 이 시점에 출간되는 『{BOOK_TITLE}』은 이 질문에 답하기 위해 미래를 관통하는
+              바로 이 시점에 출간되는 『{CURRENT.title}』은 이 질문에 답하기 위해 미래를 관통하는
               10가지 핵심 키워드, ‘AI PARADIGM’을 제시한다. 에이전틱 AI부터 피지컬 AI, 관계 미디어,
               초개인화, 생성형 엔진 최적화, 30분 경제까지, AI가 바꾸는 시장의 구조와 비즈니스의
               새로운 기회를 입체적으로 분석한다.
@@ -218,7 +347,7 @@ export default function BookPage() {
         </div>
       </section>
 
-      {/* ── 4. AI가 먼저 고르는 시대 + 통계 ── */}
+      {/* ── 2-2. AI가 먼저 고르는 시대 + 통계 ── */}
       <section className="px-4 py-20" style={{ backgroundColor: '#d7e6ed' }}>
         <div className="mx-auto max-w-3xl text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -264,20 +393,14 @@ export default function BookPage() {
         </div>
       </section>
 
-      {/* ── 5. 10개 키워드 ── */}
+      {/* ── 2-3. 10개 키워드 ── */}
       <section id="keywords" className="scroll-mt-16 px-4 py-20" style={{ backgroundColor: '#eef5f9' }}>
         <div className="mx-auto max-w-4xl">
-          <div className="text-center">
-            <p className="text-sm font-bold tracking-[0.4em]">
-              <GradientText>AI PARADIGM</GradientText>
-            </p>
-            <h2 className="mt-2 text-2xl font-black sm:text-3xl" style={{ color: NAVY }}>
-              2027년을 읽는 10개 키워드
-            </h2>
-            <p className="mt-4 leading-8 text-slate-700" style={{ fontFamily: SERIF }}>
-              열 개의 머리글자를 이으면 하나의 단어(PARADIGM)가 됩니다.
-            </p>
-          </div>
+          <SectionTitle
+            en="AI PARADIGM"
+            title={`${CURRENT.year}년을 읽는 10개 키워드`}
+            desc="열 개의 머리글자를 이으면 하나의 단어(PARADIGM)가 됩니다."
+          />
 
           <ol className="mt-10 grid gap-3 sm:grid-cols-2">
             {KEYWORDS.map((k, i) => (
@@ -305,7 +428,7 @@ export default function BookPage() {
         </div>
       </section>
 
-      {/* ── 6. 실행법 ── */}
+      {/* ── 2-4. 실행법 ── */}
       <section className="px-4 py-20" style={{ backgroundColor: '#d7e6ed' }}>
         <div className="mx-auto max-w-3xl text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -336,53 +459,247 @@ export default function BookPage() {
               </li>
             ))}
           </ul>
-        </div>
-      </section>
 
-      {/* ── 7. 마무리 + 구매 ── */}
-      <section id="buy" className="scroll-mt-16 px-4 py-20 text-center" style={{ backgroundColor: '#9ccfe2' }}>
-        <p className="text-xl leading-relaxed text-slate-800 sm:text-2xl" style={{ fontFamily: SERIF }}>
-          “더 크게 말하는 브랜드가 아니라
-          <br />
-          더 정확하게 설명하는 브랜드가 선택받습니다.”
-        </p>
-        <p className="mt-4 text-2xl font-black sm:text-3xl" style={{ color: NAVY }}>
-          『{BOOK_TITLE}』
-        </p>
-
-        <div className="mx-auto mt-12 max-w-xl rounded-3xl bg-white/60 p-8 shadow-sm">
-          <p className="text-sm text-slate-600">
-            {AUTHORS.join(' · ')} 지음 | 520쪽 | 28,000원
+          <p className="mt-16 text-xl leading-relaxed text-slate-800 sm:text-2xl" style={{ fontFamily: SERIF }}>
+            “더 크게 말하는 브랜드가 아니라
+            <br />
+            더 정확하게 설명하는 브랜드가 선택받습니다.”
           </p>
-          <p className="mt-1 text-xs text-slate-500">교보문고에서 바로 구매하실 수 있습니다.</p>
-          <div className="mt-6">
-            <BuyButton />
+          <p className="mt-4 text-2xl font-black sm:text-3xl" style={{ color: NAVY }}>
+            『{CURRENT.title}』
+          </p>
+          <div className="mt-8">
+            <ExternalButton href={CURRENT.bookUrl}>책 구매하러 가기</ExternalButton>
           </div>
         </div>
-
-        <p className="mt-12 text-lg font-bold text-slate-800">{PUBLISHER}</p>
       </section>
 
-      {/* ── 8. 원본 상세 이미지 ── */}
-      <section className="px-4 py-12" style={{ backgroundColor: NAVY }}>
-        <details className="mx-auto max-w-md text-center">
-          <summary className="cursor-pointer list-none text-sm font-bold text-white/80 hover:text-white">
-            상세페이지 원본 이미지 보기 ▾
-          </summary>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/book/landing-original.jpg"
-            alt={`${BOOK_TITLE} 상세페이지`}
-            width={366}
-            height={2000}
-            loading="lazy"
-            className="mx-auto mt-6 w-full max-w-[366px] rounded-lg"
-          />
-        </details>
-        <div className="mt-10 text-center">
-          <BuyButton dark />
+      {/* ── 3. 포럼 ── */}
+      <section id="forum" className="scroll-mt-16 px-4 py-20" style={{ backgroundColor: NAVY }}>
+        <div className="mx-auto max-w-4xl text-center text-white">
+          <p className="text-sm font-bold tracking-[0.4em]">
+            <GradientText>FORUM</GradientText>
+          </p>
+          <h2 className="mt-2 text-2xl font-black sm:text-4xl">
+            {SERIES_NAME} {CURRENT.year} 포럼
+          </h2>
+          <p className="mx-auto mt-5 max-w-xl leading-8 text-white/80" style={{ fontFamily: SERIF }}>
+            책에 담은 트렌드를 저자와 전문가가 직접 나누는 자리입니다.
+            <br />
+            포럼 일정과 프로그램, 참가 신청은 포럼 페이지에서 확인하세요.
+          </p>
+          <div className="mt-8">
+            <ExternalButton href={CURRENT.forumUrl} dark>
+              {CURRENT.year} 포럼 바로가기
+            </ExternalButton>
+          </div>
         </div>
       </section>
+
+      {/* ── 4. 오디오북 · 숏폼 ── */}
+      <section className="px-4 py-20" style={{ backgroundColor: '#dff0f7' }}>
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
+          {[
+            {
+              id: 'audiobook',
+              en: 'AUDIOBOOK',
+              title: '오디오북',
+              icon: Headphones,
+              desc: '이동 중에도, 일하면서도. 팟빵에서 귀로 듣는 AI 미디어 커머스 트렌드.',
+              href: AUDIOBOOK_URL,
+              cta: '팟빵에서 듣기',
+            },
+            {
+              id: 'shorts',
+              en: 'SHORTS',
+              title: '숏폼',
+              icon: Clapperboard,
+              desc: '핵심만 짧고 빠르게. 명지대학교 AI 이커머스학과 유튜브 숏폼으로 만나 보세요.',
+              href: SHORTS_URL,
+              cta: '유튜브 숏폼 보기',
+            },
+          ].map((m) => (
+            <article
+              key={m.id}
+              id={m.id}
+              className="flex scroll-mt-20 flex-col items-center rounded-3xl bg-white px-8 py-12 text-center shadow-sm"
+            >
+              <span
+                className="flex h-16 w-16 items-center justify-center rounded-2xl text-white"
+                style={{ backgroundImage: CHIP_GRADIENT }}
+              >
+                <m.icon className="h-8 w-8" aria-hidden />
+              </span>
+              <p className="mt-5 text-xs font-bold tracking-[0.4em]">
+                <GradientText>{m.en}</GradientText>
+              </p>
+              <h2 className="mt-1 text-2xl font-black" style={{ color: NAVY }}>
+                {m.title}
+              </h2>
+              <p className="mt-3 flex-1 leading-7 text-slate-600" style={{ fontFamily: SERIF }}>
+                {m.desc}
+              </p>
+              <div className="mt-6">
+                <ExternalButton href={m.href}>{m.cta}</ExternalButton>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 5. 시리즈 연표 ── */}
+      <section className="px-4 py-20" style={{ backgroundColor: '#eef5f9' }}>
+        <div className="mx-auto max-w-4xl">
+          <SectionTitle
+            en="ANNUAL SERIES"
+            title="매년 이어지는 트렌드 발표"
+            desc={
+              <>
+                {SERIES_NAME}는 해마다 새로운 키워드로 발표됩니다.
+                <br />
+                {CURRENT.year}년은 그 첫 번째 이야기입니다.
+              </>
+            }
+          />
+          <ol className="mt-10 grid gap-4 sm:grid-cols-3">
+            {EDITIONS.map((e) => (
+              <li key={e.year} className="rounded-2xl bg-white p-6 text-center shadow-sm ring-2 ring-[#6f8fdc]/40">
+                <p className="text-xs font-bold text-slate-400">Vol.{e.vol}</p>
+                <p className="mt-1 text-3xl font-black">
+                  <GradientText>{e.year}</GradientText>
+                </p>
+                <p className="mt-2 text-sm font-semibold" style={{ color: NAVY }}>
+                  발간 · 포럼 개최
+                </p>
+              </li>
+            ))}
+            {[1, 2].map((n) => (
+              <li
+                key={n}
+                className="rounded-2xl border-2 border-dashed border-slate-300 p-6 text-center text-slate-400"
+              >
+                <p className="text-xs font-bold">Vol.{CURRENT.vol + n}</p>
+                <p className="mt-1 text-3xl font-black">{CURRENT.year + n}</p>
+                <p className="mt-2 text-sm font-semibold">{n === 1 ? '준비 중' : '계속됩니다'}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ── 6. 참여 기관 · 전문가 모집 ── */}
+      <section id="join" className="scroll-mt-16 px-4 py-20" style={{ backgroundColor: '#91c7df' }}>
+        <div className="mx-auto max-w-4xl">
+          <SectionTitle
+            en="JOIN US"
+            title={`${SERIES_NAME}를 함께 만들 기관과 전문가를 모집합니다`}
+            desc={
+              <>
+                {SERIES_NAME}는 매년 현장의 데이터와 사례로 함께 조사하고 발간합니다.
+                <br />
+                다음 트렌드를 함께 읽고 기록할 기관과 전문가를 기다립니다.
+              </>
+            }
+          />
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {RECRUIT_TARGETS.map((t) => (
+              <div key={t.title} className="rounded-3xl bg-white p-8 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <t.icon className="h-6 w-6 text-[#6f8fdc]" aria-hidden />
+                  <h3 className="text-xl font-black" style={{ color: NAVY }}>
+                    {t.title}
+                  </h3>
+                </div>
+                <ul className="mt-4 space-y-2 text-slate-700">
+                  {t.items.map((it) => (
+                    <li key={it} className="flex gap-2">
+                      <span className="text-[#e5627f]" aria-hidden>•</span>
+                      {it}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-3xl bg-white/60 p-8 text-center">
+            <p className="text-sm font-bold text-slate-600">참여 방식</p>
+            <ul className="mt-4 flex flex-wrap justify-center gap-3">
+              {RECRUIT_ROLES.map((r) => (
+                <li
+                  key={r}
+                  className="rounded-full bg-white px-5 py-2 text-sm font-bold shadow-sm"
+                  style={{ color: NAVY }}
+                >
+                  {r}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 text-sm text-slate-600">
+              참여 문의는 주최 기관인 {HOST.name}로 연락해 주세요.
+            </p>
+            <div className="mt-5">
+              <ExternalButton href={HOST.href}>참여 문의하기</ExternalButton>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. 푸터 ── */}
+      <footer className="px-4 py-14 text-white/75" style={{ backgroundColor: NAVY }}>
+        <div className="mx-auto max-w-5xl">
+          <p className="text-lg font-black text-white">{SERIES_NAME}</p>
+          <dl className="mt-5 grid gap-2 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-white/45">주최</dt>
+              <dd>
+                <a href={HOST.href} target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">
+                  {HOST.name}
+                </a>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-white/45">주관</dt>
+              <dd>{ORGANIZERS.join(' · ')}</dd>
+            </div>
+            <div>
+              <dt className="text-white/45">출판</dt>
+              <dd>{PUBLISHER}</dd>
+            </div>
+          </dl>
+          <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            {[
+              { label: '책 구매', href: CURRENT.bookUrl },
+              { label: `${CURRENT.year} 포럼`, href: CURRENT.forumUrl },
+              { label: '오디오북', href: AUDIOBOOK_URL },
+              { label: '숏폼', href: SHORTS_URL },
+              { label: HOST.name, href: HOST.href },
+            ].map((l) => (
+              <li key={l.label}>
+                <a href={l.href} target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">
+                  {l.label} ↗
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <details className="mt-10 border-t border-white/10 pt-6">
+            <summary className="cursor-pointer list-none text-sm font-bold text-white/60 hover:text-white">
+              {CURRENT.year} 상세페이지 원본 이미지 보기 ▾
+            </summary>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/book/landing-original.jpg"
+              alt={`${CURRENT.title} 상세페이지`}
+              width={366}
+              height={2000}
+              loading="lazy"
+              className="mx-auto mt-6 w-full max-w-[366px] rounded-lg"
+            />
+          </details>
+        </div>
+      </footer>
     </main>
   )
 }
