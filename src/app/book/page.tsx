@@ -20,7 +20,11 @@ export const metadata: Metadata = {
 const SERIES_NAME = 'AI 미디어 커머스 트렌드'
 
 const HOST = { name: '명지대학교 AI 이커머스학과', href: 'https://aiecommerce.re.kr/' }
-const ORGANIZERS = ['AI에이전트협회', '한국쇼핑몰협회']
+/** 주관 기관. href 가 비어 있으면 바로가기 버튼을 표시하지 않습니다. */
+const ORGANIZERS = [
+  { name: 'AI에이전트협회', href: '' },
+  { name: '한국쇼핑몰협회', href: '' },
+]
 const PUBLISHER = '나비의활주로'
 
 /**
@@ -256,7 +260,7 @@ export default function TrendHomePage() {
           </div>
           <div className="flex gap-2">
             <dt className="text-white/45">주관</dt>
-            <dd>{ORGANIZERS.join(' · ')}</dd>
+            <dd>{ORGANIZERS.map((o) => o.name).join(' · ')}</dd>
           </div>
           <div className="flex gap-2">
             <dt className="text-white/45">출판</dt>
@@ -287,7 +291,7 @@ export default function TrendHomePage() {
             <h3 className="mt-1 text-3xl font-black" style={{ color: NAVY }}>
               {CURRENT.title}
             </h3>
-            <p className="mt-3 text-sm text-slate-700">{CURRENT.authors.join(' · ')} 지음</p>
+            <p className="mt-3 text-sm text-slate-700">{CURRENT.authors.join('·')} 지음</p>
             <dl className="mt-5 inline-grid grid-cols-2 gap-x-8 gap-y-1 rounded-2xl bg-white/50 px-6 py-4 text-left text-sm">
               <dt className="text-slate-500">쪽수</dt>
               <dd className="font-semibold">{CURRENT.pages}쪽</dd>
@@ -651,39 +655,35 @@ export default function TrendHomePage() {
       <footer className="px-4 py-14 text-white/75" style={{ backgroundColor: NAVY }}>
         <div className="mx-auto max-w-5xl">
           <p className="text-lg font-black text-white">{SERIES_NAME}</p>
-          <dl className="mt-5 grid gap-2 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-white/45">주최</dt>
-              <dd>
-                <a href={HOST.href} target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">
-                  {HOST.name}
-                </a>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-white/45">주관</dt>
-              <dd>{ORGANIZERS.join(' · ')}</dd>
-            </div>
-            <div>
-              <dt className="text-white/45">출판</dt>
-              <dd>{PUBLISHER}</dd>
-            </div>
-          </dl>
-          <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          <dl className="mt-6 space-y-4 text-sm">
             {[
-              { label: '책 구매', href: CURRENT.bookUrl },
-              { label: `${CURRENT.year} 포럼`, href: CURRENT.forumUrl },
-              { label: '오디오북', href: AUDIOBOOK_URL },
-              { label: '숏폼', href: SHORTS_URL },
-              { label: HOST.name, href: HOST.href },
-            ].map((l) => (
-              <li key={l.label}>
-                <a href={l.href} target="_blank" rel="noopener noreferrer" className="hover:text-white hover:underline">
-                  {l.label} ↗
-                </a>
-              </li>
+              { label: '주최', orgs: [HOST] },
+              { label: '주관', orgs: ORGANIZERS },
+              { label: '출판', orgs: [{ name: PUBLISHER, href: '' }] },
+            ].map((row) => (
+              <div key={row.label} className="flex gap-6">
+                <dt className="w-10 shrink-0 leading-[30px] text-white/45">{row.label}</dt>
+                <dd className="flex flex-wrap gap-x-8 gap-y-3">
+                  {row.orgs.map((o) => (
+                    <span key={o.name} className="flex min-h-[30px] items-center gap-3">
+                      <span className="font-semibold text-white">{o.name}</span>
+                      {o.href && (
+                        <a
+                          href={o.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full border border-white/30 px-3 py-1 text-xs font-bold text-white transition hover:bg-white hover:text-[#1b2b69]"
+                        >
+                          바로가기
+                          <ArrowUpRight className="h-3 w-3" aria-hidden />
+                        </a>
+                      )}
+                    </span>
+                  ))}
+                </dd>
+              </div>
             ))}
-          </ul>
+          </dl>
         </div>
       </footer>
     </main>
