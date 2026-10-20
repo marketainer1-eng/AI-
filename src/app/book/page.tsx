@@ -39,6 +39,8 @@ const EDITIONS = [
     authors: ['고아라', '김한준', '장도균', '정유진', '백종우', '배현진'],
     pages: 520,
     price: '28,000원',
+    eventDate: '2026.10.24 (토)',
+    eventDesc: '1회 강남교보문고 발간·포럼 개최',
     bookUrl: 'https://product.kyobobook.co.kr/detail/S000221698428',
     forumUrl: 'https://ai-trend-2027.netlify.app/',
   },
@@ -565,9 +567,10 @@ export default function TrendHomePage() {
                 <p className="mt-1 text-3xl font-black">
                   <GradientText>{e.year}</GradientText>
                 </p>
-                <p className="mt-2 text-sm font-semibold" style={{ color: NAVY }}>
-                  발간 · 포럼 개최
+                <p className="mt-3 text-base font-bold tabular-nums" style={{ color: NAVY }}>
+                  {e.eventDate}
                 </p>
+                <p className="mt-1 text-sm font-semibold text-slate-600">{e.eventDesc}</p>
               </li>
             ))}
             {[1, 2].map((n) => (
