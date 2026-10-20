@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'AI 미디어 커머스 트렌드 | 매년 발표하는 AI 커머스 트렌드',
+  title: 'AI 미디어 커머스 트렌드 | 매년 발표하는 AI 미디어 커머스 트렌드 리포트',
   description:
     'AI가 먼저 읽고 판단하는 시대에, 내 브랜드는 어떻게 선택받을 것인가? 명지대학교 AI 이커머스학과가 매년 발표하는 AI 미디어 커머스 트렌드. 책 · 포럼 · 오디오북 · 숏폼.',
 }
@@ -217,20 +217,11 @@ export default function TrendHomePage() {
       {/* ── 1. 시리즈 히어로 ── */}
       <header id="top" className="px-4 pb-16 pt-14 text-center sm:pt-20" style={{ backgroundColor: NAVY }}>
         <p className="inline-block rounded-full border border-white/25 px-4 py-1 text-xs font-semibold tracking-widest text-white/80">
-          매년 발표하는 AI 커머스 트렌드 리포트
+          매년 발표하는 AI 미디어 커머스 트렌드 리포트
         </p>
-        <p className="mt-6 text-lg leading-relaxed text-white/90 sm:text-2xl" style={{ fontFamily: SERIF }}>
-          AI가 먼저 읽고 판단하는 시대에,
-          <br />
-          내 브랜드는 어떻게 선택받을 것인가?
-        </p>
-        <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-6xl">
+        <h1 className="mt-6 text-4xl font-black tracking-tight sm:text-6xl">
           <GradientText>{SERIES_NAME}</GradientText>
         </h1>
-        <p className="mt-4 text-white/80">
-          <span className="font-bold text-white">{CURRENT.year}</span> · 첫 번째 트렌드 발표{' '}
-          <span className="text-white/50">(Vol.{CURRENT.vol})</span>
-        </p>
 
         <ul className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4">
           {CHANNELS.map((c) => (
