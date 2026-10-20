@@ -11,11 +11,7 @@ const BOOK_TITLE = 'AI 미디어 커머스 트렌드 2027'
 const AUTHORS = ['고아라', '김창준', '장도균', '정유진', '백종우', '배정진']
 const PUBLISHER = '나비의활주로'
 
-const STORES = [
-  { name: '교보문고', href: `https://search.kyobobook.co.kr/search?keyword=${encodeURIComponent(BOOK_TITLE)}` },
-  { name: '예스24', href: `https://www.yes24.com/Product/Search?query=${encodeURIComponent(BOOK_TITLE)}` },
-  { name: '알라딘', href: `https://www.aladin.co.kr/search/wsearchresult.aspx?SearchWord=${encodeURIComponent(BOOK_TITLE)}` },
-]
+const BUY_URL = 'https://product.kyobobook.co.kr/detail/S000221698428'
 
 const HIGHLIGHTS = [
   '고객의 클릭이 줄어드는 환경에서 기업의 수익을 보장하는 법',
@@ -71,26 +67,20 @@ function Stars() {
   )
 }
 
-function StoreButtons({ dark = false }: { dark?: boolean }) {
+function BuyButton({ dark = false }: { dark?: boolean }) {
   return (
-    <div className="flex flex-wrap justify-center gap-3">
-      {STORES.map((s) => (
-        <a
-          key={s.name}
-          href={s.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={
-            dark
-              ? 'rounded-full bg-white px-6 py-3 text-sm font-bold transition hover:-translate-y-0.5 hover:shadow-lg'
-              : 'rounded-full px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:shadow-lg'
-          }
-          style={dark ? { color: NAVY } : { backgroundColor: NAVY }}
-        >
-          {s.name}에서 구매
-        </a>
-      ))}
-    </div>
+    <a
+      href={BUY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-base font-bold shadow-md transition hover:-translate-y-0.5 hover:shadow-lg ${
+        dark ? 'bg-white' : 'text-white'
+      }`}
+      style={dark ? { color: NAVY } : { backgroundColor: NAVY }}
+    >
+      책 구매하러 가기
+      <span aria-hidden>→</span>
+    </a>
   )
 }
 
@@ -108,7 +98,9 @@ export default function BookPage() {
             <a href="#intro" className="hidden hover:text-white sm:inline">책 소개</a>
             <a href="#keywords" className="hidden hover:text-white sm:inline">10개 키워드</a>
             <a
-              href="#buy"
+              href={BUY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-full bg-white px-4 py-1.5 font-bold"
               style={{ color: NAVY }}
             >
@@ -159,16 +151,10 @@ export default function BookPage() {
               <dd className="font-semibold">28,000원</dd>
             </dl>
             <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-start">
-              <a
-                href="#buy"
-                className="rounded-full px-7 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5"
-                style={{ backgroundColor: NAVY }}
-              >
-                지금 구매하기
-              </a>
+              <BuyButton />
               <a
                 href="#intro"
-                className="rounded-full bg-white px-7 py-3 text-sm font-bold shadow-md transition hover:-translate-y-0.5"
+                className="inline-flex items-center rounded-full bg-white px-8 py-3.5 text-base font-bold shadow-md transition hover:-translate-y-0.5"
                 style={{ color: NAVY }}
               >
                 책 소개 보기
@@ -368,8 +354,9 @@ export default function BookPage() {
           <p className="text-sm text-slate-600">
             {AUTHORS.join(' · ')} 지음 | 520쪽 | 28,000원
           </p>
+          <p className="mt-1 text-xs text-slate-500">교보문고에서 바로 구매하실 수 있습니다.</p>
           <div className="mt-6">
-            <StoreButtons />
+            <BuyButton />
           </div>
         </div>
 
@@ -392,8 +379,8 @@ export default function BookPage() {
             className="mx-auto mt-6 w-full max-w-[366px] rounded-lg"
           />
         </details>
-        <div className="mt-10">
-          <StoreButtons dark />
+        <div className="mt-10 text-center">
+          <BuyButton dark />
         </div>
       </section>
     </main>
