@@ -5,6 +5,7 @@ import {
   Building2,
   Clapperboard,
   Headphones,
+  Mail,
   Presentation,
   UserPlus,
 } from 'lucide-react'
@@ -43,11 +44,13 @@ const CURRENT = EDITIONS[0]
 const AUDIOBOOK_URL = 'https://talk.podbbang.com/channels/1794192'
 const SHORTS_URL = 'https://www.youtube.com/@AI%EC%9D%B4%EC%BB%A4%EB%A8%B8%EC%8A%A4%ED%95%99%EA%B3%BC/shorts'
 
+const CONTACT_EMAIL = 'aiecommerce202509@gmail.com'
+
 const CHANNELS = [
-  { id: 'book', label: '책', en: 'BOOK', icon: BookOpen, desc: `『${CURRENT.title}』` },
-  { id: 'forum', label: '포럼', en: 'FORUM', icon: Presentation, desc: `${CURRENT.year} 트렌드 포럼` },
-  { id: 'audiobook', label: '오디오북', en: 'AUDIOBOOK', icon: Headphones, desc: '팟빵에서 듣기' },
-  { id: 'shorts', label: '숏폼', en: 'SHORTS', icon: Clapperboard, desc: '유튜브 숏폼으로 보기' },
+  { id: 'book', label: '책', en: 'BOOK', icon: BookOpen, desc: `『${CURRENT.title}』`, href: '#book' },
+  { id: 'forum', label: '포럼', en: 'FORUM', icon: Presentation, desc: `${CURRENT.year} 트렌드 포럼`, href: CURRENT.forumUrl },
+  { id: 'audiobook', label: '오디오북', en: 'AUDIOBOOK', icon: Headphones, desc: '팟빵에서 듣기', href: AUDIOBOOK_URL },
+  { id: 'shorts', label: '숏폼', en: 'SHORTS', icon: Clapperboard, desc: '유튜브 숏폼으로 보기', href: SHORTS_URL },
 ]
 
 // ── 책 내용 ──────────────────────────────────────────────────
@@ -83,7 +86,13 @@ const RECRUIT_TARGETS = [
   {
     icon: Building2,
     title: '참여 기관',
-    items: ['기업 · 브랜드 · 플랫폼', '협회 · 단체 · 창업/소상공인 지원기관', '대학 · 연구기관'],
+    items: [
+      '기업 · 브랜드',
+      'AI · 미디어 · 커머스 · 거버넌스 관련 플랫폼',
+      '리서치 · 조사 기관',
+      '협회 · 단체 · 창업/소상공인 지원기관',
+      '대학 · 연구기관',
+    ],
   },
   {
     icon: UserPlus,
@@ -218,7 +227,8 @@ export default function TrendHomePage() {
           {CHANNELS.map((c) => (
             <li key={c.id}>
               <a
-                href={`#${c.id}`}
+                href={c.href}
+                {...(c.href.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 className="flex h-full flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-4 py-6 text-white transition hover:-translate-y-1 hover:bg-white/10"
               >
                 <c.icon className="h-7 w-7 text-[#7cc4ef]" aria-hidden />
@@ -636,11 +646,19 @@ export default function TrendHomePage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 text-sm text-slate-600">
-              참여 문의는 주최 기관인 {HOST.name}로 연락해 주세요.
+            <p className="mt-6 text-sm text-slate-600">참여 문의는 아래 이메일로 보내 주세요.</p>
+            <p className="mt-2 select-all text-lg font-bold" style={{ color: NAVY }}>
+              {CONTACT_EMAIL}
             </p>
             <div className="mt-5">
-              <ExternalButton href={HOST.href}>참여 문의하기</ExternalButton>
+              <a
+                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`[${SERIES_NAME}] 참여 문의`)}`}
+                className="inline-flex items-center gap-2 rounded-full px-8 py-3.5 text-base font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+                style={{ backgroundColor: NAVY }}
+              >
+                <Mail className="h-4 w-4" aria-hidden />
+                이메일로 참여 문의하기
+              </a>
             </div>
           </div>
         </div>
@@ -683,21 +701,6 @@ export default function TrendHomePage() {
               </li>
             ))}
           </ul>
-
-          <details className="mt-10 border-t border-white/10 pt-6">
-            <summary className="cursor-pointer list-none text-sm font-bold text-white/60 hover:text-white">
-              {CURRENT.year} 상세페이지 원본 이미지 보기 ▾
-            </summary>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/book/landing-original.jpg"
-              alt={`${CURRENT.title} 상세페이지`}
-              width={366}
-              height={2000}
-              loading="lazy"
-              className="mx-auto mt-6 w-full max-w-[366px] rounded-lg"
-            />
-          </details>
         </div>
       </footer>
     </main>
