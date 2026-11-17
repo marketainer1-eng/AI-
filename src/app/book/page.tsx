@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'AI 미디어 커머스 트렌드 | 매년 발표하는 AI 미디어 커머스 트렌드 리포트',
+  title: 'AI 미디어 커머스 연구소',
   description:
     'AI가 먼저 읽고 판단하는 시대에, 내 브랜드는 어떻게 선택받을 것인가? 명지대학교 AI 이커머스학과가 매년 발표하는 AI 미디어 커머스 트렌드. 책 · 포럼 · 오디오북 · 숏폼.',
 }
