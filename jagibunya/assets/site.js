@@ -26,7 +26,7 @@ window.SITE = {
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
   window.esc = esc;
 
-  var logo = '<svg viewBox="0 0 42 42" aria-hidden="true"><path d="M8 4h9v19a4 4 0 0 0 8 0V4h9v19a13 13 0 0 1-26 0z" fill="var(--accent)"/><rect x="8" y="4" width="9" height="6" fill="var(--ink)"/><rect x="25" y="4" width="9" height="6" fill="var(--ink)"/></svg>';
+  var logo = '<img src="assets/logo-mark.png" alt="자기분야" width="520" height="177">';
   var links = MENU.map(function (m) {
     return '<a href="' + m[0] + '"' + (m[0] === page ? ' aria-current="page"' : "") + ">" + m[1] + "</a>";
   }).join("");
@@ -36,7 +36,7 @@ window.SITE = {
     header.className = "site-header";
     header.innerHTML =
       '<div class="wrap bar">' +
-        '<a class="brand" href="index.html" aria-label="자기분야 홈">' + logo + "<span>자기분야</span></a>" +
+        '<a class="brand" href="index.html" aria-label="자기분야 홈">' + logo + "</a>" +
         '<nav class="gnb" aria-label="주 메뉴">' + links + "</nav>" +
         '<button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="메뉴 열기">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>' +
@@ -58,7 +58,7 @@ window.SITE = {
     footer.className = "site-footer";
     footer.innerHTML =
       '<div class="wrap">' +
-        '<div class="top"><a class="brand" href="index.html">' + logo + "<span>자기분야</span></a>" +
+        '<div class="top"><div><a class="brand" href="index.html">' + logo + '</a><div class="slogan">분야와 분야가 만나는 곳</div></div>' +
           '<nav class="fnav" aria-label="사이트 메뉴">' + MENU.map(function (m) { return '<a href="' + m[0] + '">' + m[1] + "</a>"; }).join("") +
           '<a class="ext" href="' + S.newsUrl + '" target="_blank" rel="noopener">자기분야 뉴스</a></nav></div>' +
         '<div class="legal"><a href="privacy.html">개인정보처리방침</a></div>' +
