@@ -28,7 +28,6 @@ window.SITE = {
   var links = MENU.map(function (m) {
     return '<a href="' + m[0] + '"' + (m[0] === page ? ' aria-current="page"' : "") + ">" + m[1] + "</a>";
   }).join("");
-  var newsBtn = '<a class="btn sm primary ext" href="' + S.newsUrl + '" target="_blank" rel="noopener">자기분야 뉴스</a>';
 
   var header = document.getElementById("site-header");
   if (header) {
@@ -36,12 +35,11 @@ window.SITE = {
     header.innerHTML =
       '<div class="wrap bar">' +
         '<a class="brand" href="index.html" aria-label="자기분야 홈">' + logo + "<span>자기분야</span></a>" +
-        '<nav class="gnb" aria-label="주 메뉴">' + links + "</nav>" + newsBtn +
+        '<nav class="gnb" aria-label="주 메뉴">' + links + "</nav>" +
         '<button class="menu-btn" type="button" aria-expanded="false" aria-controls="mnav" aria-label="메뉴 열기">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>' +
       "</div>" +
-      '<nav class="mnav wrap" id="mnav" aria-label="모바일 메뉴" hidden>' + links +
-        '<a class="btn primary ext" href="' + S.newsUrl + '" target="_blank" rel="noopener">자기분야 뉴스</a></nav>';
+      '<nav class="mnav wrap" id="mnav" aria-label="모바일 메뉴" hidden>' + links + "</nav>";
     var btn = header.querySelector(".menu-btn");
     var mnav = header.querySelector("#mnav");
     btn.addEventListener("click", function () {
