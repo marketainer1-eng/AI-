@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>자기분야</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="자기분야 — 자기 분야에서 일하는 사람들의 뉴스. 크리에이터, 커머스, 전문가의 현장을 기록합니다.">
+<meta name="description" content="자기분야 — 한 분야를 오래 걸어온 전문가를 알리는 매체. 전문가 칼럼과 인터뷰를 싣습니다.">
 <meta property="og:site_name" content="자기분야">
 <meta property="og:title" content="자기분야">
-<meta property="og:description" content="자기 분야에서 일하는 사람들의 뉴스">
+<meta property="og:description" content="한 분야를 오래 걸어온 전문가를 알리는 매체">
 <meta property="og:url" content="http://jagibunya.news/">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: masthead → section nav → lead story with a ranked sidebar → "people of the field" interview strip → section desks → sponsor band → legal footer */
+/* Layout: masthead → section nav → lead story + ranked columns → "what 자기분야 is" band with the expert-to-brand flow → expert columns → interviews → desks → contributor CTA + newsletter → operator/sponsor band → legal footer */
 :root {
   --paper: #fbfbfd;
   --ink: #12152a;
@@ -167,10 +167,6 @@ aside.rank .t { font-weight: 600; font-size: 15px; line-height: 1.45; }
 
 /* Column + newsletter */
 .split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 40px; padding-block: 8px 48px; }
-.columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
-.col-item { display: grid; grid-template-columns: 48px 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
-.col-item .series { font-size: 12px; color: var(--accent); font-weight: 600; }
-.col-item .hl { font-size: 17px; line-height: 1.45; display: block; margin: 2px 0 4px; }
 .news {
   background: var(--accent); color: var(--on-accent); border-radius: 8px; padding: 28px;
   display: flex; flex-direction: column; gap: 14px; align-self: start;
@@ -204,12 +200,46 @@ footer dt { color: var(--ink-3); flex: none; }
 footer dd { margin: 0; }
 footer .copy { color: var(--ink-3); }
 
+/* About + flow */
+.about { background: var(--ink); color: var(--paper); }
+.about-in { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; padding-block: 52px; align-items: start; }
+.about .label { color: var(--thumb-b); }
+.about-copy { display: flex; flex-direction: column; gap: 16px; }
+.about-copy .hl { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.35; }
+.about-copy p { margin: 0; font-size: 16px; opacity: .82; max-width: 56ch; }
+.flow-title { display: block; font-size: 13px; font-weight: 600; letter-spacing: .06em; opacity: .7; margin-bottom: 14px; }
+.flow ol { list-style: none; margin: 0; padding: 0; counter-reset: s; display: flex; flex-direction: column; }
+.flow li { counter-increment: s; display: grid; grid-template-columns: 40px 1fr; column-gap: 14px; padding: 14px 0; border-top: 1px solid color-mix(in srgb, var(--paper) 18%, transparent); }
+.flow li::before { content: counter(s); grid-row: span 2; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 14px; border: 1.5px solid color-mix(in srgb, var(--paper) 45%, transparent); }
+.flow li b { font-size: 16px; }
+.flow li span { font-size: 14px; opacity: .72; }
+.flow li.here::before { background: var(--thumb-b); border-color: var(--thumb-b); color: var(--ink); }
+.flow li.here b { color: var(--thumb-b); }
+
+/* Column cards */
+.colsec { padding-block: 48px 44px; }
+.col-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; }
+.col-card { display: flex; flex-direction: column; gap: 8px; padding: 20px 0; border-top: 1px solid var(--line); }
+.col-card .career { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.col-card .career b { font-family: var(--f-display); font-size: 26px; font-weight: 800; color: var(--accent); margin-right: 2px; line-height: 1; }
+.col-card .hl { font-size: 19px; line-height: 1.45; }
+
+/* Join CTA */
+.join { border: 2px solid var(--ink); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.join .hl { margin: 0; font-size: 26px; line-height: 1.3; }
+.join p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px; font-weight: 500; }
+.checks li { display: flex; gap: 8px; }
+.checks li::before { content: "✓"; color: var(--accent); font-weight: 700; }
+.split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding-block: 8px 48px; }
+
 /* Mobile */
 @media (max-width: 960px) {
   .lead { grid-template-columns: minmax(0, 1fr); }
   .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .desks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .split { grid-template-columns: minmax(0, 1fr); }
+  .split, .about-in { grid-template-columns: minmax(0, 1fr); }
+  .col-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .mast .wrap { grid-template-columns: 1fr; justify-items: center; padding-block: 20px 16px; }
@@ -217,7 +247,7 @@ footer .copy { color: var(--ink-3); }
   .mast .right { display: none; }
   .search { display: none; }
   .util nav a.hide-sm { display: none; }
-  .related, .columns, .desks, .people-grid { grid-template-columns: minmax(0, 1fr); }
+  .related, .desks, .people-grid, .col-grid { grid-template-columns: minmax(0, 1fr); }
   .partners .wrap { grid-template-columns: 1fr; }
   .partner + .partner { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
   .lead-main .dek { font-size: 16px; }
@@ -233,9 +263,9 @@ footer .copy { color: var(--ink-3); }
   <div class="wrap">
     <span id="today">2026년 11월 18일 수요일</span>
     <nav aria-label="이용 메뉴">
-      <a href="#newsletter">뉴스레터</a>
+      <a href="#join">필진 참여</a>
+      <a href="#newsletter" class="hide-sm">뉴스레터</a>
       <a href="#tip" class="hide-sm">기사제보</a>
-      <a href="#partners" class="hide-sm">후원·제휴</a>
       <a href="#login">로그인</a>
     </nav>
   </div>
@@ -243,7 +273,7 @@ footer .copy { color: var(--ink-3); }
 
 <header class="mast">
   <div class="wrap">
-    <div class="left">자기 분야에서 일하는<br>사람들의 뉴스</div>
+    <div class="left">한 분야를 오래 걸어온<br>전문가를 알리는 매체</div>
     <a class="logo" href="#" aria-label="자기분야 홈">
       <span class="mark">
         <!-- 말굽자석: '자기(磁氣)'와 '자기(自己)'를 겹친 심볼 -->
@@ -257,8 +287,8 @@ footer .copy { color: var(--ink-3); }
       <span class="tag">JAGIBUNYA.NEWS</span>
     </a>
     <div class="right">
-      <a class="btn" href="#tip">기사제보</a>
-      <a class="btn primary" href="#newsletter">구독하기</a>
+      <a class="btn" href="#newsletter">구독하기</a>
+      <a class="btn primary" href="#join">칼럼 기고하기</a>
     </div>
   </div>
 </header>
@@ -267,19 +297,18 @@ footer .copy { color: var(--ink-3); }
   <div class="wrap">
     <ul>
       <li><a href="#" aria-current="page">전체</a></li>
-      <li><a href="#desk-creator">크리에이터</a></li>
-      <li><a href="#desk-commerce">커머스</a></li>
+      <li><a href="#columns">전문가 칼럼</a></li>
       <li><a href="#people">자기분야 사람들</a></li>
-      <li><a href="#desk-industry">산업·정책</a></li>
-      <li><a href="#desk-startup">창업·브랜드</a></li>
-      <li><a href="#desk-tech">테크·AI</a></li>
+      <li><a href="#desk-books">전문가의 책</a></li>
+      <li><a href="#desk-know">현장 노하우</a></li>
+      <li><a href="#desk-commerce">크리에이터 커머스</a></li>
+      <li><a href="#desk-ai">AI·콘텐츠</a></li>
       <li><a href="#desk-assoc">협회소식</a></li>
-      <li><a href="#column">오피니언</a></li>
     </ul>
     <label class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <span class="sr-only">기사 검색</span>
-      <input id="q" type="search" placeholder="기사 검색">
+      <input id="q" type="search" placeholder="전문가·분야 검색">
     </label>
   </div>
 </nav>
@@ -288,10 +317,10 @@ footer .copy { color: var(--ink-3); }
   <div class="wrap">
     <span class="tag">주요</span>
     <div class="track" id="ticker">
-      <a href="#">라이브커머스 거래액, 연말 성수기 앞두고 증가세</a>
-      <a href="#" data-state="next">크리에이터커머스협회, 신규 회원사 대상 실무 교육 개설</a>
-      <a href="#" data-state="next">숏폼 기반 셀러 창업 늘어… "콘텐츠가 곧 매장"</a>
-      <a href="#" data-state="next">1인 브랜드 정산 투명성 가이드라인 논의 본격화</a>
+      <a href="#">크리에이터커머스협회, 2027년 1월 출범식 추진</a>
+      <a href="#" data-state="next">자기분야, 경력 15년 이상 전문가 필진 모집</a>
+      <a href="#" data-state="next">칼럼에서 전자책으로… 전문가 저자들의 첫 출간기</a>
+      <a href="#" data-state="next">AI 시대, 현장 경험이 콘텐츠의 차별점이 되다</a>
     </div>
   </div>
 </div>
@@ -299,30 +328,91 @@ footer .copy { color: var(--ink-3); }
 <main>
   <section class="wrap lead" aria-label="머리기사">
     <article class="lead-main">
-      <a href="#" class="thumb" style="--x:72%;--y:38%"><span class="cap">CREATOR × COMMERCE</span></a>
-      <span class="label">커버스토리 · 크리에이터 이코노미</span>
-      <a href="#"><h1 class="hl">팔로워 숫자보다 '자기 분야'가 먼저다<br>전문성으로 승부하는 크리에이터들</h1></a>
-      <p class="dek">요리사, 세무사, 목수, 트레이너. 자기 일의 노하우를 콘텐츠로 풀어내는 전문가형 크리에이터가 커머스 시장의 새 축으로 자리 잡고 있다. 이들이 신뢰를 매출로 바꾸는 방식을 들여다봤다.</p>
-      <span class="meta">자기분야 취재팀 · 2026.11.18 06:00</span>
+      <a href="#" class="thumb" style="--x:72%;--y:38%"><span class="cap">EXPERTISE × CONTENT</span></a>
+      <span class="label">커버스토리 · 전문가 브랜딩</span>
+      <a href="#"><h1 class="hl">AI가 대신 쓸 수 없는 글<br>현장 20년의 암묵지가 콘텐츠가 될 때</h1></a>
+      <p class="dek">누구나 AI로 글과 영상을 빠르게 만드는 시대, 남이 대신할 수 없는 것은 한 분야에서 오래 쌓은 경험이다. 지식은 깊지만 이를 글로 옮기는 데서 막혔던 전문가들이 칼럼으로 자기 이름을 알리기 시작했다.</p>
+      <span class="meta">자기분야 편집국 · 2026.11.18 06:00</span>
       <ul class="related">
-        <li><a href="#">전문가형 크리에이터가 말하는 '첫 1,000명'의 의미</a></li>
-        <li><a href="#">협찬과 리뷰 사이, 표시 의무 무엇이 바뀌나</a></li>
-        <li><a href="#">제품을 만드는 크리에이터, PB 상품 실패담</a></li>
-        <li><a href="#">데이터로 본 카테고리별 커머스 전환율</a></li>
+        <li><a href="#">경력 15년, 첫 칼럼의 주제를 고르는 법</a></li>
+        <li><a href="#">목차가 곧 브랜드다… 경험을 주제로 정리하기</a></li>
+        <li><a href="#">칼럼 열 편이 전자책 한 권이 되기까지</a></li>
+        <li><a href="#">'끼'보다 '지식'… 전문가형 크리에이터의 조건</a></li>
       </ul>
     </article>
 
-    <aside class="rank" aria-label="많이 본 뉴스">
-      <h2>많이 본 뉴스 <span class="meta">오늘</span></h2>
+    <aside class="rank" aria-label="많이 읽은 칼럼">
+      <h2>많이 읽은 칼럼 <span class="meta">이번 주</span></h2>
       <ol>
-        <li><a href="#"><span class="t">라이브방송 한 번에 재고 소진, 소상공인 셀러의 준비 체크리스트</span></a></li>
-        <li><a href="#"><span class="t">"알고리즘보다 단골" 구독형 커머스가 다시 뜨는 이유</span></a></li>
-        <li><a href="#"><span class="t">크리에이터 세무, 연말정산 전에 꼭 챙길 다섯 가지</span></a></li>
-        <li><a href="#"><span class="t">AI 상세페이지 도구, 써보니 어디까지 맡길 수 있나</span></a></li>
-        <li><a href="#"><span class="t">지역 특산물 셀러들, 숏폼으로 판로를 넓히다</span></a></li>
-        <li><a href="#"><span class="t">플랫폼 수수료 구조 한눈에 비교</span></a></li>
+        <li><a href="#"><span class="t">물류 현장 22년, 재고가 말해주는 회사의 건강 상태</span></a></li>
+        <li><a href="#"><span class="t">세무사가 본 1인 사업자의 가장 흔한 실수</span></a></li>
+        <li><a href="#"><span class="t">30년 차 제과 기능장, 레시피보다 중요한 것</span></a></li>
+        <li><a href="#"><span class="t">교사 출신 강사가 말하는 '설명 잘하는 법'</span></a></li>
+        <li><a href="#"><span class="t">현장 감독 18년, 안전은 매뉴얼 밖에 있다</span></a></li>
+        <li><a href="#"><span class="t">은퇴 후 두 번째 명함, 칼럼에서 시작했다</span></a></li>
       </ol>
     </aside>
+  </section>
+
+  <section class="about" aria-labelledby="about-h">
+    <div class="wrap about-in">
+      <div class="about-copy">
+        <span class="label">자기분야는</span>
+        <h2 id="about-h" class="hl">한 분야에서 오래 일한 사람의 지식에<br>이름을 붙여 세상에 알리는 언론입니다.</h2>
+        <p>자기분야가 말하는 크리에이터는 끼 있는 사람이 아니라, 그 사람만 가진 지식을 가진 전문가입니다. 자기분야는 전문가의 경험을 칼럼과 인터뷰로 싣고, 그 이름이 하나의 브랜드가 되도록 돕습니다.</p>
+      </div>
+      <div class="flow">
+        <span class="flow-title">전문가가 브랜드가 되는 과정</span>
+        <ol>
+          <li><b>주제와 목차 정리</b><span>현장 경험과 암묵지를 주제와 목차로 정리합니다.</span></li>
+          <li class="here"><b>자기분야에 칼럼 발행</b><span>정리한 경험을 칼럼으로 써서 자기분야와 SNS에 발행합니다.</span></li>
+          <li><b>전자책·책 출간</b><span>쌓인 칼럼을 묶어 전자책과 책으로 펴냅니다.</span></li>
+          <li><b>강의·뉴스레터·영상</b><span>강의와 채널로 활동 범위를 넓히고 커머스로 잇습니다.</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap colsec" id="columns" aria-labelledby="columns-h">
+    <div class="sec-head">
+      <div>
+        <h2 id="columns-h">전문가 칼럼</h2>
+        <p>각 분야 경력 15년 이상의 필진이 직접 씁니다.</p>
+      </div>
+      <a class="more" href="#">칼럼니스트 전체보기 →</a>
+    </div>
+    <div class="col-grid">
+      <a class="col-card" href="#">
+        <span class="career"><b>22</b>년 · 물류·유통</span>
+        <span class="hl">창고에 쌓인 재고는 결국 판단의 기록이다</span>
+        <span class="meta">연재 〈현장의 숫자〉 7화</span>
+      </a>
+      <a class="col-card" href="#">
+        <span class="career"><b>30</b>년 · 제과·제빵</span>
+        <span class="hl">손이 기억하는 온도, 글로 옮길 수 있을까</span>
+        <span class="meta">연재 〈오븐 앞에서〉 3화</span>
+      </a>
+      <a class="col-card" href="#">
+        <span class="career"><b>17</b>년 · 세무·회계</span>
+        <span class="hl">크리에이터 수익, 언제부터 사업자인가</span>
+        <span class="meta">연재 〈작은 사업의 장부〉 5화</span>
+      </a>
+      <a class="col-card" href="#">
+        <span class="career"><b>25</b>년 · 교육</span>
+        <span class="hl">좋은 강의는 목차에서 이미 결정된다</span>
+        <span class="meta">연재 〈가르치는 일〉 2화</span>
+      </a>
+      <a class="col-card" href="#">
+        <span class="career"><b>19</b>년 · 건축·인테리어</span>
+        <span class="hl">도면에 없는 것들이 집의 품질을 정한다</span>
+        <span class="meta">연재 〈현장 일지〉 4화</span>
+      </a>
+      <a class="col-card" href="#">
+        <span class="career"><b>16</b>년 · 영상 제작</span>
+        <span class="hl">전문가 채널이 첫 1년을 버티는 방법</span>
+        <span class="meta">연재 〈카메라 뒤에서〉 6화</span>
+      </a>
+    </div>
   </section>
 
   <section class="people" id="people" aria-labelledby="people-h">
@@ -330,116 +420,118 @@ footer .copy { color: var(--ink-3); }
       <div class="sec-head">
         <div>
           <h2 id="people-h">자기분야 사람들</h2>
-          <p>한 분야를 오래 파고든 사람들의 일 이야기를 인터뷰로 전합니다.</p>
+          <p>자기 분야를 오래 파고든 사람들을 인터뷰로 소개합니다.</p>
         </div>
         <a class="more" href="#">인터뷰 전체보기 →</a>
       </div>
       <div class="people-grid">
         <a class="person" href="#">
-          <span class="field">공예</span>
-          <blockquote>"작업 과정을 보여주니 손님이 가격을 묻지 않더라고요."</blockquote>
-          <span class="who"><span class="avatar">목</span>15년 차 목공방 대표</span>
+          <span class="field">공예 · 15년</span>
+          <blockquote>"작업 과정을 글로 남기니 손님이 가격을 묻지 않더라고요."</blockquote>
+          <span class="who"><span class="avatar">목</span>목공방 대표</span>
         </a>
         <a class="person" href="#">
-          <span class="field">식품</span>
-          <blockquote>"레시피를 공개해도 우리 맛은 못 따라옵니다. 그게 브랜드죠."</blockquote>
-          <span class="who"><span class="avatar">식</span>로컬 발효식품 셀러</span>
+          <span class="field">간호 · 24년</span>
+          <blockquote>"병동에서 배운 것을 칼럼으로 쓰니 후배들이 먼저 찾아옵니다."</blockquote>
+          <span class="who"><span class="avatar">간</span>전 수간호사, 전자책 저자</span>
         </a>
         <a class="person" href="#">
-          <span class="field">교육</span>
-          <blockquote>"강의가 상품이 되는 순간, 커리큘럼보다 후기가 중요해졌어요."</blockquote>
-          <span class="who"><span class="avatar">교</span>온라인 클래스 크리에이터</span>
+          <span class="field">제조 · 28년</span>
+          <blockquote>"은퇴가 끝인 줄 알았는데, 제 경험이 콘텐츠가 됐어요."</blockquote>
+          <span class="who"><span class="avatar">제</span>품질관리 엔지니어 출신 강사</span>
         </a>
         <a class="person" href="#">
-          <span class="field">뷰티</span>
-          <blockquote>"성분을 설명하는 영상이 광고보다 오래 팔립니다."</blockquote>
-          <span class="who"><span class="avatar">뷰</span>화장품 연구원 출신 창업자</span>
+          <span class="field">화장품 · 18년</span>
+          <blockquote>"성분을 설명하는 글이 광고보다 오래 읽힙니다."</blockquote>
+          <span class="who"><span class="avatar">뷰</span>연구원 출신 브랜드 대표</span>
         </a>
       </div>
     </div>
   </section>
 
   <section class="wrap desks" aria-label="분야별 뉴스">
-    <div class="desk" id="desk-creator">
-      <h3>크리에이터 <a href="#">더보기</a></h3>
+    <div class="desk" id="desk-books">
+      <h3>전문가의 책 <a href="#">더보기</a></h3>
       <a class="top" href="#">
         <span class="thumb" style="--x:25%;--y:60%"></span>
-        <h4 class="hl">채널 운영 3년 차, 수익 구조를 바꾼 크리에이터들</h4>
-        <p>광고 수익 의존에서 벗어나 자체 상품과 멤버십으로 옮겨간 사례를 정리했다.</p>
+        <h4 class="hl">칼럼 연재가 전자책이 되기까지, 세 저자의 출간기</h4>
+        <p>매주 한 편씩 쓴 칼럼이 한 권의 책으로 묶인 과정을 들었다.</p>
       </a>
       <ul>
-        <li><a href="#">숏폼 편집 외주 단가, 올해 어떻게 달라졌나</a></li>
-        <li><a href="#">MCN 계약서에서 꼭 확인할 조항</a></li>
+        <li><a href="#">ChatGPT로 전자책 초안 쓰기, 어디까지 맡길까</a></li>
+        <li><a href="#">이달의 전문가 신간</a></li>
+      </ul>
+    </div>
+    <div class="desk" id="desk-know">
+      <h3>현장 노하우 <a href="#">더보기</a></h3>
+      <a class="top" href="#">
+        <span class="thumb" style="--x:80%;--y:30%"></span>
+        <h4 class="hl">매뉴얼에는 없는 것, 베테랑의 현장 판단법</h4>
+        <p>분야별 베테랑들이 신입 시절 가장 먼저 배운 것을 물었다.</p>
+      </a>
+      <ul>
+        <li><a href="#">20년 차가 신입에게 꼭 해주는 말</a></li>
+        <li><a href="#">경험을 체크리스트로 바꾸는 법</a></li>
       </ul>
     </div>
     <div class="desk" id="desk-commerce">
-      <h3>커머스 <a href="#">더보기</a></h3>
-      <a class="top" href="#">
-        <span class="thumb" style="--x:80%;--y:30%"></span>
-        <h4 class="hl">라이브커머스 4년, 남은 셀러와 떠난 셀러의 차이</h4>
-        <p>방송 횟수보다 재구매율을 관리한 셀러가 살아남았다.</p>
-      </a>
-      <ul>
-        <li><a href="#">공동구매 정산 분쟁, 미리 막는 계약 방법</a></li>
-        <li><a href="#">연말 선물 수요, 카테고리별 준비 일정</a></li>
-      </ul>
-    </div>
-    <div class="desk" id="desk-industry">
-      <h3>산업·정책 <a href="#">더보기</a></h3>
+      <h3>크리에이터 커머스 <a href="#">더보기</a></h3>
       <a class="top" href="#">
         <span class="thumb" style="--x:50%;--y:50%"></span>
-        <h4 class="hl">뒷광고 논란 이후, 표시광고 가이드는 어디까지 왔나</h4>
-        <p>크리에이터와 브랜드가 지켜야 할 표시 기준을 사례 중심으로 살펴본다.</p>
+        <h4 class="hl">팔로워보다 신뢰… 전문가의 지식이 상품이 되는 방식</h4>
+        <p>강의, 전자책, 컨설팅까지 전문가 콘텐츠가 판매로 이어지는 흐름을 짚었다.</p>
       </a>
       <ul>
-        <li><a href="#">1인 사업자 지원사업, 내년 달라지는 점</a></li>
-        <li><a href="#">온라인 판매 통신판매업 신고 Q&amp;A</a></li>
+        <li><a href="#">전문가 강의 가격, 어떻게 정해야 하나</a></li>
+        <li><a href="#">뉴스레터 구독자를 고객으로 만드는 법</a></li>
       </ul>
     </div>
-    <div class="desk" id="desk-startup">
-      <h3>창업·브랜드 <a href="#">더보기</a></h3>
+    <div class="desk" id="desk-ai">
+      <h3>AI·콘텐츠 <a href="#">더보기</a></h3>
       <ul>
-        <li><a href="#">첫 제품 출시 전, 소량 테스트 판매하는 법</a></li>
-        <li><a href="#">브랜드 이름 상표 출원, 언제 해야 하나</a></li>
-        <li><a href="#">팬덤으로 시작한 브랜드의 두 번째 상품</a></li>
-        <li><a href="#">스마트스토어에서 자사몰로 옮긴 이유</a></li>
+        <li><a href="#">AI 시대에 오히려 귀해진 '현장 경험'</a></li>
+        <li><a href="#">전문가를 위한 AI 글쓰기 도구 활용법</a></li>
+        <li><a href="#">칼럼을 짧은 영상으로 바꾸는 순서</a></li>
+        <li><a href="#">AI가 쓴 글과 전문가가 쓴 글의 차이</a></li>
       </ul>
     </div>
-    <div class="desk" id="desk-tech">
-      <h3>테크·AI <a href="#">더보기</a></h3>
+    <div class="desk" id="desk-career">
+      <h3>두 번째 커리어 <a href="#">더보기</a></h3>
       <ul>
-        <li><a href="#">AI 자동 자막, 커머스 영상에 써도 될까</a></li>
-        <li><a href="#">상품 촬영을 대신하는 생성형 이미지의 한계</a></li>
-        <li><a href="#">셀러용 재고·주문 관리 도구 비교</a></li>
-        <li><a href="#">고객 문의 응대 자동화, 어디까지 맡기나</a></li>
+        <li><a href="#">퇴직 후 첫 칼럼, 무엇부터 써야 할까</a></li>
+        <li><a href="#">선배 시민의 디지털 역량, 글쓰기에서 시작한다</a></li>
+        <li><a href="#">경력 증명서 대신 칼럼 포트폴리오</a></li>
+        <li><a href="#">강연 요청이 들어오기 시작한 순간</a></li>
       </ul>
     </div>
     <div class="desk" id="desk-assoc">
       <h3>협회소식 <a href="#">더보기</a></h3>
       <ul>
-        <li><a href="#">크리에이터커머스협회, 회원사 실무 교육 일정 안내</a></li>
-        <li><a href="#">협회 주관 셀러 네트워킹 데이 개최</a></li>
-        <li><a href="#">크리에이터 공정거래 자율 가이드 의견 수렴</a></li>
-        <li><a href="#">신규 회원사 소개</a></li>
+        <li><a href="#">크리에이터커머스협회, 2027년 1월 출범식 추진</a></li>
+        <li><a href="#">협회, 경력 15년 이상 대상 '전문가 과정' 준비</a></li>
+        <li><a href="#">누구나 참여하는 'AI 전자책 쓰기 과정' 개설 예정</a></li>
+        <li><a href="#">협회 활동 전문가들의 전자책 출간 소식</a></li>
       </ul>
     </div>
   </section>
 
-  <section class="wrap split" aria-label="오피니언과 뉴스레터">
-    <div id="column">
-      <div class="sec-head"><div><h2>오피니언</h2></div><a class="more" href="#">칼럼 전체보기 →</a></div>
-      <div class="columns">
-        <a class="col-item" href="#"><span class="avatar">편</span><span><span class="series">편집장 레터</span><span class="hl">왜 '자기분야'라는 이름을 지었나</span><span class="meta">자기분야 편집국</span></span></a>
-        <a class="col-item" href="#"><span class="avatar">현</span><span><span class="series">현장에서</span><span class="hl">셀러에게 필요한 건 노출보다 신뢰다</span><span class="meta">커머스 실무자 기고</span></span></a>
-        <a class="col-item" href="#"><span class="avatar">법</span><span><span class="series">알아두면 쓸모 있는</span><span class="hl">크리에이터 계약서, 이 문장은 고치세요</span><span class="meta">법률 칼럼</span></span></a>
-        <a class="col-item" href="#"><span class="avatar">숫</span><span><span class="series">숫자로 읽기</span><span class="hl">재구매율 30%가 의미하는 것</span><span class="meta">데이터 칼럼</span></span></a>
-      </div>
+  <section class="wrap split" aria-label="필진 참여와 뉴스레터">
+    <div class="join" id="join">
+      <span class="label">필진 모집 · 상시</span>
+      <h2 class="hl">당신의 분야를<br>자기분야에 써 주세요</h2>
+      <p>한 분야에서 15년 이상 일한 분이라면 누구나 지원할 수 있습니다. 주제 정리부터 칼럼 편집, 발행까지 편집국이 함께합니다.</p>
+      <ul class="checks">
+        <li>경력 15년 이상, 분야 무관</li>
+        <li>주제·목차 정리를 편집국과 함께 진행</li>
+        <li>연재 칼럼은 전자책 출간으로 이어질 수 있음</li>
+      </ul>
+      <a class="btn primary" href="#tip">칼럼 기고 문의하기</a>
     </div>
 
     <div class="news" id="newsletter">
       <span class="label" style="color:inherit;opacity:.85">뉴스레터 · 매주 화요일</span>
-      <h2>자기 분야의 소식을<br>메일로 받아보세요</h2>
-      <p>크리에이터와 커머스 현장의 한 주를 정리해 보내드립니다.</p>
+      <h2>이번 주 전문가 칼럼을<br>메일로 받아보세요</h2>
+      <p>각 분야 전문가의 새 칼럼과 인터뷰를 한 번에 정리해 보내드립니다.</p>
       <form id="nl-form" novalidate>
         <label class="sr-only" for="nl-email">이메일 주소</label>
         <input id="nl-email" type="email" placeholder="이메일 주소" autocomplete="email" required>
@@ -453,11 +545,11 @@ footer .copy { color: var(--ink-3); }
     <div class="wrap">
       <div class="partner">
         <span class="role">운영</span>
-        <div><div class="org">주식회사 넥서스그룹</div><div class="desc">자기분야의 운영과 관리를 맡고 있습니다.</div></div>
+        <div><div class="org">주식회사 넥서스그룹</div><div class="desc">자기분야를 운영하고 관리합니다.</div></div>
       </div>
       <div class="partner">
         <span class="role">후원</span>
-        <div><div class="org">크리에이터커머스협회</div><div class="desc">자기분야를 후원합니다.</div></div>
+        <div><div class="org">크리에이터커머스협회</div><div class="desc">전문가의 지식을 콘텐츠와 커머스로 잇는 비영리 단체로, 자기분야를 후원합니다.</div></div>
       </div>
     </div>
   </section>
@@ -472,7 +564,7 @@ footer .copy { color: var(--ink-3); }
         <a href="#">청소년보호정책</a>
         <a href="#">이용약관</a>
         <a href="#">윤리강령</a>
-        <a href="#tip" id="tip">기사제보</a>
+        <a href="#tip" id="tip">기사제보·기고</a>
         <a href="#">광고·제휴문의</a>
       </nav>
     </div>
