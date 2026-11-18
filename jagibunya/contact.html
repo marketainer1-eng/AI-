@@ -63,6 +63,7 @@
           <div class="field"><label for="f-mail">이메일 <span class="req">*</span></label><input id="f-mail" type="email" autocomplete="email" required placeholder="name@example.com"></div>
           <div class="field full" id="expert-field"><label for="f-expert">희망 전문가</label><select id="f-expert"><option value="">추천받기</option></select></div>
           <div class="field full"><label for="f-body">문의 내용 <span class="req">*</span></label><textarea id="f-body" required placeholder="강의라면 주제, 대상, 인원, 희망 일정을 적어 주세요. 참여라면 분야와 경력을 적어 주세요."></textarea></div>
+          <input type="text" id="f-hp" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
           <p class="note">입력하신 정보는 문의 답변에만 사용합니다. <a class="more" href="privacy.html">개인정보처리방침</a></p>
           <div><button class="btn primary" type="submit">문의 보내기</button></div>
           <p class="msg" id="cmsg" role="status"></p>
@@ -114,12 +115,38 @@
     var to = window.SITE.email;
     if (!to) { msg.className = "msg err"; msg.textContent = "문의 받을 이메일이 아직 설정되지 않았습니다. assets/site.js의 email 값을 넣어 주세요."; return; }
     var type = document.querySelector('input[name="type"]:checked').value;
-    var lines = ["문의 유형: " + type, "이름: " + document.getElementById("f-name").value, "소속: " + document.getElementById("f-org").value,
-      "연락처: " + document.getElementById("f-tel").value, "이메일: " + document.getElementById("f-mail").value];
-    if (type === "강사 섭외·강의" && sel.value) lines.push("희망 전문가: " + sel.options[sel.selectedIndex].text);
-    lines.push("", document.getElementById("f-body").value);
-    location.href = "mailto:" + to + "?subject=" + encodeURIComponent("[자기분야 문의] " + type) + "&body=" + encodeURIComponent(lines.join("\n"));
-    msg.className = "msg"; msg.textContent = "메일 프로그램에서 내용을 확인하고 보내 주세요. 열리지 않으면 " + to + " 로 직접 보내 주세요.";
+    var data = {
+      _subject: "[자기분야 문의] " + type + " - " + document.getElementById("f-name").value.trim(),
+      _template: "table",
+      _captcha: "false",
+      "문의 유형": type,
+      "이름": document.getElementById("f-name").value.trim(),
+      "소속·기관": document.getElementById("f-org").value.trim(),
+      "연락처": document.getElementById("f-tel").value.trim(),
+      "이메일": document.getElementById("f-mail").value.trim(),
+      "문의 내용": document.getElementById("f-body").value.trim(),
+      _replyto: document.getElementById("f-mail").value.trim(),
+      _honey: document.getElementById("f-hp").value
+    };
+    if (type === "강사 섭외·강의" && sel.value) data["희망 전문가"] = sel.options[sel.selectedIndex].text;
+
+    var btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = "보내는 중…";
+    msg.className = "msg"; msg.textContent = "";
+    fetch(window.SITE.formEndpoint || ("https://formsubmit.co/ajax/" + to), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(data)
+    }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || String(res.j.success) !== "true") throw new Error(res.j.message || "send failed");
+        form.reset(); syncType();
+        msg.className = "msg"; msg.textContent = "문의가 접수되었습니다. 확인 후 남겨 주신 연락처로 답변드리겠습니다.";
+      })
+      .catch(function () {
+        msg.className = "msg err"; msg.textContent = "문의를 보내지 못했습니다. 잠시 후 다시 시도하거나 " + to + " 로 메일을 보내 주세요.";
+      })
+      .then(function () { btn.disabled = false; btn.textContent = "문의 보내기"; });
   });
 })();
 </script>

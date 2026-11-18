@@ -2,6 +2,7 @@
 window.SITE = {
   newsUrl: "http://jagibunya.news/",
   email: "marketainer1@gmail.com",   // 문의 받을 이메일 (하단, 문의 페이지, 문의 양식에 사용)
+  formEndpoint: "",   // 비워 두면 FormSubmit으로 email 주소에 발송. 다른 서비스를 쓰면 그 주소를 넣으세요.
   company: {
     operator: "주식회사 넥서스그룹",
     sponsor: "크리에이터커머스협회",
