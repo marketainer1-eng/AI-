@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>자기분야</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="자기분야 — 자기 분야에서 일하는 사람들의 뉴스. 크리에이터, 커머스, 전문가의 현장을 기록합니다.">
+<meta property="og:site_name" content="자기분야">
+<meta property="og:title" content="자기분야">
+<meta property="og:description" content="자기 분야에서 일하는 사람들의 뉴스">
+<meta property="og:url" content="http://jagibunya.news/">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: masthead → section nav → lead story with a ranked sidebar → "people of the field" interview strip → section desks → sponsor band → legal footer */
+:root {
+  --paper: #fbfbfd;
+  --ink: #12152a;
+  --ink-2: #4a4f68;
+  --ink-3: #80859c;
+  --line: #e2e4ee;
+  --panel: #f1f2f8;
+  --accent: #2a3fd6;          /* 자기분야 코발트 */
+  --accent-soft: #e6e9fc;
+  --hot: #e0472e;             /* 속보 */
+  --on-accent: #ffffff;
+  --thumb-a: #2a3fd6;
+  --thumb-b: #8b97f2;
+  --thumb-c: #12152a;
+  --f-display: "Nanum Myeongjo", "Noto Serif KR", "Apple SD Gothic Neo", serif;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --wrap: 1200px;
+  --gut: max(16px, env(safe-area-inset-left, 0px));
+  --gut-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1120; --ink: #eceef8; --ink-2: #b4b8cf; --ink-3: #7d829c;
+    --line: #262a42; --panel: #171a2e; --accent: #8c9bff; --accent-soft: #1d2246;
+    --hot: #ff7a62; --on-accent: #0f1120;
+    --thumb-a: #3d50e0; --thumb-b: #1d2246; --thumb-c: #8c9bff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1120; --ink: #eceef8; --ink-2: #b4b8cf; --ink-3: #7d829c;
+  --line: #262a42; --panel: #171a2e; --accent: #8c9bff; --accent-soft: #1d2246;
+  --hot: #ff7a62; --on-accent: #0f1120;
+  --thumb-a: #3d50e0; --thumb-b: #1d2246; --thumb-c: #8c9bff;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.6;
+  word-break: keep-all; overflow-wrap: anywhere;
+}
+a { color: inherit; text-decoration: none; }
+a:hover .hl, a:focus-visible .hl { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; text-decoration-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+img { max-width: 100%; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-left: var(--gut); padding-right: var(--gut-r); }
+.label { font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--accent); }
+.meta { font-size: 13px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.hl { font-family: var(--f-display); font-weight: 800; text-wrap: balance; letter-spacing: -.01em; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Utility bar */
+.util { background: var(--ink); color: var(--paper); font-size: 13px; }
+.util .wrap { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 7px; flex-wrap: wrap; }
+.util a { opacity: .8; }
+.util a:hover { opacity: 1; }
+.util nav { display: flex; gap: 16px; }
+
+/* Masthead */
+.mast .wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 16px; padding-block: 28px 20px; }
+.mast .left { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.mast .right { display: flex; justify-content: flex-end; gap: 8px; }
+.logo { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.logo .mark { display: flex; align-items: center; gap: 14px; }
+.logo svg { width: 42px; height: 42px; flex: none; }
+.logo .name { font-family: var(--f-display); font-weight: 800; font-size: clamp(40px, 7vw, 64px); line-height: 1; letter-spacing: -.02em; }
+.logo .tag { font-size: 13px; color: var(--ink-2); letter-spacing: .04em; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; border-radius: 999px;
+  font: 600 14px/1 var(--f-body); border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn:hover { border-color: var(--accent); }
+
+/* Section nav */
+.secnav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--paper); border-top: 2px solid var(--ink); border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper); }
+.secnav .wrap { display: flex; align-items: center; gap: 4px; }
+.secnav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; min-width: 0; }
+.secnav ul::-webkit-scrollbar { display: none; }
+.secnav li a { display: block; padding: 13px 14px; font-weight: 600; font-size: 15px; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.secnav li a:hover, .secnav li a[aria-current="page"] { color: var(--accent); border-bottom-color: var(--accent); }
+.search { display: flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 0 12px; height: 34px; flex: none; }
+.search input { border: 0; background: transparent; color: var(--ink); font: 14px var(--f-body); width: 140px; outline: none; }
+.search svg { width: 16px; height: 16px; color: var(--ink-3); }
+
+/* Ticker */
+.ticker { border-bottom: 1px solid var(--line); }
+.ticker .wrap { display: flex; align-items: center; gap: 14px; padding-block: 10px; min-width: 0; }
+.ticker .tag { flex: none; background: var(--hot); color: #fff; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 3px; letter-spacing: .04em; }
+.ticker .track { overflow: hidden; flex: 1; min-width: 0; position: relative; height: 24px; }
+.ticker .track a { position: absolute; inset: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; transition: transform .45s ease, opacity .45s ease; }
+.ticker .track a[data-state="out"] { transform: translateY(-100%); opacity: 0; }
+.ticker .track a[data-state="next"] { transform: translateY(100%); opacity: 0; }
+
+/* Lead area */
+.lead { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 40px; padding-block: 32px 40px; }
+.thumb {
+  position: relative; aspect-ratio: 16 / 9; max-width: 100%; border-radius: 4px; overflow: hidden;
+  background:
+    radial-gradient(circle at var(--x, 30%) var(--y, 40%), var(--thumb-b) 0 18%, transparent 19%),
+    repeating-radial-gradient(circle at var(--x, 30%) var(--y, 40%), transparent 0 22px, color-mix(in srgb, var(--paper) 18%, transparent) 22px 23px),
+    linear-gradient(135deg, var(--thumb-a), var(--thumb-c));
+}
+.thumb .cap { position: absolute; left: 12px; bottom: 10px; font-family: var(--f-mono); font-size: 11px; color: #fff; opacity: .85; letter-spacing: .06em; }
+.lead-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.lead-main .hl { font-size: clamp(28px, 4vw, 42px); line-height: 1.25; margin: 0; }
+.lead-main .dek { font-size: 18px; color: var(--ink-2); margin: 0; max-width: 62ch; }
+.related { list-style: none; margin: 4px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+.related a { font-weight: 500; font-size: 15px; display: flex; gap: 8px; }
+.related a::before { content: ""; flex: none; width: 5px; height: 5px; margin-top: 10px; background: var(--accent); border-radius: 50%; }
+
+aside.rank h2 { font-size: 15px; margin: 0 0 6px; padding-bottom: 10px; border-bottom: 2px solid var(--ink); display: flex; justify-content: space-between; align-items: baseline; }
+aside.rank ol { list-style: none; margin: 0; padding: 0; counter-reset: r; }
+aside.rank li { counter-increment: r; border-bottom: 1px solid var(--line); }
+aside.rank li a { display: grid; grid-template-columns: 34px 1fr; gap: 8px; padding: 13px 0; align-items: start; }
+aside.rank li a::before { content: counter(r); font-family: var(--f-display); font-weight: 800; font-size: 24px; line-height: 1.1; color: var(--accent); }
+aside.rank li:nth-child(n+4) a::before { color: var(--ink-3); }
+aside.rank .t { font-weight: 600; font-size: 15px; line-height: 1.45; }
+
+/* People strip */
+.people { background: var(--panel); padding-block: 44px; }
+.sec-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+.sec-head h2 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: clamp(24px, 3vw, 30px); letter-spacing: -.01em; }
+.sec-head p { margin: 4px 0 0; color: var(--ink-2); font-size: 15px; }
+.sec-head .more { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.people-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.person { display: flex; flex-direction: column; gap: 12px; background: var(--paper); border-radius: 6px; padding: 20px; border: 1px solid var(--line); }
+.person .field { display: inline-flex; align-self: flex-start; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; }
+.person blockquote { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 18px; line-height: 1.5; }
+.person .who { margin-top: auto; font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 10px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 700; font-size: 14px; color: var(--on-accent); background: var(--accent); }
+
+/* Desks */
+.desks { padding-block: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; }
+.desk { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.desk > h3 { margin: 0; padding-bottom: 10px; border-bottom: 2px solid var(--ink); font-size: 17px; display: flex; justify-content: space-between; align-items: baseline; }
+.desk > h3 a { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+.desk .top { display: flex; flex-direction: column; gap: 10px; }
+.desk .top .hl { font-size: 20px; line-height: 1.4; margin: 0; }
+.desk .top p { margin: 0; color: var(--ink-2); font-size: 15px; }
+.desk ul { list-style: none; margin: 0; padding: 0; }
+.desk ul li { border-top: 1px solid var(--line); }
+.desk ul a { display: block; padding: 10px 0; font-size: 15px; font-weight: 500; }
+
+/* Column + newsletter */
+.split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 40px; padding-block: 8px 48px; }
+.columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+.col-item { display: grid; grid-template-columns: 48px 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
+.col-item .series { font-size: 12px; color: var(--accent); font-weight: 600; }
+.col-item .hl { font-size: 17px; line-height: 1.45; display: block; margin: 2px 0 4px; }
+.news {
+  background: var(--accent); color: var(--on-accent); border-radius: 8px; padding: 28px;
+  display: flex; flex-direction: column; gap: 14px; align-self: start;
+}
+.news h2 { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 26px; line-height: 1.3; }
+.news p { margin: 0; opacity: .9; font-size: 15px; }
+.news form { display: flex; gap: 8px; flex-wrap: wrap; }
+.news input { flex: 1 1 200px; min-width: 0; height: 44px; border-radius: 6px; border: 0; padding: 0 14px; font: 15px var(--f-body); background: var(--paper); color: var(--ink); }
+.news button { height: 44px; padding: 0 18px; border-radius: 6px; border: 2px solid var(--on-accent); background: transparent; color: var(--on-accent); font: 700 15px var(--f-body); cursor: pointer; }
+.news button:hover { background: var(--on-accent); color: var(--accent); }
+.news .msg { font-size: 14px; font-weight: 600; min-height: 1.4em; }
+
+/* Sponsor band */
+.partners { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.partners .wrap { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.partner { display: flex; align-items: center; gap: 18px; padding: 26px 0; }
+.partner + .partner { border-left: 1px solid var(--line); padding-left: 32px; }
+.partner .role { font-size: 12px; font-weight: 600; letter-spacing: .08em; color: var(--ink-3); width: 64px; flex: none; }
+.partner .org { font-weight: 700; font-size: 18px; }
+.partner .desc { font-size: 14px; color: var(--ink-2); }
+
+/* Footer */
+footer { padding-block: 36px 48px; font-size: 13px; color: var(--ink-2); }
+footer .top { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+footer .flogo { font-family: var(--f-display); font-weight: 800; font-size: 26px; color: var(--ink); }
+footer .links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-weight: 600; color: var(--ink); align-items: center; }
+footer .links a:first-child { color: var(--accent); }
+footer dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 24px; margin: 20px 0; }
+footer dl div { display: flex; gap: 8px; }
+footer dt { color: var(--ink-3); flex: none; }
+footer dd { margin: 0; }
+footer .copy { color: var(--ink-3); }
+
+/* Mobile */
+@media (max-width: 960px) {
+  .lead { grid-template-columns: minmax(0, 1fr); }
+  .people-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .desks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .mast .wrap { grid-template-columns: 1fr; justify-items: center; padding-block: 20px 16px; }
+  .mast .left { text-align: center; }
+  .mast .right { display: none; }
+  .search { display: none; }
+  .util nav a.hide-sm { display: none; }
+  .related, .columns, .desks, .people-grid { grid-template-columns: minmax(0, 1fr); }
+  .partners .wrap { grid-template-columns: 1fr; }
+  .partner + .partner { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+  .lead-main .dek { font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker .track a { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="util">
+  <div class="wrap">
+    <span id="today">2026년 11월 18일 수요일</span>
+    <nav aria-label="이용 메뉴">
+      <a href="#newsletter">뉴스레터</a>
+      <a href="#tip" class="hide-sm">기사제보</a>
+      <a href="#partners" class="hide-sm">후원·제휴</a>
+      <a href="#login">로그인</a>
+    </nav>
+  </div>
+</div>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="left">자기 분야에서 일하는<br>사람들의 뉴스</div>
+    <a class="logo" href="#" aria-label="자기분야 홈">
+      <span class="mark">
+        <!-- 말굽자석: '자기(磁氣)'와 '자기(自己)'를 겹친 심볼 -->
+        <svg viewBox="0 0 42 42" aria-hidden="true">
+          <path d="M8 4h9v19a4 4 0 0 0 8 0V4h9v19a13 13 0 0 1-26 0z" fill="var(--accent)"/>
+          <rect x="8" y="4" width="9" height="6" fill="var(--ink)"/>
+          <rect x="25" y="4" width="9" height="6" fill="var(--ink)"/>
+        </svg>
+        <span class="name">자기분야</span>
+      </span>
+      <span class="tag">JAGIBUNYA.NEWS</span>
+    </a>
+    <div class="right">
+      <a class="btn" href="#tip">기사제보</a>
+      <a class="btn primary" href="#newsletter">구독하기</a>
+    </div>
+  </div>
+</header>
+
+<nav class="secnav" aria-label="섹션">
+  <div class="wrap">
+    <ul>
+      <li><a href="#" aria-current="page">전체</a></li>
+      <li><a href="#desk-creator">크리에이터</a></li>
+      <li><a href="#desk-commerce">커머스</a></li>
+      <li><a href="#people">자기분야 사람들</a></li>
+      <li><a href="#desk-industry">산업·정책</a></li>
+      <li><a href="#desk-startup">창업·브랜드</a></li>
+      <li><a href="#desk-tech">테크·AI</a></li>
+      <li><a href="#desk-assoc">협회소식</a></li>
+      <li><a href="#column">오피니언</a></li>
+    </ul>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="sr-only">기사 검색</span>
+      <input id="q" type="search" placeholder="기사 검색">
+    </label>
+  </div>
+</nav>
+
+<div class="ticker" aria-label="주요 소식">
+  <div class="wrap">
+    <span class="tag">주요</span>
+    <div class="track" id="ticker">
+      <a href="#">라이브커머스 거래액, 연말 성수기 앞두고 증가세</a>
+      <a href="#" data-state="next">크리에이터커머스협회, 신규 회원사 대상 실무 교육 개설</a>
+      <a href="#" data-state="next">숏폼 기반 셀러 창업 늘어… "콘텐츠가 곧 매장"</a>
+      <a href="#" data-state="next">1인 브랜드 정산 투명성 가이드라인 논의 본격화</a>
+    </div>
+  </div>
+</div>
+
+<main>
+  <section class="wrap lead" aria-label="머리기사">
+    <article class="lead-main">
+      <a href="#" class="thumb" style="--x:72%;--y:38%"><span class="cap">CREATOR × COMMERCE</span></a>
+      <span class="label">커버스토리 · 크리에이터 이코노미</span>
+      <a href="#"><h1 class="hl">팔로워 숫자보다 '자기 분야'가 먼저다<br>전문성으로 승부하는 크리에이터들</h1></a>
+      <p class="dek">요리사, 세무사, 목수, 트레이너. 자기 일의 노하우를 콘텐츠로 풀어내는 전문가형 크리에이터가 커머스 시장의 새 축으로 자리 잡고 있다. 이들이 신뢰를 매출로 바꾸는 방식을 들여다봤다.</p>
+      <span class="meta">자기분야 취재팀 · 2026.11.18 06:00</span>
+      <ul class="related">
+        <li><a href="#">전문가형 크리에이터가 말하는 '첫 1,000명'의 의미</a></li>
+        <li><a href="#">협찬과 리뷰 사이, 표시 의무 무엇이 바뀌나</a></li>
+        <li><a href="#">제품을 만드는 크리에이터, PB 상품 실패담</a></li>
+        <li><a href="#">데이터로 본 카테고리별 커머스 전환율</a></li>
+      </ul>
+    </article>
+
+    <aside class="rank" aria-label="많이 본 뉴스">
+      <h2>많이 본 뉴스 <span class="meta">오늘</span></h2>
+      <ol>
+        <li><a href="#"><span class="t">라이브방송 한 번에 재고 소진, 소상공인 셀러의 준비 체크리스트</span></a></li>
+        <li><a href="#"><span class="t">"알고리즘보다 단골" 구독형 커머스가 다시 뜨는 이유</span></a></li>
+        <li><a href="#"><span class="t">크리에이터 세무, 연말정산 전에 꼭 챙길 다섯 가지</span></a></li>
+        <li><a href="#"><span class="t">AI 상세페이지 도구, 써보니 어디까지 맡길 수 있나</span></a></li>
+        <li><a href="#"><span class="t">지역 특산물 셀러들, 숏폼으로 판로를 넓히다</span></a></li>
+        <li><a href="#"><span class="t">플랫폼 수수료 구조 한눈에 비교</span></a></li>
+      </ol>
+    </aside>
+  </section>
+
+  <section class="people" id="people" aria-labelledby="people-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <div>
+          <h2 id="people-h">자기분야 사람들</h2>
+          <p>한 분야를 오래 파고든 사람들의 일 이야기를 인터뷰로 전합니다.</p>
+        </div>
+        <a class="more" href="#">인터뷰 전체보기 →</a>
+      </div>
+      <div class="people-grid">
+        <a class="person" href="#">
+          <span class="field">공예</span>
+          <blockquote>"작업 과정을 보여주니 손님이 가격을 묻지 않더라고요."</blockquote>
+          <span class="who"><span class="avatar">목</span>15년 차 목공방 대표</span>
+        </a>
+        <a class="person" href="#">
+          <span class="field">식품</span>
+          <blockquote>"레시피를 공개해도 우리 맛은 못 따라옵니다. 그게 브랜드죠."</blockquote>
+          <span class="who"><span class="avatar">식</span>로컬 발효식품 셀러</span>
+        </a>
+        <a class="person" href="#">
+          <span class="field">교육</span>
+          <blockquote>"강의가 상품이 되는 순간, 커리큘럼보다 후기가 중요해졌어요."</blockquote>
+          <span class="who"><span class="avatar">교</span>온라인 클래스 크리에이터</span>
+        </a>
+        <a class="person" href="#">
+          <span class="field">뷰티</span>
+          <blockquote>"성분을 설명하는 영상이 광고보다 오래 팔립니다."</blockquote>
+          <span class="who"><span class="avatar">뷰</span>화장품 연구원 출신 창업자</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap desks" aria-label="분야별 뉴스">
+    <div class="desk" id="desk-creator">
+      <h3>크리에이터 <a href="#">더보기</a></h3>
+      <a class="top" href="#">
+        <span class="thumb" style="--x:25%;--y:60%"></span>
+        <h4 class="hl">채널 운영 3년 차, 수익 구조를 바꾼 크리에이터들</h4>
+        <p>광고 수익 의존에서 벗어나 자체 상품과 멤버십으로 옮겨간 사례를 정리했다.</p>
+      </a>
+      <ul>
+        <li><a href="#">숏폼 편집 외주 단가, 올해 어떻게 달라졌나</a></li>
+        <li><a href="#">MCN 계약서에서 꼭 확인할 조항</a></li>
+      </ul>
+    </div>
+    <div class="desk" id="desk-commerce">
+      <h3>커머스 <a href="#">더보기</a></h3>
+      <a class="top" href="#">
+        <span class="thumb" style="--x:80%;--y:30%"></span>
+        <h4 class="hl">라이브커머스 4년, 남은 셀러와 떠난 셀러의 차이</h4>
+        <p>방송 횟수보다 재구매율을 관리한 셀러가 살아남았다.</p>
+      </a>
+      <ul>
+        <li><a href="#">공동구매 정산 분쟁, 미리 막는 계약 방법</a></li>
+        <li><a href="#">연말 선물 수요, 카테고리별 준비 일정</a></li>
+      </ul>
+    </div>
+    <div class="desk" id="desk-industry">
+      <h3>산업·정책 <a href="#">더보기</a></h3>
+      <a class="top" href="#">
+        <span class="thumb" style="--x:50%;--y:50%"></span>
+        <h4 class="hl">뒷광고 논란 이후, 표시광고 가이드는 어디까지 왔나</h4>
+        <p>크리에이터와 브랜드가 지켜야 할 표시 기준을 사례 중심으로 살펴본다.</p>
+      </a>
+      <ul>
+        <li><a href="#">1인 사업자 지원사업, 내년 달라지는 점</a></li>
+        <li><a href="#">온라인 판매 통신판매업 신고 Q&amp;A</a></li>
+      </ul>
+    </div>
+    <div class="desk" id="desk-startup">
+      <h3>창업·브랜드 <a href="#">더보기</a></h3>
+      <ul>
+        <li><a href="#">첫 제품 출시 전, 소량 테스트 판매하는 법</a></li>
+        <li><a href="#">브랜드 이름 상표 출원, 언제 해야 하나</a></li>
+        <li><a href="#">팬덤으로 시작한 브랜드의 두 번째 상품</a></li>
+        <li><a href="#">스마트스토어에서 자사몰로 옮긴 이유</a></li>
+      </ul>
+    </div>
+    <div class="desk" id="desk-tech">
+      <h3>테크·AI <a href="#">더보기</a></h3>
+      <ul>
+        <li><a href="#">AI 자동 자막, 커머스 영상에 써도 될까</a></li>
+        <li><a href="#">상품 촬영을 대신하는 생성형 이미지의 한계</a></li>
+        <li><a href="#">셀러용 재고·주문 관리 도구 비교</a></li>
+        <li><a href="#">고객 문의 응대 자동화, 어디까지 맡기나</a></li>
+      </ul>
+    </div>
+    <div class="desk" id="desk-assoc">
+      <h3>협회소식 <a href="#">더보기</a></h3>
+      <ul>
+        <li><a href="#">크리에이터커머스협회, 회원사 실무 교육 일정 안내</a></li>
+        <li><a href="#">협회 주관 셀러 네트워킹 데이 개최</a></li>
+        <li><a href="#">크리에이터 공정거래 자율 가이드 의견 수렴</a></li>
+        <li><a href="#">신규 회원사 소개</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="wrap split" aria-label="오피니언과 뉴스레터">
+    <div id="column">
+      <div class="sec-head"><div><h2>오피니언</h2></div><a class="more" href="#">칼럼 전체보기 →</a></div>
+      <div class="columns">
+        <a class="col-item" href="#"><span class="avatar">편</span><span><span class="series">편집장 레터</span><span class="hl">왜 '자기분야'라는 이름을 지었나</span><span class="meta">자기분야 편집국</span></span></a>
+        <a class="col-item" href="#"><span class="avatar">현</span><span><span class="series">현장에서</span><span class="hl">셀러에게 필요한 건 노출보다 신뢰다</span><span class="meta">커머스 실무자 기고</span></span></a>
+        <a class="col-item" href="#"><span class="avatar">법</span><span><span class="series">알아두면 쓸모 있는</span><span class="hl">크리에이터 계약서, 이 문장은 고치세요</span><span class="meta">법률 칼럼</span></span></a>
+        <a class="col-item" href="#"><span class="avatar">숫</span><span><span class="series">숫자로 읽기</span><span class="hl">재구매율 30%가 의미하는 것</span><span class="meta">데이터 칼럼</span></span></a>
+      </div>
+    </div>
+
+    <div class="news" id="newsletter">
+      <span class="label" style="color:inherit;opacity:.85">뉴스레터 · 매주 화요일</span>
+      <h2>자기 분야의 소식을<br>메일로 받아보세요</h2>
+      <p>크리에이터와 커머스 현장의 한 주를 정리해 보내드립니다.</p>
+      <form id="nl-form" novalidate>
+        <label class="sr-only" for="nl-email">이메일 주소</label>
+        <input id="nl-email" type="email" placeholder="이메일 주소" autocomplete="email" required>
+        <button type="submit">구독하기</button>
+      </form>
+      <div class="msg" id="nl-msg" role="status"></div>
+    </div>
+  </section>
+
+  <section class="partners" id="partners" aria-label="운영 및 후원">
+    <div class="wrap">
+      <div class="partner">
+        <span class="role">운영</span>
+        <div><div class="org">주식회사 넥서스그룹</div><div class="desc">자기분야의 운영과 관리를 맡고 있습니다.</div></div>
+      </div>
+      <div class="partner">
+        <span class="role">후원</span>
+        <div><div class="org">크리에이터커머스협회</div><div class="desc">자기분야를 후원합니다.</div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="top">
+      <span class="flogo">자기분야</span>
+      <nav class="links" aria-label="정책">
+        <a href="#">개인정보처리방침</a>
+        <a href="#">청소년보호정책</a>
+        <a href="#">이용약관</a>
+        <a href="#">윤리강령</a>
+        <a href="#tip" id="tip">기사제보</a>
+        <a href="#">광고·제휴문의</a>
+      </nav>
+    </div>
+    <dl>
+      <div><dt>제호</dt><dd>자기분야</dd></div>
+      <div><dt>운영</dt><dd>주식회사 넥서스그룹</dd></div>
+      <div><dt>후원</dt><dd>크리에이터커머스협회</dd></div>
+      <div><dt>등록번호</dt><dd>[등록번호 입력]</dd></div>
+      <div><dt>등록일</dt><dd>[등록일 입력]</dd></div>
+      <div><dt>발행인·편집인</dt><dd>[성명 입력]</dd></div>
+      <div><dt>청소년보호책임자</dt><dd>[성명 입력]</dd></div>
+      <div><dt>주소</dt><dd>[주소 입력]</dd></div>
+      <div><dt>대표전화</dt><dd>[전화번호 입력]</dd></div>
+      <div><dt>이메일</dt><dd>[이메일 입력]</dd></div>
+    </dl>
+    <p class="copy">자기분야의 모든 콘텐츠는 저작권법의 보호를 받으며, 무단 전재·복사·배포를 금합니다.<br>Copyright © <span id="year">2026</span> 자기분야. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var now = new Date();
+  var days = ['일', '월', '화', '수', '목', '금', '토'];
+  document.getElementById('today').textContent =
+    now.getFullYear() + '년 ' + (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + days[now.getDay()] + '요일';
+  document.getElementById('year').textContent = now.getFullYear();
+
+  // 주요 소식 롤링
+  var items = Array.prototype.slice.call(document.querySelectorAll('#ticker a'));
+  var i = 0;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (items.length > 1) {
+    setInterval(function () {
+      var cur = items[i];
+      var nxt = items[(i + 1) % items.length];
+      cur.setAttribute('data-state', 'out');
+      nxt.removeAttribute('data-state');
+      setTimeout(function () { cur.setAttribute('data-state', 'next'); }, reduce ? 0 : 500);
+      i = (i + 1) % items.length;
+    }, 4000);
+  }
+
+  // 뉴스레터 폼 (서버 연동 전 안내)
+  var form = document.getElementById('nl-form');
+  var email = document.getElementById('nl-email');
+  var msg = document.getElementById('nl-msg');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+      msg.textContent = '이메일 주소를 확인해 주세요. 예: name@example.com';
+      email.focus();
+      return;
+    }
+    msg.textContent = '뉴스레터 발송 시스템 연동 후 구독이 시작됩니다. (입력: ' + v + ')';
+    form.reset();
+  });
+})();
+</script>
+</body>
+</html>
