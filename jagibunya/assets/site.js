@@ -1,13 +1,13 @@
 /* 자기분야 공통 스크립트: 헤더·푸터, 모바일 메뉴, 전문가 카드 */
 window.SITE = {
   newsUrl: "http://jagibunya.news/",
-  email: "",            // 문의 받을 이메일 주소를 넣으세요. 예: "contact@example.com"
+  email: "marketainer1@gmail.com",   // 문의 받을 이메일 (하단, 문의 페이지, 문의 양식에 사용)
   company: {
     operator: "주식회사 넥서스그룹",
     sponsor: "크리에이터커머스협회",
-    ceo: "[대표자명 입력]",
-    bizNo: "[사업자등록번호 입력]",
-    address: "[주소 입력]"
+    ceo: "고아라",
+    bizNo: "314-86-66472",
+    address: "서울 강남구 테헤란로82길 15 디아이타워 738호"
   }
 };
 
