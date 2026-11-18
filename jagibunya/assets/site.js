@@ -5,6 +5,7 @@ window.SITE = {
   formEndpoint: "",   // 비워 두면 FormSubmit으로 email 주소에 발송. 다른 서비스를 쓰면 그 주소를 넣으세요.
   company: {
     operator: "주식회사 넥서스그룹",
+    operatorUrl: "https://nexusgroup1.netlify.app/",
     sponsor: "크리에이터커머스협회",
     ceo: "고아라",
     bizNo: "314-86-66472",
@@ -62,7 +63,7 @@ window.SITE = {
           '<a class="ext" href="' + S.newsUrl + '" target="_blank" rel="noopener">자기분야 뉴스</a></nav></div>' +
         '<div class="legal"><a href="privacy.html">개인정보처리방침</a></div>' +
         "<dl>" +
-          "<div><dt>운영</dt><dd>" + esc(c.operator) + "</dd></div>" +
+          "<div><dt>운영</dt><dd>" + (c.operatorUrl ? '<a href="' + esc(c.operatorUrl) + '" target="_blank" rel="noopener">' + esc(c.operator) + " ↗</a>" : esc(c.operator)) + "</dd></div>" +
           "<div><dt>후원</dt><dd>" + esc(c.sponsor) + "</dd></div>" +
           "<div><dt>대표자</dt><dd>" + esc(c.ceo) + "</dd></div>" +
           "<div><dt>사업자등록번호</dt><dd>" + esc(c.bizNo) + "</dd></div>" +
