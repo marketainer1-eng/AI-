@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>문의 | 자기분야</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="강사 섭외, 전문가 참여, 기관 협력 문의를 남겨 주세요.">
+<meta property="og:site_name" content="자기분야">
+<meta property="og:title" content="문의 | 자기분야">
+<meta property="og:description" content="강사 섭외, 전문가 참여, 기관 협력 문의를 남겨 주세요.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="contact.html">
+<header id="site-header" class="site-header"></header>
+<main id="main">
+<section class="page-head">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="현재 위치"><a href="index.html">홈</a><span aria-hidden="true">/</span><span>문의</span></nav>
+    <span class="label">문의</span>
+    <h1 class="hl">함께할 분을 기다립니다</h1>
+    <p>강사 섭외, 전문가 참여, 기관 협력 중 해당하는 문의를 남겨 주세요.</p>
+  </div>
+</section>
+<section class="block">
+  <div class="wrap">
+    <div class="contact-grid" style="margin-bottom:48px">
+      <div class="ct a" id="lecture">
+        <h3>강사 섭외·강의 문의</h3>
+        <p>소개된 전문가의 강의, 특강, 자문이 필요한 기관과 기업은 연락 주세요. 주제와 일정, 대상을 알려 주시면 맞는 전문가를 연결해 드립니다.</p>
+        <span class="mail" data-email></span>
+      </div>
+      <div class="ct b" id="join">
+        <h3>전문가로 참여하기</h3>
+        <p>한 분야에서 15년 이상 일했다면 분야와 관계없이 지원할 수 있습니다. 주제 정리부터 칼럼 발행까지 편집국이 함께합니다.</p>
+        <span class="mail" data-email></span>
+      </div>
+    </div>
+
+    <div class="two">
+      <div>
+        <span class="label">문의 남기기</span>
+        <h2 class="hl" id="partner">무엇을 도와드릴까요?</h2>
+        <p class="muted">문의를 남기시면 확인 후 연락드립니다. 메일로 직접 보내셔도 됩니다.</p>
+      </div>
+      <div class="form-wrap">
+        <form class="form" id="cform" novalidate>
+          <fieldset class="field full">
+            <legend>문의 유형</legend>
+            <div class="seg">
+              <label><input type="radio" name="type" id="t-lecture" value="강사 섭외·강의" checked> 강사 섭외·강의</label>
+              <label><input type="radio" name="type" id="t-join" value="전문가 참여"> 전문가 참여</label>
+              <label><input type="radio" name="type" id="t-partner" value="기관 협력"> 기관 협력</label>
+            </div>
+          </fieldset>
+          <div class="field"><label for="f-name">이름 <span class="req">*</span></label><input id="f-name" autocomplete="name" required></div>
+          <div class="field"><label for="f-org">소속·기관</label><input id="f-org" autocomplete="organization"></div>
+          <div class="field"><label for="f-tel">연락처 <span class="req">*</span></label><input id="f-tel" type="tel" autocomplete="tel" required placeholder="010-0000-0000"></div>
+          <div class="field"><label for="f-mail">이메일 <span class="req">*</span></label><input id="f-mail" type="email" autocomplete="email" required placeholder="name@example.com"></div>
+          <div class="field full" id="expert-field"><label for="f-expert">희망 전문가</label><select id="f-expert"><option value="">추천받기</option></select></div>
+          <div class="field full"><label for="f-body">문의 내용 <span class="req">*</span></label><textarea id="f-body" required placeholder="강의라면 주제, 대상, 인원, 희망 일정을 적어 주세요. 참여라면 분야와 경력을 적어 주세요."></textarea></div>
+          <p class="note">입력하신 정보는 문의 답변에만 사용합니다. <a class="more" href="privacy.html">개인정보처리방침</a></p>
+          <div><button class="btn primary" type="submit">문의 보내기</button></div>
+          <p class="msg" id="cmsg" role="status"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer id="site-footer" class="site-footer"></footer>
+<script src="assets/experts.js"></script>
+<script src="assets/site.js"></script>
+<script>
+(function () {
+  var sel = document.getElementById("f-expert");
+  window.EXPERTS.forEach(function (e) {
+    var o = document.createElement("option");
+    o.value = e.id; o.textContent = e.role + " (" + e.name + ")";
+    sel.appendChild(o);
+  });
+  var expertField = document.getElementById("expert-field");
+  function syncType() { expertField.hidden = !document.getElementById("t-lecture").checked; }
+  function fromHash() {
+    var h = location.hash.slice(1);
+    if (h === "join") document.getElementById("t-join").checked = true;
+    else if (h === "partner") document.getElementById("t-partner").checked = true;
+    else if (h.indexOf("lecture") === 0) {
+      document.getElementById("t-lecture").checked = true;
+      var id = h.slice(8);
+      if (id) { sel.value = id; document.getElementById("cform").scrollIntoView(); }
+    }
+    syncType();
+  }
+  document.querySelectorAll('input[name="type"]').forEach(function (r) { r.addEventListener("change", syncType); });
+  window.addEventListener("hashchange", fromHash);
+  fromHash();
+
+  var form = document.getElementById("cform"), msg = document.getElementById("cmsg");
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var need = [["f-name", "이름"], ["f-tel", "연락처"], ["f-mail", "이메일"], ["f-body", "문의 내용"]];
+    for (var i = 0; i < need.length; i++) {
+      var el = document.getElementById(need[i][0]);
+      if (!el.value.trim()) { msg.className = "msg err"; msg.textContent = need[i][1] + "을(를) 입력해 주세요."; el.focus(); return; }
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(document.getElementById("f-mail").value.trim())) {
+      msg.className = "msg err"; msg.textContent = "이메일 주소를 확인해 주세요. 예: name@example.com"; document.getElementById("f-mail").focus(); return;
+    }
+    var to = window.SITE.email;
+    if (!to) { msg.className = "msg err"; msg.textContent = "문의 받을 이메일이 아직 설정되지 않았습니다. assets/site.js의 email 값을 넣어 주세요."; return; }
+    var type = document.querySelector('input[name="type"]:checked').value;
+    var lines = ["문의 유형: " + type, "이름: " + document.getElementById("f-name").value, "소속: " + document.getElementById("f-org").value,
+      "연락처: " + document.getElementById("f-tel").value, "이메일: " + document.getElementById("f-mail").value];
+    if (type === "강사 섭외·강의" && sel.value) lines.push("희망 전문가: " + sel.options[sel.selectedIndex].text);
+    lines.push("", document.getElementById("f-body").value);
+    location.href = "mailto:" + to + "?subject=" + encodeURIComponent("[자기분야 문의] " + type) + "&body=" + encodeURIComponent(lines.join("\n"));
+    msg.className = "msg"; msg.textContent = "메일 프로그램에서 내용을 확인하고 보내 주세요. 열리지 않으면 " + to + " 로 직접 보내 주세요.";
+  });
+})();
+</script>
+</body>
+</html>
