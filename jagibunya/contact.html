@@ -81,7 +81,7 @@
   var sel = document.getElementById("f-expert");
   window.EXPERTS.forEach(function (e) {
     var o = document.createElement("option");
-    o.value = e.id; o.textContent = e.role + " (" + e.name + ")";
+    o.value = e.id; o.textContent = e.name + " · " + e.role;
     sel.appendChild(o);
   });
   var expertField = document.getElementById("expert-field");

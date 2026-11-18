@@ -40,32 +40,49 @@
 <script>
 (function () {
   var all = window.EXPERTS, F = window.EXPERT_FIELDS, esc = window.esc;
+  function sec(title, html) { return html ? "<section><h2>" + title + "</h2>" + html + "</section>" : ""; }
   function render() {
     var id = decodeURIComponent(location.hash.slice(1));
     var e = all.filter(function (x) { return x.id === id; })[0] || all[0];
-    document.title = e.role + " | 자기분야";
-    document.getElementById("crumb").textContent = e.role;
+    document.title = e.name + " · " + e.role + " | 자기분야";
+    document.getElementById("crumb").textContent = e.name;
     document.getElementById("profile").innerHTML =
-      '<span class="avatar lg">' + esc(e.initial) + "</span><div>" +
+      window.expertAvatar(e, "lg") + "<div>" +
       '<span class="label">' + esc(F[e.field]) + "</span>" +
       '<h1 class="hl">' + esc(e.name) + "</h1>" +
       '<div class="role">' + esc(e.role) + "</div>" +
-      '<div class="stats"><span class="tag">' + esc(F[e.field]) + '</span><span class="tag plain">경력 ' + esc(e.years) + "년</span><span class=\"tag plain\">강의 주제 " + e.topics.length + "개</span></div></div>";
+      (e.org ? '<div class="p-org">' + esc(e.org) + "</div>" : "") +
+      '<div class="stats">' + window.expertStats(e) + "</div></div>";
+    var list = function (arr, fn) { return arr && arr.length ? arr.map(fn).join("") : ""; };
     document.getElementById("detail").innerHTML =
       "<div>" +
-        "<section><h2>소개</h2><p class=\"prose\" style=\"margin:0\">" + esc(e.summary) + "</p></section>" +
-        "<section><h2>강의 주제</h2>" + e.topics.map(function (t) {
-          return '<div class="lecture"><b>' + esc(t.title) + "</b><span>대상 " + esc(t.target) + " · " + esc(t.length) + "</span></div>";
-        }).join("") + "</section>" +
-        "<section><h2>주요 경력</h2><ul class=\"timeline\">" + e.career.map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("") + "</ul></section>" +
-        "<section><h2>자기분야에 소개된 글</h2><ul class=\"art-list\">" + e.articles.map(function (a) {
-          return '<li><a href="' + esc(a.url) + '" target="_blank" rel="noopener"><span>' + esc(a.title) + ' ↗</span><span class="k">' + esc(a.kind) + "</span></a></li>";
-        }).join("") + "</ul></section>" +
+        sec("소개", '<p class="prose" style="margin:0">' + esc(e.summary) + "</p>") +
+        sec("강의 분야", list(e.topics, function (t) {
+          return '<div class="lecture"><b>' + esc(t.title) + "</b>" + (t.target ? "<span>대상: " + esc(t.target) + "</span>" : "") + "</div>";
+        })) +
+        sec("주요 경력", e.career && e.career.length ? '<ul class="timeline">' + list(e.career, function (c) {
+          return '<li><span class="p">' + esc(c[0]) + '</span><span class="t">' + esc(c[1]) + "</span></li>";
+        }) + "</ul>" : "") +
+        sec("주요 강의·협업 기관", e.orgs && e.orgs.length ? '<div class="org-tags">' + list(e.orgs, function (o) { return "<span>" + esc(o) + "</span>"; }) + "</div>" : "") +
+        sec("저서", e.books && e.books.length ? '<ul class="book-list">' + list(e.books, function (b) {
+          return '<li><span class="y">' + esc(b[0]) + "</span><span>" + esc(b[1]) + "</span></li>";
+        }) + "</ul>" : "") +
+        sec("자격·수상", e.credentials && e.credentials.length ? '<ul class="book-list">' + list(e.credentials, function (c) {
+          return '<li style="grid-template-columns:1fr"><span>' + esc(c) + "</span></li>";
+        }) + "</ul>" : "") +
+        sec("학력", e.education && e.education.length ? '<ul class="book-list">' + list(e.education, function (c) {
+          return '<li style="grid-template-columns:1fr"><span>' + esc(c) + "</span></li>";
+        }) + "</ul>" : "") +
+        sec("칼럼·연재", e.articles && e.articles.length ? '<ul class="art-list">' + list(e.articles, function (a) {
+          return a.url ? '<li><a href="' + esc(a.url) + '" target="_blank" rel="noopener"><span>' + esc(a.title) + ' ↗</span><span class="k">' + esc(a.kind) + "</span></a></li>"
+            : '<li><a><span>' + esc(a.title) + '</span><span class="k">' + esc(a.kind) + "</span></a></li>";
+        }) + "</ul>" : "") +
       "</div>" +
-      '<aside class="aside-card"><span class="label">강의·자문 요청</span><h3>이 전문가에게 강의를 요청하세요</h3>' +
-        "<p>주제, 대상, 일정을 알려 주시면 자기분야가 전문가와 일정을 조율해 연결해 드립니다.</p>" +
+      '<aside class="aside-card"><span class="label">강의·자문 요청</span><h3>' + esc(e.name) + " 강사에게 강의를 요청하세요</h3>" +
+        "<p>주제, 대상, 일정을 알려 주시면 자기분야가 일정을 조율해 연결해 드립니다.</p>" +
         '<a class="btn primary" href="contact.html#lecture-' + esc(e.id) + '">강의 문의하기</a>' +
-        '<a class="btn" href="' + esc(e.articles[0] ? e.articles[0].url : window.SITE.newsUrl) + '" target="_blank" rel="noopener">칼럼 읽기 ↗</a></aside>';
+        (e.articles && e.articles.length ? '<a class="btn" href="' + esc(e.articles[0].url) + '" target="_blank" rel="noopener">칼럼 읽기 ↗</a>' : "") +
+      "</aside>";
     document.getElementById("others").innerHTML = all.filter(function (x) { return x.id !== e.id; }).slice(0, 3).map(window.expertCard).join("");
     window.scrollTo(0, 0);
   }

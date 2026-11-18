@@ -78,14 +78,23 @@ window.SITE = {
   document.querySelectorAll("a[data-news]").forEach(function (a) { a.href = S.newsUrl; a.target = "_blank"; a.rel = "noopener"; });
 
   // 전문가 카드
-  window.expertCard = function (e) {
+  window.expertAvatar = function (e, cls) {
+    return '<span class="avatar' + (cls ? " " + cls : "") + '">' +
+      (e.photo ? '<img src="' + esc(e.photo) + '" alt="' + esc(e.name) + ' 사진" loading="lazy">' : esc(e.initial)) + "</span>";
+  };
+  window.expertStats = function (e) {
     var F = window.EXPERT_FIELDS || {};
+    return '<span class="tag">' + esc(F[e.field] || "") + "</span>" +
+      (e.years ? '<span class="tag plain">실무 ' + esc(e.years) + "년</span>" : "") +
+      (e.lectureYears ? '<span class="tag plain">강의 ' + esc(e.lectureYears) + "년</span>" : "");
+  };
+  window.expertCard = function (e) {
     var url = "expert.html#" + e.id;
     return '<article class="expert" data-f="' + esc(e.field) + '">' +
-      '<a class="top" href="' + url + '"><span class="avatar">' + esc(e.initial) + "</span><div>" +
+      '<a class="top" href="' + url + '">' + window.expertAvatar(e) + "<div>" +
         '<div class="name">' + esc(e.name) + '</div><div class="role">' + esc(e.role) + "</div></div></a>" +
-      '<div class="stats"><span class="tag">' + esc(F[e.field] || "") + '</span><span class="tag plain">경력 ' + esc(e.years) + "년</span></div>" +
-      '<ul class="topics"><li class="k">강의 주제</li>' + e.topics.map(function (t) { return "<li>" + esc(t.title) + "</li>"; }).join("") + "</ul>" +
+      '<div class="stats">' + window.expertStats(e) + "</div>" +
+      '<ul class="topics"><li class="k">강의 분야</li>' + e.topics.slice(0, 3).map(function (t) { return "<li>" + esc(t.title) + "</li>"; }).join("") + "</ul>" +
       '<div class="acts"><a class="btn sm primary" href="' + url + '">프로필 보기</a><a class="btn sm" href="contact.html#lecture-' + esc(e.id) + '">강의 문의</a></div>' +
     "</article>";
   };
