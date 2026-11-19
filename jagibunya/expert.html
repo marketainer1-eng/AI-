@@ -58,8 +58,11 @@
       "<div>" +
         sec("소개", '<p class="prose" style="margin:0">' + esc(e.summary) + "</p>") +
         sec("강의 분야", list(e.topics, function (t) {
-          return '<div class="lecture"><b>' + esc(t.title) + "</b>" + (t.target ? "<span>대상: " + esc(t.target) + "</span>" : "") + "</div>";
+          return '<div class="lecture"><b>' + esc(t.title) + "</b>" + (t.desc ? "<span>" + esc(t.desc) + "</span>" : "") + (t.target ? "<span>대상: " + esc(t.target) + "</span>" : "") + "</div>";
         })) +
+        sec("활동 분야", e.activities && e.activities.length ? '<dl class="facts">' + list(e.activities, function (a) {
+          return "<dt>" + esc(a[0]) + "</dt><dd>" + esc(a[1]) + "</dd>";
+        }) + "</dl>" : "") +
         sec("주요 경력", e.career && e.career.length ? '<ul class="timeline">' + list(e.career, function (c) {
           return '<li><span class="p">' + esc(c[0]) + '</span><span class="t">' + esc(c[1]) + "</span></li>";
         }) + "</ul>" : "") +
