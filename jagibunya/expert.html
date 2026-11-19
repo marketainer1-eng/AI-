@@ -73,7 +73,7 @@
         sec("학력", e.education && e.education.length ? '<ul class="book-list">' + list(e.education, function (c) {
           return '<li style="grid-template-columns:1fr"><span>' + esc(c) + "</span></li>";
         }) + "</ul>" : "") +
-        sec("칼럼·연재", e.articles && e.articles.length ? '<ul class="art-list">' + list(e.articles, function (a) {
+        sec("칼럼·링크", e.articles && e.articles.length ? '<ul class="art-list">' + list(e.articles, function (a) {
           return a.url ? '<li><a href="' + esc(a.url) + '" target="_blank" rel="noopener"><span>' + esc(a.title) + ' ↗</span><span class="k">' + esc(a.kind) + "</span></a></li>"
             : '<li><a><span>' + esc(a.title) + '</span><span class="k">' + esc(a.kind) + "</span></a></li>";
         }) + "</ul>" : "") +
@@ -81,7 +81,7 @@
       '<aside class="aside-card"><span class="label">강의·자문 요청</span><h3>' + esc(e.name) + " 강사에게 강의를 요청하세요</h3>" +
         "<p>주제, 대상, 일정을 알려 주시면 자기분야가 일정을 조율해 연결해 드립니다.</p>" +
         '<a class="btn primary" href="contact.html#lecture-' + esc(e.id) + '">강의 문의하기</a>' +
-        (e.articles && e.articles.length ? '<a class="btn" href="' + esc(e.articles[0].url) + '" target="_blank" rel="noopener">칼럼 읽기 ↗</a>' : "") +
+        (e.articles && e.articles.length && e.articles[0].url ? '<a class="btn" href="' + esc(e.articles[0].url) + '" target="_blank" rel="noopener">' + (/포트폴리오/.test(e.articles[0].kind) ? "포트폴리오 보기" : "칼럼 읽기") + " ↗</a>" : "") +
       "</aside>";
     document.getElementById("others").innerHTML = all.filter(function (x) { return x.id !== e.id; }).slice(0, 3).map(window.expertCard).join("");
     window.scrollTo(0, 0);
